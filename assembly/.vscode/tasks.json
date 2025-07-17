@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Build main.cpp",
+			"command": "g++ -g -std=c++17 -Icommon -Itokenizer -Iparser main.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o main.exe",
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			]
+		}
+	]
+}

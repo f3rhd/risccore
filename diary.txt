@@ -1,0 +1,119 @@
+Date : 7/15/2025
+    Today is the day I start building 32 bit cpu that uses RISC-V arcitechture.
+    I have finished building ALU
+    Following are the control signals for ALU:
+        000 - A^B
+        001 - A&B
+        010 - A+B
+        011 - A<<B (logical)
+        100 - A>>B (logical)
+        101 - A>>B (arithmetic)
+        110 - A-B
+        111 - A|B
+    Now, I am building the register file.
+    Register file is done. 9:24 PM
+
+    9:56 PM R type instructions and I type arithmetic instruction designs are done.
+    I'm going to add store and load stuff for now.
+    Fuck, i forgot byte address shit doesnt work as intended in logisim evo
+    I will explore additional libraries 
+Date: 7/16/2025
+    Turns out i will have to implement my own ram
+    I almost finished it:
+    Ram read control signals:
+        000 - READ_WORD 
+        010 - READ_HALF_WORD - ZERO_EXTEND (lhu)
+        011 - READ_HALF_WORD - SIGN_EXTEND (lh)
+        100 - READ_BYTE - ZERO_EXTEND (lbu)
+        101 - READ_BYTE - SIGN_EXTEND  (lb)
+
+
+    Ram write signals:
+        00 - WRITE_WORD
+        01 - WRITE_HALF_WORD
+        10 - WRITE_BYTE
+        11 - NO_WRITE
+    System is little endian
+    Load data path is done - 12:21 AM
+    Im going to sleep now, time is 12:36 AM, i will continue in the morning.
+Date 7/16/2025:
+    I just saw that we have other instructions called lhu,lbu which instead of zeroing just sign extends.
+    I also noticed that the system was big endian switched that to little endian
+    Ram read control signals are done.
+    Last I type instruction remaining is jalr.
+    Starting design at 1:38 PM
+    Done at 1:50 PM
+
+I am going to do S type instructions now.
+S type datapath is done. 
+Now b type datapath
+the immediate of b type instruction is wtf
+B type data path is done. 3:14 PM
+It is 4:14 PM and I have finished all data path for all instructions now it is time to build the control unit
+
+
+Here are the following control signals
+
+PC_SELECT(2),
+IMM_TYPE_SELECT(3),
+REG_WRITE(1),
+ALU_B_OPERAND_SELECT(1),
+ALU_CMP_TYPE(1),
+ALU_OP_TYPE(3),
+RAM_READ_TYPE(3),
+RAM_WRITE_TYPE(2),
+WRITE_DATA_SELECT(3)
+
+Date 16/7/2025:
+    Cpu is finished
+    It is one cycle cpu 
+    We are going to pipeline it after having an assembler
+
+Now let's think of the assembler
+In my previous cpu i was converting the assembly to the hex directly
+Here I will just convert it into a binary file
+Im thinking of writing the assembler in c++ or c
+Since we are going to work with strings a lot, c++ is the way to go
+
+To be honest i dont like the RISC-V assembly that much I am thinking of having x86 like syntax(especially the ones that work with memory and stuff) that will compile down to the machine code
+
+First thing first  let's see the actual instructions followed by the pseudo ones
+
+
+I_TYPE_INSTRUCTIONS:
+
+    lb,lh,lw,lbu,lhu rd, imm(rs1) 
+        this instruction loads the rs1+imm to the rd from data memory it is heavily used in function calls and stuff
+        to be honest, i am not very fan of the paranthesis syntax
+        maybe something like? 
+        lb,lh,lw,lbu,lhu rd, [rs1+imm] with blocks i can easily see that it is a memory address
+        We are gonna go with lb,lh,lw,lbu,lhu rd, [rs1+imm]
+    jalr  rd,  rs1, imm
+    
+    addi,slli, slti,sltiu,xori,srli,srai,ori,andi rd, rs1, imm
+        This is ok
+    
+
+U_TYPE_INSTRUCTIONS:
+    these are good themselves
+    lui   rd,  upimm
+    auipc rd,  upimm
+
+S_TYPE_INSTRUCTIONS:
+    sb,sh,sw rs2 , imm(rs1)
+    same thing with ld instructions we are gonna write 
+    sb rs2 [rs1+imm]
+
+R_TYPE_INSTRUCTIONS:
+    I just thought, instead of having add and addi - two seperate instructions for addition
+    we can have just one add instruction and based on its arguments we may compile it down to the addi machine code or add
+    What i mean is that
+    Maybe instead of two seperate instruction for addition process
+        add x1,x2,x3
+        addi x2,x3,1024;
+    Just have  one add instruction and the assembler will assemble it based on the arguments
+    for instance add x1,x2,1023 would compile to addi x1,x2,1023;
+
+
+Actually i will make the assembler support both my version of assembly and some pseudo instructions
+Let me make the assembler support unextenden version aka base version first
