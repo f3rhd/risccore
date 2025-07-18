@@ -45,7 +45,7 @@ namespace ast_analyser{
             }
             case instruction_look_up::OPERATION_TYPE::I_TYPE : {
 
-                if(head->str_value[0] == 'l') // below logic is for lw,lh,lbu,lhu
+                if(head->str_value[0] == 'l' || head->str_value[0] == 'j') // below logic is for lw,lh,lbu,lhu
                 {
 
                     if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IMMEDIATE){
@@ -66,7 +66,8 @@ namespace ast_analyser{
                         success = 0;
                     }
                     break;
-                } else { //opposite applies for addi,xori and etc.
+                } 
+                else { //opposite applies for addi,xori and etc.
 
                     if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::IMMEDIATE){
                         if(head->right == nullptr)

@@ -18,6 +18,7 @@ namespace instruction_look_up{
         "addi", "slli", "slti", "sltiu",
         "xori", "srli", "srai", "ori", "andi", "jalr"
     };
+
     const std::unordered_set<std::string> r_type_ops = {
         "add","sub","sll","sltu","xor","srl","sra",
         "or","and","sll","slt","sltu","xor","srl","sra",

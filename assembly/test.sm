@@ -1,8 +1,0 @@
-main:
-    addi t0, zero, 0       # t0 = a = 0
-    addi t1, zero, 1       # t1 = b = 1
-loop:
-    add  t2, t0, t1        # t2 = a + b (next Fibonacci number)
-    add  t0, t1, zero      # a = b
-    add  t1, t2, zero      # b = next
-    jal  zero, loop        # jump to loop (infinite)
