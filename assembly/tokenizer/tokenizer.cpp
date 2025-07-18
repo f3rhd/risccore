@@ -4,18 +4,6 @@
 #include <cctype>
 #include "tokenizer.hpp"
 namespace tokenizer{
-
-    bool is_register(const std::string& s){
-        return instruction_look_up::registers.count(s) > 0;
-    }
-
-    bool is_immediate(const std::string& s){
-        if(s.size() >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')){
-            return std::regex_match(s, std::regex("0[xX][0-9a-fA-F]+"));
-        }
-        return std::regex_match(s, std::regex("-?[0-9]+"));
-    }
-   
     std::vector<Token> tokenize_line_text(const std::string& line_raw){
         std::vector<Token> tokens;
 
@@ -41,10 +29,10 @@ namespace tokenizer{
                     instruction_look_up::pseudo_ops.count(token)){
                 tokens.push_back({token, TOKEN_TYPE::OPERATION});
             }
-            else if(is_register(token)){
+            else if(instruction_look_up::is_register(token)){
                 tokens.push_back({token, TOKEN_TYPE::REGISTER});
             }
-            else if(is_immediate(token)){
+            else if(instruction_look_up::is_immediate(token)){
                 tokens.push_back({token, TOKEN_TYPE::IMMEDIATE});
             }
             else if(token == ","){

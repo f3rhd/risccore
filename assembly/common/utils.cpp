@@ -42,7 +42,7 @@ namespace utils{
         imm_node->line_info = line_info_;
         return imm_node;
     }
-    AST_Node* make_identifier_node(const std::string& _id,size_t identifier_row_number_,Line* line_info_){
+    AST_Node* make_identifier_node(const std::string& _id,Line* line_info_){
         AST_Node *id_node = new AST_Node;
 
         if(id_node == nullptr){ 
@@ -52,7 +52,6 @@ namespace utils{
         }
         id_node->str_value = _id;
         id_node->node_type = AST_NODE_TYPE::IDENTIFIER;
-        id_node->identifier_row_number = identifier_row_number_;
         id_node->line_info = line_info_;
 
         return id_node;
@@ -127,24 +126,13 @@ namespace utils{
         }
     }
 
-
-    std::string get_label_from_line(const Line& line){
-
-        for(const Token& token : line.tokens){
-            if(token.type == TOKEN_TYPE::LABEL){
-                return token.word;
-            }
-        }
-
-        return "";
-    }
-    static bool line_is_label_only(const Line& line){
+    bool line_is_label_only(const Line& line){
 
         if(line.tokens.size() == 1 && line.tokens[0].type == TOKEN_TYPE::LABEL)
             return true;
         return false;
     } 
-    static bool line_has_label(const Line& line){
+    bool line_has_label(const Line& line){
         for(const Token& token : line.tokens){
             if(token.type == TOKEN_TYPE::LABEL){
                 return true;
@@ -152,7 +140,7 @@ namespace utils{
         }
         return false;
     }
-    static bool line_has_identifier(const Line& line){
+    bool line_has_identifier(const Line& line){
         for(const Token& token : line.tokens){
             if(token.type == TOKEN_TYPE::IDENTIFIER){
                 return true;
@@ -160,7 +148,7 @@ namespace utils{
         }
         return false;
     }   
-    static std::string get_identifier_in_line(const Line& line){
+    std::string get_identifier_in_line(const Line& line){
         std::string id;
         for(const Token& token : line.tokens){
             if(token.type == TOKEN_TYPE::IDENTIFIER){
@@ -169,7 +157,7 @@ namespace utils{
         }
         return id;
     }
-    static std::string get_label_in_line(const Line& line){
+    std::string get_label_in_line(const Line& line){
         std::string id;
         for(const Token& token : line.tokens){
             if(token.type == TOKEN_TYPE::LABEL){
@@ -178,40 +166,31 @@ namespace utils{
         }
         return id;
     }
-    std::vector<Line> get_lines(FILE *source_file)
-    {
-        char line_text[500];
-        std::vector<Line> lines;
-
-        int counter = 1;
-        while(fgets(line_text,sizeof(line_text),source_file)){
-            std::vector<Token> line_tokens = tokenizer::tokenize_line_text(line_text);
-            std::string _line_text(line_text);
-            if (_line_text[0] == '\n')
-                continue;
-            Line line;
-            line.text = _line_text;
-            line.tokens = line_tokens;
-            line.ctx.has_label = line_has_label(line);
-            if(line.ctx.has_label)
-                line.label = get_label_in_line(line);
-            line.ctx.is_label_only = line_is_label_only(line);
-            line.ctx.has_identifier = line_has_identifier(line);
-            if(line.ctx.has_identifier)
-                line.identifier = get_identifier_in_line(line);
-            line.row_number = counter;
-            lines.push_back(line);
-            counter++;
-        }
-        return lines;
-    }
-    int calculate_offset(size_t label_row_number, size_t identifier_row_number){
+    int32_t calculate_offset(size_t label_row_number, size_t identifier_row_number){
 
         return (label_row_number - identifier_row_number) * 4;
     }
     void throw_error_message(const Error_Message& msg){
 
-        std::cout << "Error! ->" << '"'<< msg.error_causing_word << '"' << " in line " << msg.error_causing_line -> row_number << ": " << msg.error_causing_line->text << '\n';
-        std::cout << '\t' << msg.message << '\n';
+        std::cout << "\n==================== ERROR ====================\n";
+        std::cout << "Line " << msg.error_causing_line->row_number << ": " << msg.error_causing_line->text;
+        std::cout << "Cause:   '" << msg.error_causing_word << "'\n";
+        std::cout << "Message: " << msg.message << "\n";
+        std::cout << "==============================================\n\n";
+    }
+
+    int32_t str_to_int32(const std::string &s){ //@Incomplete
+        // Handles decimal and hexadecimal (0x/0X prefix) strings
+        int32_t val = 0;
+        try {
+            if (s.size() > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+                val = static_cast<int32_t>(std::stol(s, nullptr, 16));
+            } else {
+                val = static_cast<int32_t>(std::stol(s, nullptr, 10));
+            }
+        } catch (...) {
+            val = 0; // Could add error handling here if needed
+        }
+        return val;
     }
 }

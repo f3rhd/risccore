@@ -8,8 +8,8 @@
             "name": "Debug main.exe",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/main.exe",
-            "args": [],
+            "program": "${workspaceFolder}/fasm.exe",
+            "args": ["test.sm","../schematics/output"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
@@ -23,7 +23,6 @@
                     "ignoreFailures": true
                 }
             ],
-            "preLaunchTask": "Build main.cpp"
         }
     ]
 }

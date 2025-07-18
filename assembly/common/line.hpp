@@ -13,7 +13,7 @@ struct Line{
 
     std::string text;
     std::vector<Token> tokens;
-    size_t             row_number;
+    uint32_t           row_number;
     std::string        identifier;
     std::string        label;
     Line_Context       ctx;

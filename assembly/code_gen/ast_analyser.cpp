@@ -1,6 +1,7 @@
 #include "ast_analyser.hpp"
 namespace ast_analyser{
 
+    // assumes that it head is not nullptr
     static int analyse_line_ast(AST_Node* head) {
 
         std::string val;
@@ -72,7 +73,7 @@ namespace ast_analyser{
                             val = "";
                         else
                             val = head->right->str_value;
-                        utils::throw_error_message({"I-Type non-load operation should have an immediate value as second operand.", head->right->str_value, head->line_info});
+                        utils::throw_error_message({"I-Type non-load operation should have an immediate value as third operand.", head->right->str_value, head->line_info});
                         success = 0;
                     }
                     if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
@@ -80,7 +81,7 @@ namespace ast_analyser{
                             val = "";
                         else
                             val = head->middle->str_value;
-                        utils::throw_error_message({"I-Type non-load operation should have a register as third operand.", val, head->line_info});
+                        utils::throw_error_message({"I-Type non-load operation should have a register as second operand.", val, head->line_info});
                         success = 0;
                     }
                     break;
@@ -88,7 +89,7 @@ namespace ast_analyser{
 
             }
             case instruction_look_up::OPERATION_TYPE::B_TYPE : {
-                    if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::REGISTER){
+                    if(head->right == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
                         if(head->right == nullptr)
                             val = "";
                         else
@@ -96,7 +97,7 @@ namespace ast_analyser{
                         utils::throw_error_message({"B-Type operation should have a register as second operand.", val, head->line_info});
                         success = 0;
                     }
-                    if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IDENTIFIER){
+                    if(head->middle == nullptr || head->right->node_type != AST_NODE_TYPE::IDENTIFIER){
                         if(head->middle == nullptr)
                             val = "";
                         else
@@ -104,17 +105,26 @@ namespace ast_analyser{
                         utils::throw_error_message({"B-Type operation should have a label identifier as third operand.", val, head->line_info});
                         success = 0;
                     }
+                    // Parser will make the identifier node's imm value -1 if it points to nowhere
+                    if(head->right->identifier_immediate == -1){
+                        utils::throw_error_message({"Identifier points to non-valid label.", head->right->str_value, head->line_info});
+                        success = 0;
+                    } 
                     break;
             }
             case instruction_look_up::OPERATION_TYPE::J_TYPE : {
-                if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
+                if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IDENTIFIER){
                     if(head->middle == nullptr)
                         val = "";
                     else
                         val = head->middle->str_value;
-                    utils::throw_error_message({"J-Type operation should have a register as second operand.", val, head->line_info});
+                    utils::throw_error_message({"J-Type operation should have an label identifier as second operand.", val, head->line_info});
                     success = 0;
                 }
+                if(head->middle->identifier_immediate == -1){
+                    utils::throw_error_message({"Identifier points to non-valid label.", head->right->str_value, head->line_info});
+                    success = 0;
+                } 
                 if(head->right != nullptr){
                     utils::throw_error_message({"J-Type operation cannot have a third operand.", head->right->str_value, head->line_info});
                     success = 0;
