@@ -7,7 +7,7 @@ namespace ast_analyser{
         bool success = 1;
         if(head->node_type != AST_NODE_TYPE::OPERATION){
 
-            utils::throw_error_message({"Instruction should start with an operation.", head->value,head->line_info});
+            utils::throw_error_message({"Instruction should start with an operation.", head->str_value,head->line_info});
             success = 0;
         }
         
@@ -15,7 +15,7 @@ namespace ast_analyser{
             if(head->left == nullptr)
                 val = "";
             else
-                val = head->left->value;
+                val = head->left->str_value;
             utils::throw_error_message({"Instruction should have a register as first operand.", val , head->line_info});
             success = 0;
         }
@@ -27,7 +27,7 @@ namespace ast_analyser{
                     if(head->middle == nullptr)
                         val = "";
                     else
-                        val = head->middle->value;
+                        val = head->middle->str_value;
                     utils::throw_error_message({"R-Type operation should have a register as second operand.", val, head->line_info});
                     success = 0;
                 }
@@ -35,7 +35,7 @@ namespace ast_analyser{
                     if(head->right == nullptr)
                         val = "";
                     else
-                        val = head->right->value;
+                        val = head->right->str_value;
 
                     utils::throw_error_message({"R-Type operation should have a register as  third operand.", val, head->line_info});
                     success = 0;
@@ -44,7 +44,7 @@ namespace ast_analyser{
             }
             case instruction_look_up::OPERATION_TYPE::I_TYPE : {
 
-                if(head->value[0] == 'l') // below logic is for lw,lh,lbu,lhu
+                if(head->str_value[0] == 'l') // below logic is for lw,lh,lbu,lhu
                 {
 
                     if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IMMEDIATE){
@@ -52,7 +52,7 @@ namespace ast_analyser{
                         if(head->middle == nullptr)
                             val = "";
                         else
-                            val = head->middle->value;
+                            val = head->middle->str_value;
                         utils::throw_error_message({"I-Type load operation should have an immediate value as second operand.", val, head->line_info});
                         success = 0;
                     }
@@ -60,7 +60,7 @@ namespace ast_analyser{
                         if(head->right == nullptr)
                             val = "";
                         else
-                            val = head->right->value;
+                            val = head->right->str_value;
                         utils::throw_error_message({"I-Type load operation should have a register as third operand.", val, head->line_info});
                         success = 0;
                     }
@@ -71,15 +71,15 @@ namespace ast_analyser{
                         if(head->right == nullptr)
                             val = "";
                         else
-                            val = head->right->value;
-                        utils::throw_error_message({"I-Type non-load operation should have an immediate value as second operand.", head->right->value, head->line_info});
+                            val = head->right->str_value;
+                        utils::throw_error_message({"I-Type non-load operation should have an immediate value as second operand.", head->right->str_value, head->line_info});
                         success = 0;
                     }
                     if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
                         if(head->middle == nullptr)
                             val = "";
                         else
-                            val = head->middle->value;
+                            val = head->middle->str_value;
                         utils::throw_error_message({"I-Type non-load operation should have a register as third operand.", val, head->line_info});
                         success = 0;
                     }
@@ -92,7 +92,7 @@ namespace ast_analyser{
                         if(head->right == nullptr)
                             val = "";
                         else
-                            val = head->right->value;
+                            val = head->right->str_value;
                         utils::throw_error_message({"B-Type operation should have a register as second operand.", val, head->line_info});
                         success = 0;
                     }
@@ -100,7 +100,7 @@ namespace ast_analyser{
                         if(head->middle == nullptr)
                             val = "";
                         else
-                            val = head->middle->value;
+                            val = head->middle->str_value;
                         utils::throw_error_message({"B-Type operation should have a label identifier as third operand.", val, head->line_info});
                         success = 0;
                     }
@@ -111,12 +111,12 @@ namespace ast_analyser{
                     if(head->middle == nullptr)
                         val = "";
                     else
-                        val = head->middle->value;
+                        val = head->middle->str_value;
                     utils::throw_error_message({"J-Type operation should have a register as second operand.", val, head->line_info});
                     success = 0;
                 }
                 if(head->right != nullptr){
-                    utils::throw_error_message({"J-Type operation cannot have a third operand.", head->right->value, head->line_info});
+                    utils::throw_error_message({"J-Type operation cannot have a third operand.", head->right->str_value, head->line_info});
                     success = 0;
                 }
                 break;
@@ -126,12 +126,12 @@ namespace ast_analyser{
                     if(head->middle == nullptr)
                         val = "";
                     else
-                        val = head->middle->value;
+                        val = head->middle->str_value;
                     utils::throw_error_message({"U-Type operation should have an immediate value as second operand.", val, head->line_info});
                     success = 0;
                 }
                 if(head->right != nullptr){
-                    utils::throw_error_message({"J-Type operation cannot have a third operand.", head->right->value, head->line_info});
+                    utils::throw_error_message({"J-Type operation cannot have a third operand.", head->right->str_value, head->line_info});
                     success = 0;
                 }
                 break;
@@ -141,7 +141,7 @@ namespace ast_analyser{
             }
             
             case instruction_look_up::OPERATION_TYPE::UNKNOWN: {
-                utils::throw_error_message({"Unknown operation was found.", head->right->value, head->line_info});
+                utils::throw_error_message({"Unknown operation was found.", head->right->str_value, head->line_info});
                 success = 0;
                 break;
             }

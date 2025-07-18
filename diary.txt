@@ -117,3 +117,11 @@ R_TYPE_INSTRUCTIONS:
 
 Actually i will make the assembler support both my version of assembly and some pseudo instructions
 Let me make the assembler support unextenden version aka base version first
+
+Date 17/7/2025:
+ I have been coding the assembler past 4 hours
+ It is func
+ I have finished parser tokenizer and stuff and now im going to make parser resolve labels and stuff 
+ 
+ Label handling stuff is done, also added analyser
+ 

@@ -6,7 +6,7 @@
 
 namespace instruction_look_up{
 
-    enum class INSTRUCTION_TYPE{
+    enum class OPERATION_TYPE{
         R_TYPE,
         S_TYPE,
         I_TYPE,
@@ -25,5 +25,5 @@ namespace instruction_look_up{
     extern const std::unordered_set<std::string> j_type_ops;
     extern const std::unordered_set<std::string> u_type_ops;
     extern const std::unordered_set<std::string> pseudo_ops;
-    INSTRUCTION_TYPE get_instr_type(const std::string &instr);
+    OPERATION_TYPE get_instr_type(const std::string &instr);
 }

@@ -1,23 +1,29 @@
 #pragma once
-#include "look_up.hpp"
 #include <string>
+
+#include "look_up.hpp"
+#include "line.hpp"
+
 enum class AST_NODE_TYPE
 {
-    INSTRUCTION,
+    OPERATION,
     REGISTER,
     IMMEDIATE,
     LABEL,
     DIRECTIVE,
-    IDENTIFIER
+    IDENTIFIER,
+    UNKNOWN
 };
 struct AST_Node{
 
-    std::string identifier;
 
-    instruction_look_up::INSTRUCTION_TYPE instr_type;
-    AST_NODE_TYPE node_type;
+    instruction_look_up::OPERATION_TYPE opr_type = instruction_look_up::OPERATION_TYPE::UNKNOWN;
+    std::string str_value;
+    AST_NODE_TYPE node_type = AST_NODE_TYPE::UNKNOWN;
     AST_Node *left = nullptr;
     AST_Node *right = nullptr;
     AST_Node *middle = nullptr;
-
+    Line      *line_info = nullptr;
+    size_t identifier_row_number = 0; // in which line is identifier at, by identifier i mean label identifiers
+    int identifier_immediate = 0;  // imm value of that identifier
 };

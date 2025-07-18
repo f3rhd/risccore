@@ -39,7 +39,7 @@ namespace tokenizer{
                     instruction_look_up::j_type_ops.count(token) ||
                     instruction_look_up::u_type_ops.count(token) || 
                     instruction_look_up::pseudo_ops.count(token)){
-                tokens.push_back({token, TOKEN_TYPE::INSTRUCTION});
+                tokens.push_back({token, TOKEN_TYPE::OPERATION});
             }
             else if(is_register(token)){
                 tokens.push_back({token, TOKEN_TYPE::REGISTER});

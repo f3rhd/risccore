@@ -40,25 +40,25 @@ namespace instruction_look_up{
         "seqz","snez","sltz","sgtz","beqz",
         "bnez","blez","bgez","bltz","bgtz",
         "ble","bgt","bleu","bgtu","j","jal",
-        "jr","jalr","ret","call" // @Incomplete 
+        "jr","jalr","ret","call","la"     // @Incomplete  : We have 3 or 4 more pseudo operations.
     };
-    INSTRUCTION_TYPE get_instr_type(const std::string& instr){
+    OPERATION_TYPE get_instr_type(const std::string& instr){
 
         if(r_type_ops.count(instr))
-            return INSTRUCTION_TYPE::R_TYPE;
+            return OPERATION_TYPE::R_TYPE;
         else if(i_type_ops.count(instr))
-            return INSTRUCTION_TYPE::I_TYPE;
+            return OPERATION_TYPE::I_TYPE;
         else if(s_type_ops.count(instr))
-            return INSTRUCTION_TYPE::S_TYPE;
+            return OPERATION_TYPE::S_TYPE;
         else if(b_type_ops.count(instr))
-            return INSTRUCTION_TYPE::B_TYPE;
+            return OPERATION_TYPE::B_TYPE;
         else if(j_type_ops.count(instr))
-            return INSTRUCTION_TYPE::J_TYPE;
+            return OPERATION_TYPE::J_TYPE;
         else if(u_type_ops.count(instr))
-            return INSTRUCTION_TYPE::U_TYPE;
+            return OPERATION_TYPE::U_TYPE;
         else if(pseudo_ops.count(instr))
-            return INSTRUCTION_TYPE::PSEUDO;
+            return OPERATION_TYPE::PSEUDO;
         else
-            return INSTRUCTION_TYPE::UNKNOWN;
+            return OPERATION_TYPE::UNKNOWN;
     }
 };
