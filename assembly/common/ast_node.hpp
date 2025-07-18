@@ -24,6 +24,5 @@ struct AST_Node{
     AST_Node *right = nullptr;
     AST_Node *middle = nullptr;
     Line      *line_info = nullptr;
-    size_t identifier_row_number = 0; // in which line is identifier at, by identifier i mean label identifiers
     int32_t identifier_immediate = 0;  // imm value of that identifier
 };

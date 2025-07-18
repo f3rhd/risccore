@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/fasm.exe",
-            "args": ["test.sm","../schematics/output"],
+            "args": ["test.s","../schematics/output"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],

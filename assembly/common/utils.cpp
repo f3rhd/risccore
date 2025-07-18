@@ -173,7 +173,7 @@ namespace utils{
     void throw_error_message(const Error_Message& msg){
 
         std::cout << "\n==================== ERROR ====================\n";
-        std::cout << "Line " << msg.error_causing_line->row_number << ": " << msg.error_causing_line->text;
+        std::cout << "Line " << msg.error_causing_line->true_row_number << ": " << msg.error_causing_line->text;
         std::cout << "Cause:   '" << msg.error_causing_word << "'\n";
         std::cout << "Message: " << msg.message << "\n";
         std::cout << "==============================================\n\n";

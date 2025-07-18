@@ -30,9 +30,9 @@ void Parser::set_labels(const std::vector<Line>& lines){
             */
             if(line.ctx.is_label_only){
 
-                labels.insert({line.label, line.row_number+1});
+                labels.insert({line.label, line.memory_row_number+1});
             }else{
-                labels.insert({line.label, line.row_number});
+                labels.insert({line.label, line.memory_row_number});
             }
 
         }
@@ -60,12 +60,6 @@ AST_Node* Parser::parse_line(Line& line){
         }
     }
 
-    /*
-        lb  ra , 1023(x22)
-        beq rs1, rs2 , loop
-        addi rs1, rs2 , 1000
-        jal  rd, label
-    */
     switch(active_token->type){
 
         case TOKEN_TYPE::OPERATION: {
@@ -99,21 +93,12 @@ AST_Node* Parser::parse_line(Line& line){
             return opr_node;
         }
 
-        /* xor
-            / | \
-            rd rs1 rs2
-        */
         case TOKEN_TYPE::REGISTER : {
             AST_Node *reg_node = utils::make_reg_node(active_token->word,&line);
             return reg_node;
         }
         case TOKEN_TYPE::IMMEDIATE : {
-            //lb  ra , 1023(x22)
-            /*
-                    lb - x22
-                    /  \ 
-                    ra  1023
-            */
+
             AST_Node *imm_node = utils::make_imm_node(active_token->word,&line);
             return imm_node;
         }
@@ -133,11 +118,14 @@ std::vector<Line> Parser::get_lines(FILE *source_file)
         std::vector<Line> lines;
 
         int32_t counter = 1;
+        int32_t counter2 = 1;
         while(fgets(line_text,sizeof(line_text),source_file)){
             std::vector<Token> line_tokens = tokenizer::tokenize_line_text(line_text);
             std::string _line_text(line_text);
-            if (_line_text[0] == '\n' || line_tokens.size() == 0)
+            if (_line_text[0] == '\n' || line_tokens.size() == 0){
+                counter2++;
                 continue;
+            }
             Line line;
             line.text = _line_text;
             line.tokens = line_tokens;
@@ -148,9 +136,11 @@ std::vector<Line> Parser::get_lines(FILE *source_file)
             line.ctx.has_identifier = utils::line_has_identifier(line);
             if(line.ctx.has_identifier)
                 line.identifier = utils::get_identifier_in_line(line);
-            line.row_number = counter;
+            line.memory_row_number = counter;
+            line.true_row_number = counter2;
             lines.push_back(line);
             counter++;
+            counter2++;
         }
         return lines;
     }
@@ -178,8 +168,7 @@ void Parser::resolve_identifiers(std::vector<AST_Node*> heads){
             default: // Means that the instruction is not branching type
                 continue;
         }
-        // jal ra label
-        // beq rs1 rs2 label
+
         if( candidate_label_identifier_node && candidate_label_identifier_node->node_type ==  AST_NODE_TYPE::IDENTIFIER){
                     
             // look for label table
@@ -195,7 +184,7 @@ void Parser::resolve_identifiers(std::vector<AST_Node*> heads){
 
             size_t label_row_number = it->second;
 
-            candidate_label_identifier_node->identifier_immediate = utils::calculate_offset(label_row_number, candidate_label_identifier_node->line_info->row_number);
+            candidate_label_identifier_node->identifier_immediate = utils::calculate_offset(label_row_number, candidate_label_identifier_node->line_info->memory_row_number);
         }
 
     }
