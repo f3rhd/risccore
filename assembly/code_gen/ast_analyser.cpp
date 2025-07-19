@@ -46,7 +46,7 @@ namespace ast_analyser{
     };
     static void i_type_analysis(AST_Node* head, bool& success){
 
-        if(head->str_value[0] == 'l' || head->str_value[0] == 'j') // below logic is for lw,lh,lbu,lhu and jalr
+        if(head->str_value[0] == 'l' ) // below logic is for lw,lh,lbu,lhu and jalr
         {
 
             if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IMMEDIATE){
@@ -67,6 +67,26 @@ namespace ast_analyser{
                 success = 0;
             }
         } 
+        else if(head->str_value[0] == 'j'){
+
+            if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
+
+                if(head->middle == nullptr)
+                    val = "";
+                else
+                    val = head->middle->str_value;
+                utils::throw_error_message({"Operation should have an register value as second operand.", val, head->line_info});
+                success = 0;
+            }
+            if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::IMMEDIATE){
+                if(head->right == nullptr)
+                    val = "";
+                else
+                    val = head->right->str_value;
+                utils::throw_error_message({"Operation should have a immediate as third operand.", val, head->line_info});
+                success = 0;
+            }
+        }
         else { //opposite applies for addi,xori and etc.
 
             if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::IMMEDIATE){

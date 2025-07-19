@@ -1,2 +1,3 @@
-./assembly/.vscode
+.vscode
 .*.exe
+.VSCodeCounter

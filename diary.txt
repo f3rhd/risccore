@@ -124,4 +124,8 @@ Date 17/7/2025:
  I have finished parser tokenizer and stuff and now im going to make parser resolve labels and stuff 
  
  Label handling stuff is done, also added analyser
+
+Date 19/8/1025: 12:54 AM
+Assembler is mostly done in the morning I will check whether there are any bugs in the cpu and will make sure that each instruction executes as intendeed
  
+5:22 PM now the assembler supports most of the pseudo insructions, i will try to optimize assembler when i come back to baku, right now here i will try to pipeline the cpu 
