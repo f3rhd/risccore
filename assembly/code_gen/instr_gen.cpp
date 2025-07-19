@@ -10,7 +10,7 @@ namespace instr_gen{
         // Extract fields from AST_Node
         Instruction instr;
         instr.type = head->opr_type;
-        instr.opcode = instruction_look_up::get_op_code(instr.type);
+        instr.opcode = instruction_look_up::get_op_code(instr.type,head->str_value);
         instr.func3 = instruction_look_up::get_func3(head->str_value);
         instr.func7 = instruction_look_up::get_func7(head->str_value);
         using instruction_look_up::OPERATION_TYPE;
@@ -76,19 +76,19 @@ namespace instr_gen{
             case OPERATION_TYPE::PSEUDO_TYPE_5:
             case OPERATION_TYPE::PSEUDO_TYPE_6:{ // I hate this...
                 if(head->str_value == "nop"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
                     instr.rd = instruction_look_up::get_register_index("zero");
                     instr.rs1 = instruction_look_up::get_register_index("zero");
                     instr.imm = 0;
                 }
                 else if(head->str_value == "mv"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
                     instr.rd = instruction_look_up::get_register_index(head->left->str_value);
                     instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
                     instr.imm = 0;
                 }
                 else if(head->str_value == "not"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
                     instr.func3 = instruction_look_up::get_func3("xori");
                     instr.rd = instruction_look_up::get_register_index(head->left->str_value);
                     instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
@@ -104,7 +104,7 @@ namespace instr_gen{
                 }
                 else if(head->str_value ==  "seqz"){
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
                     instr.func3 = instruction_look_up::get_func3("sltiu");
                     instr.rd = instruction_look_up::get_register_index(head->left->str_value);
                     instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
@@ -223,13 +223,13 @@ namespace instr_gen{
                 }
                 else if(head->str_value == "jr") {
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
                     instr.rd = instruction_look_up::get_register_index("zero");
                     instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
                     instr.imm = 0;
                 }
                 else if(head->str_value == "jalr") {
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
                     instr.rd = instruction_look_up::get_register_index("ra");
                     instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
                     instr.imm = 0;
@@ -237,7 +237,7 @@ namespace instr_gen{
                 }
                 else if(head->str_value == "ret") {
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
                     instr.rd = instruction_look_up::get_register_index("zero");
                     instr.rs1 = instruction_look_up::get_register_index("ra");
                     instr.imm = 0;

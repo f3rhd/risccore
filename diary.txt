@@ -129,3 +129,5 @@ Date 19/8/1025: 12:54 AM
 Assembler is mostly done in the morning I will check whether there are any bugs in the cpu and will make sure that each instruction executes as intendeed
  
 5:22 PM now the assembler supports most of the pseudo insructions, i will try to optimize assembler when i come back to baku, right now here i will try to pipeline the cpu 
+I wont be doing the pipelining Today
+TODO: add semicolons to the ast and check them during ast analysis maybe
