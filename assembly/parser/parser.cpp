@@ -71,25 +71,41 @@ AST_Node* Parser::parse_line(Line& line){
             if(next_token != nullptr && next_token->type == TOKEN_TYPE::COMMA){
                 eat(line.tokens);
             } else{
-                std::string val = next_token ? opr_node->left->str_value : "(null_str)";
-                utils::throw_error_message({"Expected ',' ",val, &line});
-                exit(1);
+                if(opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4 &&  
+                    opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5 &&
+                    opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6){ // these opreations do not need comma
+                    std::string val = next_token ? opr_node->left->str_value : "";
+                    utils::throw_error_message({"Expected ',' ",val, &line});
+                    exit(1);
+                }
             }
             opr_node->middle = parse_line(line);
             next_token = peek(line.tokens);
 
-            // J and U type operations have two operand so we do not need to check for third operand 
-            if(opr_node->opr_type != instruction_look_up::OPERATION_TYPE::J_TYPE && opr_node->opr_type != instruction_look_up::OPERATION_TYPE::U_TYPE){
+            // J,U,PSEUDO_1 and PSEUDO_2 type operations have two operands, so we do not need to check for second comma
+            if(opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4 &&  
+                opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5 &&
+                opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_1 &&
+                opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_2 &&
+                opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6 &&
+                opr_node->opr_type != instruction_look_up::OPERATION_TYPE::J_TYPE && 
+                opr_node->opr_type != instruction_look_up::OPERATION_TYPE::U_TYPE){
                 if(next_token != nullptr && (next_token->type == TOKEN_TYPE::COMMA || next_token->type == TOKEN_TYPE::LPAREN)){
                     eat(line.tokens);
                 }else{
-                    std::string val = next_token ? opr_node->left->str_value : "(null_str)";
+                    std::string val = next_token ? opr_node->left->str_value : "";
                     utils::throw_error_message({"Expected ',' or '('  ",val, &line});
                     exit(1);
                 }
             }
             opr_node->right = parse_line(line);
-            // No need eating the RPAREN
+            // jalr and jal instructions can act as pseudo even tho they are truly not
+            if(opr_node->str_value[0] == 'j'){
+              if(opr_node->opr_type == instruction_look_up::OPERATION_TYPE::I_TYPE && opr_node->middle == nullptr && opr_node->right == nullptr)
+                    opr_node->opr_type == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5;
+              else if(opr_node->opr_type == instruction_look_up::OPERATION_TYPE::J_TYPE && opr_node->middle == nullptr && opr_node->right == nullptr )
+                  opr_node->opr_type == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4;
+            }
             return opr_node;
         }
 

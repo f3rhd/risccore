@@ -16,7 +16,7 @@ int main(int argc, char** argv){
     std::vector<Line> lines = parser.get_lines(source_file);
     std::vector<AST_Node*> heads = parser.parse_lines(lines);
     parser.set_labels(lines);
-    #ifdef DEBUG
+    #ifdef PRINT_LABELS
         parser.print_labels();
     #endif
     parser.resolve_identifiers(heads);
@@ -24,10 +24,10 @@ int main(int argc, char** argv){
     if(ast_analyser::analyse_ast_lines(heads) == 1) 
         return 1;
     // Code generation
-    //std::vector<Instruction> instructions = instr_gen::generate_instructions(heads);
-    //code_gen::generate_bin_file(argv[2], instructions);
+    std::vector<Instruction> instructions = instr_gen::generate_instructions(heads);
+    code_gen::generate_bin_file(argv[2], instructions);
 
-    #ifdef DEBUG
+    #ifdef PRINT_INSTR
     for(Instruction& instr : instructions){
         printf("opcode: %u, funct3: %u, funct7: %u, rd: %u, rs1: %u, rs2: %u, imm: %d\n",
             instr.opcode,
