@@ -117,8 +117,14 @@ namespace utils{
             return "J_TYPE";
         case OPERATION_TYPE::U_TYPE:
             return "U_TYPE";
-        //case OPERATION_TYPE::PSEUDO:
-        //    return "PSEUDO";
+        case OPERATION_TYPE::PSEUDO_TYPE_0:
+        case OPERATION_TYPE::PSEUDO_TYPE_1:
+        case OPERATION_TYPE::PSEUDO_TYPE_2:
+        case OPERATION_TYPE::PSEUDO_TYPE_3:
+        case OPERATION_TYPE::PSEUDO_TYPE_4:
+        case OPERATION_TYPE::PSEUDO_TYPE_5:
+        case OPERATION_TYPE::PSEUDO_TYPE_6:
+            return "PSEUDO";
         case OPERATION_TYPE::UNKNOWN:
             return "UNKNOWN";
         default:
