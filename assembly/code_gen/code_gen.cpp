@@ -89,7 +89,6 @@ namespace code_gen  {
 
         return raw;
     }
-    uint32_t encode_p(const Instruction &instruction); 
     static uint32_t encode_instr(const Instruction &instr)
     {
         switch(instr.type){
@@ -105,9 +104,7 @@ namespace code_gen  {
                 return encode_j(instr);
             case instruction_look_up::OPERATION_TYPE::U_TYPE:
                 return encode_u(instr);
-            //case instruction_look_up::OPERATION_TYPE::PSEUDO: //@Incomplete
-            //   // return encode_p(instr);
-            //case instruction_look_up::OPERATION_TYPE::UNKNOWN:
+            case instruction_look_up::OPERATION_TYPE::UNKNOWN:
             default:
                 return 0;
         }

@@ -179,7 +179,7 @@ namespace utils{
         std::cout << "==============================================\n\n";
     }
 
-    int32_t str_to_int32(const std::string &s){ //@Incomplete
+    int32_t str_to_int32(const std::string &s){ 
         // Handles decimal and hexadecimal (0x/0X prefix) strings
         int32_t val = 0;
         try {
