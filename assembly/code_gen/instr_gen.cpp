@@ -65,9 +65,9 @@ namespace instr_gen{
                 break;
 
             //@Incomplete: Below cases
-            case OPERATION_TYPE::PSEUDO:
-                // Pseudo: depends on expansion
-                break;
+            //case OPERATION_TYPE::PSEUDO:
+            //    // Pseudo: depends on expansion
+            //    break;
             case OPERATION_TYPE::UNKNOWN:
             default:
                 // Unknown: do nothing or error

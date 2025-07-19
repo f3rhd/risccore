@@ -152,18 +152,21 @@ void Parser::resolve_identifiers(std::vector<AST_Node*> heads){
         
         switch(head->opr_type){
             using namespace instruction_look_up;
+            case OPERATION_TYPE::PSEUDO_TYPE_3:
             case OPERATION_TYPE::B_TYPE: {
                 // right leaf should be an identifier
                 candidate_label_identifier_node = head->right;
                 break;
             }
             case OPERATION_TYPE::J_TYPE : {
+            case OPERATION_TYPE::PSEUDO_TYPE_2:
                 candidate_label_identifier_node = head->middle;
                 break;
             }
 
-            case OPERATION_TYPE::PSEUDO : { // @Incomplete : Some Pseudo instructions also jump and do shit
-
+            case OPERATION_TYPE::PSEUDO_TYPE_4:  { // @Incomplete : Some Pseudo instructions also jump and do shit
+                candidate_label_identifier_node = head->left;
+                break;
             }
             default: // Means that the instruction is not branching type
                 continue;

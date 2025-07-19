@@ -117,8 +117,8 @@ namespace utils{
             return "J_TYPE";
         case OPERATION_TYPE::U_TYPE:
             return "U_TYPE";
-        case OPERATION_TYPE::PSEUDO:
-            return "PSEUDO";
+        //case OPERATION_TYPE::PSEUDO:
+        //    return "PSEUDO";
         case OPERATION_TYPE::UNKNOWN:
             return "UNKNOWN";
         default:
@@ -166,7 +166,7 @@ namespace utils{
         }
         return id;
     }
-    int32_t calculate_offset(size_t label_row_number, size_t identifier_row_number){
+    int32_t calculate_offset(uint32_t label_row_number, uint32_t identifier_row_number){
 
         return (label_row_number - identifier_row_number) * 4;
     }

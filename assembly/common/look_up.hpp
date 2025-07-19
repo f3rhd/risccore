@@ -14,7 +14,13 @@ namespace instruction_look_up{
         B_TYPE,
         J_TYPE,
         U_TYPE,
-        PSEUDO,
+        PSEUDO_TYPE_0,
+        PSEUDO_TYPE_1,
+        PSEUDO_TYPE_2,
+        PSEUDO_TYPE_3,
+        PSEUDO_TYPE_4,
+        PSEUDO_TYPE_5,
+        PSEUDO_TYPE_6,
         UNKNOWN
     };
     extern const std::vector<std::string> registers;
@@ -26,6 +32,13 @@ namespace instruction_look_up{
     extern const std::unordered_set<std::string> j_type_ops;
     extern const std::unordered_set<std::string> u_type_ops;
     extern const std::unordered_set<std::string> pseudo_ops;
+    extern const std::unordered_set<std::string> pseudo_ops_type_0;
+    extern const std::unordered_set<std::string> pseudo_ops_type_1;
+    extern const std::unordered_set<std::string> pseudo_ops_type_2;
+    extern const std::unordered_set<std::string> pseudo_ops_type_3;
+    extern const std::unordered_set<std::string> pseudo_ops_type_4;
+    extern const std::unordered_set<std::string> pseudo_ops_type_5;
+    extern const std::unordered_set<std::string> pseudo_ops_type_6;
     OPERATION_TYPE get_opr_type(const std::string &instr);
     bool is_register(const std::string &s);
     bool is_immediate(const std::string &s);

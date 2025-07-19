@@ -24,8 +24,8 @@ int main(int argc, char** argv){
     if(ast_analyser::analyse_ast_lines(heads) == 1) 
         return 1;
     // Code generation
-    std::vector<Instruction> instructions = instr_gen::generate_instructions(heads);
-    code_gen::generate_bin_file(argv[2], instructions);
+    //std::vector<Instruction> instructions = instr_gen::generate_instructions(heads);
+    //code_gen::generate_bin_file(argv[2], instructions);
 
     #ifdef DEBUG
     for(Instruction& instr : instructions){

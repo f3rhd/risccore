@@ -45,6 +45,27 @@ namespace instruction_look_up{
         "ble","bgt","bleu","bgtu","j","jal",
         "jr","jalr","ret","call","la"     // @Incomplete  : We have 3 or 4 more pseudo operations.
     };
+
+    const std::unordered_set<std::string> pseudo_ops_type_0 = { //@Incomplete
+    };
+    const std::unordered_set<std::string> pseudo_ops_type_1 = { // These bitches have two operands and both of them are registers
+        "mv","not","neg","seqz","snez","sltz","sgtz"
+    };
+    const std::unordered_set<std::string> pseudo_ops_type_2 = { // These bithces have two operands and left is register while middle is label identifier
+        "beqz", "bnez", "blez", "bgez", "bltz", "bgtz"
+    };
+    const std::unordered_set<std::string> pseudo_ops_type_3 = { // These baddies have three operands left and middle are registers while right is label identifier
+        "ble","bgt","bleu","bgtu"
+    };
+    const std::unordered_set<std::string> pseudo_ops_type_4 = { // These have one operand only and it is just a label identifier
+        "j","jal","call"
+    };
+    const std::unordered_set<std::string> pseudo_ops_type_5 = { // These mommas have also one operand only and they are just registers
+        "jr","jalr"
+    };
+    const std::unordered_set<std::string> pseudo_ops_type_6 = { // These mad bitches dont got any operands
+        "ret","nop"
+    };
     OPERATION_TYPE get_opr_type(const std::string& instr){
 
         if(r_type_ops.count(instr))
@@ -59,8 +80,20 @@ namespace instruction_look_up{
             return OPERATION_TYPE::J_TYPE;
         else if(u_type_ops.count(instr))
             return OPERATION_TYPE::U_TYPE;
-        else if(pseudo_ops.count(instr))
-            return OPERATION_TYPE::PSEUDO;
+        else if(pseudo_ops_type_0.count(instr))
+            return OPERATION_TYPE::PSEUDO_TYPE_0;
+        else if(pseudo_ops_type_1.count(instr))
+            return OPERATION_TYPE::PSEUDO_TYPE_1;
+        else if(pseudo_ops_type_2.count(instr))
+            return OPERATION_TYPE::PSEUDO_TYPE_2;
+        else if(pseudo_ops_type_3.count(instr))
+            return OPERATION_TYPE::PSEUDO_TYPE_3;
+        else if(pseudo_ops_type_4.count(instr))
+            return OPERATION_TYPE::PSEUDO_TYPE_4;
+        else if(pseudo_ops_type_5.count(instr))
+            return OPERATION_TYPE::PSEUDO_TYPE_5;
+        else if(pseudo_ops_type_6.count(instr))
+            return OPERATION_TYPE::PSEUDO_TYPE_6;
         else
             return OPERATION_TYPE::UNKNOWN;
     }    
@@ -104,7 +137,13 @@ namespace instruction_look_up{
                 if(op_id[0] == 'a') //auipc
                     return 0x17;
                 return 0x37; // U-type opcode (LUI)
-            case OPERATION_TYPE::PSEUDO:
+            case OPERATION_TYPE::PSEUDO_TYPE_0:
+            case OPERATION_TYPE::PSEUDO_TYPE_1:
+            case OPERATION_TYPE::PSEUDO_TYPE_2:
+            case OPERATION_TYPE::PSEUDO_TYPE_3:
+            case OPERATION_TYPE::PSEUDO_TYPE_4:
+            case OPERATION_TYPE::PSEUDO_TYPE_5:
+            case OPERATION_TYPE::PSEUDO_TYPE_6:
                 return 0x00; // Pseudo instructions don't have a real opcode
             case OPERATION_TYPE::UNKNOWN:
             default:

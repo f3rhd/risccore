@@ -19,7 +19,7 @@ namespace utils {
     bool                line_has_identifier(const Line &line);
     bool                line_has_label(const Line &line);
     bool                line_is_label_only(const Line &line);
-    int                 calculate_offset(size_t label_row_number, size_t identifier_row_number);
+    int32_t             calculate_offset(uint32_t label_row_number, uint32_t identifier_row_number);
     int32_t             str_to_int32(const std::string &s);
     void                throw_error_message(const Error_Message &msg);
 };

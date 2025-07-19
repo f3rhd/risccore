@@ -1,2 +1,1 @@
-add zurna, ah,zort
-add pox,
+mv zort,suka,salam
