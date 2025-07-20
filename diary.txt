@@ -130,4 +130,20 @@ Assembler is mostly done in the morning I will check whether there are any bugs 
  
 5:22 PM now the assembler supports most of the pseudo insructions, i will try to optimize assembler when i come back to baku, right now here i will try to pipeline the cpu 
 I wont be doing the pipelining Today
-TODO: add semicolons to the ast and check them during ast analysis maybe
+I have been working too much lately 
+I need to complete remanin 4 or pseudo instr and directives im also thinking of adding macros they sound very fun but i will do these after pipelining
+
+Plans after pipelining:
+    Add directives.
+    Add remanining pseudo insrtuctions
+    optimize the assembler
+
+
+20th July 2025: I have been in baku for about 3 hours and i have implemented pipelining stages the only thing is left is hazard unit 
+which is work of tomorrow i wil try to optimize the assembler for now.
+21tj July 2025: 12:38 AM
+Okay i have done some optimizations and the results are good. 
+Before optimziation it was compiling 1.1 million lines of codes under 3 minutes
+After optimization it compiled 1.5 million lines of code under 1 minute
+I optimized tokenzier a little bit and it did it under 20 seconds that is mind boggling 
+I can optimize tokenizer furthermore but it is enough for now. Im tired as fuck
