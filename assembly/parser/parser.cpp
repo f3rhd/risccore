@@ -5,19 +5,19 @@
 #include "../common/utils.hpp"
 
 const Token* Parser::peek(std::vector<Token>& line_tokens){
-    if(token_index < line_tokens.size())
-        return &line_tokens[token_index];
+    if(_token_index < line_tokens.size())
+        return &line_tokens[_token_index];
     return nullptr;
 }
 const Token* Parser::eat(std::vector<Token>& line_tokens){
-    if(token_index < line_tokens.size())
-        return &line_tokens[token_index++];
+    if(_token_index < line_tokens.size())
+        return &line_tokens[_token_index++];
     return nullptr;
 
 }
 
-void Parser::set_labels(const std::vector<Line>& lines){
-    for(const Line& line: lines){
+void Parser::set_labels(){
+    for(const Line& line: _lines){
 
         if(line.ctx.has_label){
 
@@ -30,9 +30,9 @@ void Parser::set_labels(const std::vector<Line>& lines){
             */
             if(line.ctx.is_label_only){
 
-                labels.insert({line.label, line.memory_row_number+1});
+                _labels.insert({line.label, line.memory_row_number+1});
             }else{
-                labels.insert({line.label, line.memory_row_number});
+                _labels.insert({line.label, line.memory_row_number});
             }
 
         }
@@ -40,7 +40,7 @@ void Parser::set_labels(const std::vector<Line>& lines){
 }
 
 void Parser::rewind(){
-    token_index = 0;
+    _token_index = 0;
 }
 AST_Node* Parser::parse_line(Line& line){
 
@@ -64,12 +64,12 @@ AST_Node* Parser::parse_line(Line& line){
 
         case TOKEN_TYPE::OPERATION: {
         
-            AST_Node* opr_node  = utils::make_operation_node(active_token->word, instruction_look_up::get_opr_type(active_token->word),&line);
+            AST_Node* opr_node  = utils::make_operation_node(&(active_token->word), instruction_look_up::get_opr_type(active_token->word),&line);
             opr_node->left = parse_line(line);
             const Token *comma_lp_token = peek(line.tokens);
 
             // jalr and jal instructions can act as pseudo even tho they are truly not
-            if(opr_node->str_value[0] == 'j'){
+            if((*(opr_node->str_value))[0] == 'j'){
               if(opr_node->opr_type == instruction_look_up::OPERATION_TYPE::I_TYPE && comma_lp_token == nullptr)
                     opr_node->opr_type = instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5;
               else if(opr_node->opr_type == instruction_look_up::OPERATION_TYPE::J_TYPE && comma_lp_token == nullptr)
@@ -81,7 +81,7 @@ AST_Node* Parser::parse_line(Line& line){
                 if(opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4 &&  
                     opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5 &&
                     opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6){ // these opreations do not need comma
-                    std::string val = comma_lp_token ? opr_node->left->str_value : "";
+                    const std::string* val = comma_lp_token ? opr_node->left->str_value : nullptr;
                     utils::throw_error_message({"Expected ',' ",val, &line});
                     exit(1);
                 }
@@ -100,7 +100,7 @@ AST_Node* Parser::parse_line(Line& line){
                 if(comma_lp_token != nullptr && (comma_lp_token->type == TOKEN_TYPE::COMMA || comma_lp_token->type == TOKEN_TYPE::LPAREN)){
                     eat(line.tokens);
                 }else{
-                    std::string val = comma_lp_token ? opr_node->left->str_value : "";
+                    const std::string* val = comma_lp_token ? opr_node->left->str_value : nullptr;
                     utils::throw_error_message({"Expected ',' or '('  ",val, &line});
                     exit(1);
                 }
@@ -110,16 +110,16 @@ AST_Node* Parser::parse_line(Line& line){
         }
 
         case TOKEN_TYPE::REGISTER : {
-            AST_Node *reg_node = utils::make_reg_node(active_token->word,&line);
+            AST_Node *reg_node = utils::make_reg_node(&(active_token->word),&line);
             return reg_node;
         }
         case TOKEN_TYPE::IMMEDIATE : {
 
-            AST_Node *imm_node = utils::make_imm_node(active_token->word,&line);
+            AST_Node *imm_node = utils::make_imm_node(&(active_token->word),&line);
             return imm_node;
         }
         case TOKEN_TYPE::IDENTIFIER: {
-            return utils::make_identifier_node(active_token->word,&line);
+            return utils::make_identifier_node(&(active_token->word),&line);
         }
         default:
             return nullptr;
@@ -127,43 +127,44 @@ AST_Node* Parser::parse_line(Line& line){
 
 }
 
+void Parser::set_lines(FILE *source_file)
+{
+    char line_text[500];
 
-std::vector<Line> Parser::get_lines(FILE *source_file)
-    {
-        char line_text[500];
-        std::vector<Line> lines;
+    uint32_t counter = 1;
+    uint32_t counter2 = 1;
+    uint32_t label_amount = 0;
 
-        int32_t counter = 1;
-        int32_t counter2 = 1;
-        while(fgets(line_text,sizeof(line_text),source_file)){
-            std::vector<Token> line_tokens = tokenizer::tokenize_line_text(line_text);
-            std::string _line_text(line_text);
-            if (_line_text[0] == '\n' || line_tokens.size() == 0){
-                counter2++;
-                continue;
-            }
-            Line line;
-            line.text = _line_text;
-            line.tokens = line_tokens;
-            line.ctx.has_label = utils::line_has_label(line);
-            if(line.ctx.has_label)
-                line.label = utils::get_label_in_line(line);
-            line.ctx.is_label_only = utils::line_is_label_only(line);
-            line.ctx.has_identifier = utils::line_has_identifier(line);
-            if(line.ctx.has_identifier)
-                line.identifier = utils::get_identifier_in_line(line);
-            line.memory_row_number = counter;
-            line.true_row_number = counter2;
-            lines.push_back(line);
-            counter++;
+    while(fgets(line_text,sizeof(line_text),source_file)){
+        Line line;
+        std::vector<Token> line_tokens = tokenizer::tokenize_line_text(line_text);
+        line.text = line_text;
+        if (line.text[0] == '\n' || line_tokens.size() == 0){
             counter2++;
+            continue;
         }
-        return lines;
+        line.tokens = line_tokens;
+        line.ctx.has_label = utils::line_has_label(line);
+        if(line.ctx.has_label)
+            line.label = utils::get_label_in_line(line);
+        line.ctx.is_label_only = utils::line_is_label_only(line);
+        line.ctx.has_identifier = utils::line_has_identifier(line);
+        if(line.ctx.has_identifier)
+            line.identifier = utils::get_identifier_in_line(line);
+        line.memory_row_number = counter;
+        line.true_row_number = counter2;
+        _lines.push_back(line);
+        counter++;
+        counter2++;
     }
-void Parser::resolve_identifiers(std::vector<AST_Node*> heads){
+
+    _heads.reserve(counter);
+    _labels.reserve(label_amount);
+}
+void Parser::resolve_identifiers(){
 
 
-    for(AST_Node* head :  heads){
+    for(AST_Node* head :  _heads){
         AST_Node *candidate_label_identifier_node;
         
         switch(head->opr_type){
@@ -191,9 +192,9 @@ void Parser::resolve_identifiers(std::vector<AST_Node*> heads){
         if( candidate_label_identifier_node && candidate_label_identifier_node->node_type ==  AST_NODE_TYPE::IDENTIFIER){
                     
             // look for label table
-            auto it = labels.find(candidate_label_identifier_node->str_value);
+            auto it = _labels.find(candidate_label_identifier_node->str_value);
 
-            if(it == labels.end()){ 
+            if(it == _labels.end()){ 
 
                 // If we are in this block means that the identifier points to non existent label
                 // Make the identifier immediate value -1 to be able to tell the ast analyser that this is nullptr type thing
@@ -209,18 +210,40 @@ void Parser::resolve_identifiers(std::vector<AST_Node*> heads){
     }
 }
 void Parser::print_labels(){
-    for(auto& it : labels){
+    for(auto& it : _labels){
         std::cout << it.first << std::endl;
     }
 }
-std::vector<AST_Node*> Parser::parse_lines(std::vector<Line>& lines){
+std::vector<AST_Node*> Parser::parse_lines(){
 
-    std::vector<AST_Node*> heads;
-    for(Line& line : lines){
+    for(Line& line : _lines){
         rewind();
         AST_Node *head = parse_line(line);
         if(head != nullptr)
-            heads.push_back(head);
+            _heads.push_back(head);
     }
-    return heads;
+    return _heads;
+}
+void Parser::print_tokens(){
+    for(Line& line : _lines){
+        for(Token& token :line.tokens){
+            std::cout << token.word << '\n';
+        }
+    }
+}
+void Parser::run(FILE* source_file){
+
+    set_lines(source_file);
+#ifdef PRINT_TOKENS
+    print_tokens();
+#endif
+    parse_lines();
+    set_labels();
+#ifdef  PRINT_LABELS
+    print_labels();
+#endif
+  resolve_identifiers();
+}
+const std::vector<AST_Node *> Parser::get_ast_nodes(){
+    return _heads;
 }

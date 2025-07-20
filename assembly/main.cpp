@@ -11,21 +11,13 @@ int main(int argc, char** argv){
         printf("Source file does not exist.");
         return 1;
     }
-    //Parsing
     Parser parser;
-    std::vector<Line> lines = parser.get_lines(source_file);
-    std::vector<AST_Node*> heads = parser.parse_lines(lines);
-    parser.set_labels(lines);
-    #ifdef PRINT_LABELS
-        parser.print_labels();
-    #endif
-    parser.resolve_identifiers(heads);
-    //Ast analysis
-    if(ast_analyser::analyse_ast_lines(heads) == 1) 
+    parser.run(source_file);
+    if(ast_analyser::analyse_ast_lines(parser.get_ast_nodes()) == 1) 
         return 1;
-    // Code generation
-    std::vector<Instruction> instructions = instr_gen::generate_instructions(heads);
-    code_gen::generate_bin_file(argv[2], instructions);
+    instr_gen::generator gen;
+    gen.generate_instructions(parser.get_ast_nodes());
+    code_gen::generate_bin_file(argv[2],gen.get_instructions());
 
     #ifdef PRINT_INSTR
     for(Instruction& instr : instructions){

@@ -3,7 +3,7 @@
 
 namespace utils{
 
-    AST_Node* make_reg_node(const std::string& reg_identifier,Line* line_info_){
+    AST_Node* make_reg_node(const std::string* reg_identifier,Line* line_info_){
 
         AST_Node *reg_node = new AST_Node;
 
@@ -17,7 +17,7 @@ namespace utils{
         return reg_node;
     }
 
-    AST_Node* make_operation_node(const std::string& opr_identifier,instruction_look_up::OPERATION_TYPE instr_type,Line* line_info_) {
+    AST_Node* make_operation_node(const std::string* opr_identifier,instruction_look_up::OPERATION_TYPE instr_type,Line* line_info_) {
         AST_Node *opr_node = new AST_Node;
         if(opr_node == nullptr){ 
             printf("Error! -> Malloc Failed");
@@ -30,7 +30,7 @@ namespace utils{
 
         return opr_node;
     }
-    AST_Node *make_imm_node(const std::string& imm_val,Line* line_info_){
+    AST_Node *make_imm_node(const std::string* imm_val,Line* line_info_){
         AST_Node *imm_node = new AST_Node;
 
         if(imm_node == nullptr){ 
@@ -42,7 +42,7 @@ namespace utils{
         imm_node->line_info = line_info_;
         return imm_node;
     }
-    AST_Node* make_identifier_node(const std::string& _id,Line* line_info_){
+    AST_Node* make_identifier_node(const std::string* _id,Line* line_info_){
         AST_Node *id_node = new AST_Node;
 
         if(id_node == nullptr){ 
@@ -154,23 +154,21 @@ namespace utils{
         }
         return false;
     }   
-    std::string get_identifier_in_line(const Line& line){
-        std::string id;
+    const std::string* get_identifier_in_line(const Line& line){
         for(const Token& token : line.tokens){
             if(token.type == TOKEN_TYPE::IDENTIFIER){
-                return token.word;
+                return &token.word;
             }
-        }
-        return id;
+       }
+       return nullptr;
     }
-    std::string get_label_in_line(const Line& line){
-        std::string id;
+    const std::string* get_label_in_line(const Line& line){
         for(const Token& token : line.tokens){
             if(token.type == TOKEN_TYPE::LABEL){
-                return token.word;
+                return &token.word;
             }
         }
-        return id;
+        return nullptr;
     }
     int32_t calculate_offset(uint32_t label_row_number, uint32_t identifier_row_number){
 
@@ -180,7 +178,10 @@ namespace utils{
 
         std::cout << "\n==================== ERROR ====================\n";
         std::cout << "Line " << msg.error_causing_line->true_row_number << ": " << msg.error_causing_line->text;
-        std::cout << "Cause:   '" << msg.error_causing_word << "'\n";
+            if(msg.error_causing_word == nullptr)
+            std::cout << "Cause:   '" << "" << "'\n";
+            else
+            std::cout << "Cause:   '" << *msg.error_causing_word << "'\n";
         std::cout << "Message: " << msg.message << "\n";
         std::cout << "==============================================\n\n";
     }

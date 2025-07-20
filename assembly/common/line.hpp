@@ -11,12 +11,12 @@ struct Line_Context{
 };
 struct Line{
 
-    std::string text;
-    std::vector<Token> tokens;
+    std::string                 text;
+    std::vector<Token>          tokens;
     // by extras we mean comments and label names
-    uint32_t           memory_row_number;
-    uint32_t           true_row_number;
-    std::string        identifier;
-    std::string        label;
-    Line_Context       ctx;
+    uint32_t                    memory_row_number;
+    uint32_t                    true_row_number;
+    const std::string*          identifier;
+    const std::string*          label;
+    Line_Context                ctx;
 };
