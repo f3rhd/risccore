@@ -2,7 +2,7 @@
 namespace ast_analyser{
 
     // assumes that it head is not nullptr
-    static std::string val;
+    static const std::string* val;
     static void ast_has_valid_operation(AST_Node *node, bool &success) {
         if(node->node_type != AST_NODE_TYPE::OPERATION){
 
@@ -16,7 +16,7 @@ namespace ast_analyser{
             && node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4
            && (node->left == nullptr || node->left->node_type != AST_NODE_TYPE::REGISTER)){
             if(node->left == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = node->left->str_value;
             utils::throw_error_message({"Instruction should have a register as first operand.", val , node->line_info});
@@ -28,7 +28,7 @@ namespace ast_analyser{
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
 
             if(head->middle == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = head->middle->str_value;
             utils::throw_error_message({"R-Type operation should have a register as second operand.", val, head->line_info});
@@ -36,7 +36,7 @@ namespace ast_analyser{
         }
         if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::REGISTER){
             if(head->right == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = head->right->str_value;
 
@@ -46,13 +46,13 @@ namespace ast_analyser{
     };
     static void i_type_analysis(AST_Node* head, bool& success){
 
-        if(head->str_value[0] == 'l' ) // below logic is for lw,lh,lbu,lhu and jalr
+        if((*(head->str_value))[0] == 'l' ) // below logic is for lw,lh,lbu,lhu and jalr
         {
 
             if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IMMEDIATE){
 
                 if(head->middle == nullptr)
-                    val = "";
+                    val = nullptr;
                 else
                     val = head->middle->str_value;
                 utils::throw_error_message({"Operation should have an immediate value as second operand.", val, head->line_info});
@@ -60,19 +60,19 @@ namespace ast_analyser{
             }
             if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::REGISTER){
                 if(head->right == nullptr)
-                    val = "";
+                    val = nullptr;
                 else
                     val = head->right->str_value;
                 utils::throw_error_message({"Operation should have a register as third operand.", val, head->line_info});
                 success = 0;
             }
         } 
-        else if(head->str_value[0] == 'j'){
+        else if((*(head->str_value))[0] == 'j'){
 
             if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
 
                 if(head->middle == nullptr)
-                    val = "";
+                    val = nullptr;
                 else
                     val = head->middle->str_value;
                 utils::throw_error_message({"Operation should have an register value as second operand.", val, head->line_info});
@@ -80,7 +80,7 @@ namespace ast_analyser{
             }
             if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::IMMEDIATE){
                 if(head->right == nullptr)
-                    val = "";
+                    val = nullptr;
                 else
                     val = head->right->str_value;
                 utils::throw_error_message({"Operation should have a immediate as third operand.", val, head->line_info});
@@ -91,7 +91,7 @@ namespace ast_analyser{
 
             if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::IMMEDIATE){
                 if(head->right == nullptr)
-                    val = "";
+                    val = nullptr;
                 else
                     val = head->right->str_value;
                 utils::throw_error_message({"Operation should have an immediate value as third operand.", head->right->str_value, head->line_info});
@@ -99,7 +99,7 @@ namespace ast_analyser{
             }
             if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
                 if(head->middle == nullptr)
-                    val = "";
+                    val = nullptr;
                 else
                     val = head->middle->str_value;
                 utils::throw_error_message({"Operation should have a register as second operand.", val, head->line_info});
@@ -111,7 +111,7 @@ namespace ast_analyser{
 
         if(head->right == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
             if(head->right == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = head->right->str_value;
             utils::throw_error_message({"Operation should have a register as second operand.", val, head->line_info});
@@ -119,7 +119,7 @@ namespace ast_analyser{
         }
         if(head->middle == nullptr || head->right->node_type != AST_NODE_TYPE::IDENTIFIER){
             if(head->middle == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = head->middle->str_value;
             utils::throw_error_message({"Operation should have a label identifier as third operand.", val, head->line_info});
@@ -135,7 +135,7 @@ namespace ast_analyser{
 
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IDENTIFIER){
             if(head->middle == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = head->middle->str_value;
             utils::throw_error_message({"Operation should have an label identifier as second operand.", val, head->line_info});
@@ -153,7 +153,7 @@ namespace ast_analyser{
     static void u_type_analysis(AST_Node* head, bool& success){
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IMMEDIATE){
             if(head->middle == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = head->middle->str_value;
             utils::throw_error_message({"Operation should have an immediate value as second operand.", val, head->line_info});
@@ -168,7 +168,7 @@ namespace ast_analyser{
 
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
             if(head->middle == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = head->middle->str_value;
             utils::throw_error_message({"Operation should have a register as second operand", val, head->line_info});
@@ -184,7 +184,7 @@ namespace ast_analyser{
     static void pseudo_type_4_analysis(AST_Node *head, bool &success) {
         if(head->left == nullptr || head->left->node_type != AST_NODE_TYPE::IDENTIFIER){
             if(head->left == nullptr)
-                val = "";
+                val = nullptr;
             else
                 val = head->left->str_value;
             utils::throw_error_message({"Operation should have an label identifier as first operand", val, head->line_info});
@@ -214,7 +214,7 @@ namespace ast_analyser{
     }
     static void pseudo_type_6_analysis(AST_Node *head, bool &success) {
         if(head->left != nullptr || head->middle != nullptr || head->right != nullptr){
-            utils::throw_error_message({"Operation can not have any operands", "", head->line_info});
+            utils::throw_error_message({"Operation can not have any operands", nullptr, head->line_info });
             success = 0;
         }
     }

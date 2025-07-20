@@ -1,40 +1,41 @@
 #include "../common/ast_node.hpp"
 #include "../common/instruction.hpp"
 #include "../common/utils.hpp"
+#include "instr_gen.hpp"
 
 // generates instruction based on the ast
 namespace instr_gen{
 
-    static Instruction convert_to_instr(AST_Node* head){
+    Instruction generator::convert_to_instr(AST_Node* head){
 
         // Extract fields from AST_Node
         Instruction instr;
         instr.type = head->opr_type;
-        instr.opcode = instruction_look_up::get_op_code(instr.type,head->str_value);
-        instr.func3 = instruction_look_up::get_func3(head->str_value);
-        instr.func7 = instruction_look_up::get_func7(head->str_value);
+        instr.opcode = instruction_look_up::get_op_code(instr.type,*head->str_value);
+        instr.func3 = instruction_look_up::get_func3(*head->str_value);
+        instr.func7 = instruction_look_up::get_func7(*head->str_value);
         using instruction_look_up::OPERATION_TYPE;
         switch(instr.type){
             case OPERATION_TYPE::R_TYPE:{
                 // R-type: opcode, rd, rs1, rs2, funct3, funct7
                 // add rd,rs1,rs2
-                instr.rd = instruction_look_up::get_register_index(head->left->str_value);
-                instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
-                instr.rs2 = instruction_look_up::get_register_index(head->right->str_value);
+                instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
+                instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
+                instr.rs2 = instruction_look_up::get_register_index(*head->right->str_value);
                 break;
             }
             case OPERATION_TYPE::I_TYPE:{
 
-                instr.rd = instruction_look_up::get_register_index(head->left->str_value);
-                if(head->str_value[0] == 'l'){
-                    instr.imm = utils::str_to_int32(head->middle->str_value);
-                    instr.rs1 = instruction_look_up::get_register_index(head->right->str_value);
-                }else if(head->str_value[0] == 'j') {
+                instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
+                if((*(head->str_value))[0] == 'l'){
+                    instr.imm = utils::str_to_int32(*(head->middle->str_value));
+                    instr.rs1 = instruction_look_up::get_register_index(*head->right->str_value);
+                }else if((*(head->str_value))[0] == 'j') {
                     instr.imm = head->middle->identifier_immediate;
                 }
                 else{
-                    instr.imm = utils::str_to_int32(head->right->str_value);
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
+                    instr.imm = utils::str_to_int32(*head->right->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
                 }
                 break;
             }
@@ -42,31 +43,31 @@ namespace instr_gen{
                 // S-type: opcode, rs1, rs2, imm, funct3
                 // rd and funct7 not used
                 // sb rs2 imm(rs1)
-                instr.rs2 = instruction_look_up::get_register_index(head->left->str_value);
-                instr.imm = utils::str_to_int32(head->middle->str_value);
-                instr.rs1 = instruction_look_up::get_register_index(head->right->str_value);
+                instr.rs2 = instruction_look_up::get_register_index(*head->left->str_value);
+                instr.imm = utils::str_to_int32(*head->middle->str_value);
+                instr.rs1 = instruction_look_up::get_register_index(*head->right->str_value);
                 break;
             }
             case OPERATION_TYPE::B_TYPE:{
                 // B-type: opcode, rs1, rs2, imm, funct3
                 // rd and funct7 not used
-                instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
-                instr.rs2 = instruction_look_up::get_register_index(head->middle->str_value);
+                instr.rs1 = instruction_look_up::get_register_index(*head->left->str_value);
+                instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_value);
                 instr.imm = head->right->identifier_immediate;
                 break;
             }
             case OPERATION_TYPE::J_TYPE: {
                 // J-type: opcode, rd, imm
                 // rs1, rs2, funct3, funct7 not used
-                instr.rd = instruction_look_up::get_register_index(head->left->str_value);
+                instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
                 instr.imm = head->middle->identifier_immediate;
                 break;
             }
             case OPERATION_TYPE::U_TYPE: {
                 // U-type: opcode, rd, imm
                 // rs1, rs2, funct3, funct7 not used
-                instr.rd = instruction_look_up::get_register_index(head->left->str_value);
-                instr.imm = utils::str_to_int32(head->middle->str_value);
+                instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
+                instr.imm = utils::str_to_int32(*head->middle->str_value);
                 break;
             }
             case OPERATION_TYPE::PSEUDO_TYPE_1:
@@ -75,174 +76,174 @@ namespace instr_gen{
             case OPERATION_TYPE::PSEUDO_TYPE_4:
             case OPERATION_TYPE::PSEUDO_TYPE_5:
             case OPERATION_TYPE::PSEUDO_TYPE_6:{ // I hate this...
-                if(head->str_value == "nop"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
+                if(*head->str_value == "nop"){
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_value);
                     instr.rd = instruction_look_up::get_register_index("zero");
                     instr.rs1 = instruction_look_up::get_register_index("zero");
                     instr.imm = 0;
                 }
-                else if(head->str_value == "mv"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
-                    instr.rd = instruction_look_up::get_register_index(head->left->str_value);
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
+                else if(*head->str_value == "mv"){
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_value);
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
                     instr.imm = 0;
                 }
-                else if(head->str_value == "not"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
+                else if(*head->str_value == "not"){
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_value);
                     instr.func3 = instruction_look_up::get_func3("xori");
-                    instr.rd = instruction_look_up::get_register_index(head->left->str_value);
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
                     instr.imm = -1;
                 }
-                else if(head->str_value == "neg"){
+                else if(*head->str_value == "neg"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
                     instr.func7 = instruction_look_up::get_func7("sub");
-                    instr.rd = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs1 = instruction_look_up::get_register_index("zero");
-                    instr.rs2 = instruction_look_up::get_register_index(head->middle->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_value);
 
                 }
-                else if(head->str_value ==  "seqz"){
+                else if(*head->str_value  ==  "seqz"){
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_value);
                     instr.func3 = instruction_look_up::get_func3("sltiu");
-                    instr.rd = instruction_look_up::get_register_index(head->left->str_value);
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
                     instr.imm = 1;
                 }
-                else if(head->str_value == "snez"){
+                else if(*head->str_value == "snez"){
 
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
                     instr.func3 = instruction_look_up::get_func3("sltu");
-                    instr.rd = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs1 = instruction_look_up::get_register_index("zero");
-                    instr.rs2 = instruction_look_up::get_register_index(head->middle->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_value);
                 }
-                else if(head->str_value == "sltz"){
+                else if(*head->str_value == "sltz"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
                     instr.func3 = instruction_look_up::get_func3("slt");
-                    instr.rd = instruction_look_up::get_register_index(head->left->str_value);
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
                     instr.rs2 = instruction_look_up::get_register_index("zero");
                 }
-                else if(head->str_value == "sgtz"){
+                else if(*head->str_value == "sgtz"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
                     instr.func3 = instruction_look_up::get_func3("slt");
-                    instr.rd = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs1 = instruction_look_up::get_register_index("zero");
-                    instr.rs2 = instruction_look_up::get_register_index(head->middle->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_value);
                 }
-                else if(head->str_value == "beqz"){
+                else if(*head->str_value == "beqz"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
-                    instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs2 = instruction_look_up::get_register_index("zero");
                     instr.imm = head->middle->identifier_immediate;
                 }
-                else if(head->str_value == "bnez"){
+                else if(*head->str_value == "bnez"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("bne");
-                    instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs2 = instruction_look_up::get_register_index("zero");
                     instr.imm = head->middle->identifier_immediate;
                 }
-                else if(head->str_value == "blez"){
+                else if(*head->str_value == "blez"){
 
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("bge");
-                    instr.rs2 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs1 = instruction_look_up::get_register_index("zero");
                     instr.imm = head->middle->identifier_immediate;
                 }
-                else if(head->str_value == "bgez") {
+                else if(*head->str_value == "bgez") {
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("bge");
-                    instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs2 = instruction_look_up::get_register_index("zero");
                     instr.imm = head->middle->identifier_immediate;
 
                 }
-                else if(head->str_value == "bltz"){
+                else if(*head->str_value == "bltz"){
 
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("blt");
-                    instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs2 = instruction_look_up::get_register_index("zero");
                     instr.imm = head->middle->identifier_immediate;
 
                 }
-                else if(head->str_value == "bgtz"){
+                else if(*head->str_value == "bgtz"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("blt");
-                    instr.rs2 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.rs1 = instruction_look_up::get_register_index("zero");
                     instr.imm = head->middle->identifier_immediate;
 
                 }
-                else if(head->str_value == "ble"){
+                else if(*head->str_value == "ble"){
 
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("bge");
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
-                    instr.rs2 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.imm = head->right->identifier_immediate;
                 }
-                else if(head->str_value == "bgt"){
+                else if(*head->str_value == "bgt"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("blt");
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
-                    instr.rs2 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.imm = head->right->identifier_immediate;
 
                 }
-                else if(head->str_value == "bleu") {
+                else if(*head->str_value == "bleu") {
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("bgeu");
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
-                    instr.rs2 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.imm = head->right->identifier_immediate;
 
                 }
-                else if(head->str_value == "bgtu") {
+                else if(*head->str_value == "bgtu") {
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.func3 = instruction_look_up::get_func3("bltu");
-                    instr.rs1 = instruction_look_up::get_register_index(head->middle->str_value);
-                    instr.rs2 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_value);
+                    instr.rs2 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.imm = head->right->identifier_immediate;
                 }
-                else if(head->str_value == "j") {
+                else if(*head->str_value == "j") {
 
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::J_TYPE);
                     instr.rd = instruction_look_up::get_register_index("zero");
                     instr.imm = head->left->identifier_immediate;
                 }
-                else if(head->str_value == "jal"){
+                else if(*(head->str_value) == "jal"){
 
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::J_TYPE);
                     instr.rd = instruction_look_up::get_register_index("ra");
                     instr.imm = head->left->identifier_immediate;
                 }
-                else if(head->str_value == "jr") {
+                else if(*head->str_value == "jr") {
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_value);
                     instr.rd = instruction_look_up::get_register_index("zero");
-                    instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.imm = 0;
                 }
-                else if(head->str_value == "jalr") {
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
+                else if(*head->str_value == "jalr") {
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_value);
                     instr.rd = instruction_look_up::get_register_index("ra");
-                    instr.rs1 = instruction_look_up::get_register_index(head->left->str_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->left->str_value);
                     instr.imm = 0;
 
                 }
-                else if(head->str_value == "ret") {
+                else if(*head->str_value == "ret") {
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,head->str_value);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_value);
                     instr.rd = instruction_look_up::get_register_index("zero");
                     instr.rs1 = instruction_look_up::get_register_index("ra");
                     instr.imm = 0;
                 }
-                else if(head->str_value == "call"){
+                else if(*head->str_value == "call"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::J_TYPE);
                     instr.rd = instruction_look_up::get_register_index("ra");
                     instr.imm = head->left->identifier_immediate;
@@ -259,12 +260,14 @@ namespace instr_gen{
         
         return instr;
     }
-    std::vector<Instruction> generate_instructions(const std::vector<AST_Node *> &heads){
-        std::vector<Instruction> instructions;
+    void generator::generate_instructions(const std::vector<AST_Node *> &heads){
         for(AST_Node* head : heads){
 
-            instructions.push_back(convert_to_instr(head));
+            _instructions.push_back(convert_to_instr(head));
         }
-        return instructions;
+    }
+    const std::vector<Instruction> &generator::get_instructions()
+    {
+        return _instructions;
     }
 }
