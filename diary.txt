@@ -147,3 +147,38 @@ Before optimziation it was compiling 1.1 million lines of codes under 3 minutes
 After optimization it compiled 1.5 million lines of code under 1 minute
 I optimized tokenzier a little bit and it did it under 20 seconds that is mind boggling 
 I can optimize tokenizer furthermore but it is enough for now. Im tired as fuck
+TODO:
+    There is one bug appearing with the current "test.s" file figure that out.
+    Also maybe instead of doing that is_label_only find_identifier type of wizard shit do those in parse_line()?
+
+Yeah we solved these problems i did a little bit more optimizatons and will check the performance with 3.5 million lines
+Results are appealing. It assembled 3.5 million lines under 4 seconds
+
+So it is 5:31Pm 22/7/2025 Im implementing forwarding
+
+FORWARDING FOR A:
+1X 1 0 0 
+01 0 1 0
+00 0 0 1
+if((EXE_RS1 == MEM_REG_WRITE_ADR) & MEM_REG_WRITE & (EXE_RS1 != 0)):
+	FORWARD_A = 11
+else if(EXE_RS1 == WRITE_REG_WRITE_ADR) & WRITE_REG_WRITE & (EXE_RS1 !=0)):
+	FORWARD_A = 10
+else 
+	FORWARD_A = 00
+
+FORWARDING FOR B:
+if((EXE_RS2 == MEM_REG_WRITE_ADR) & MEM_REG_WRITE & (EXE_RS2 != 0)):
+	FORWARD_A = 11
+else if(EXE_RS2 == WRITE_REG_WRITE_ADR) & WRITE_REG_WRITE & (EXE_RS2 !=0)):
+	FORWARD_A = 10
+else 
+	FORWARD_A = 00
+Let's build the hardware for that
+
+Forwarding and stalling is done i love how the idea behind these two is very simple
+Now we need to handle branch predicition
+I need to change the control unit for the branch prediction omg
+Lets do that the logic behind is simple thankfully
+
+22/7/2025 78:03PM the pipelined 32 bit cpu with hazard unit is officially done
