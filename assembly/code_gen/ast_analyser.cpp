@@ -218,7 +218,7 @@ namespace ast_analyser{
             success = 0;
         }
     }
-    static int analyse_line_ast(AST_Node* head) {
+    bool analyse_line_ast(AST_Node* head) {
 
         bool success = 1;
 
@@ -274,15 +274,4 @@ namespace ast_analyser{
         return success;
     }
 
-    int analyse_ast_lines(const std::vector<AST_Node*>& heads){
-
-        int had_error = 0;
-        for(AST_Node* head : heads){
-
-            if(analyse_line_ast(head) == 0 && !had_error)
-                had_error = true;
-        }
-
-        return had_error;
-    }
 };

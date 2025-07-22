@@ -3,6 +3,7 @@
 
 #include "parser.hpp"
 #include "../common/utils.hpp"
+#include "../code_gen/ast_analyser.hpp"
 
 const Token* Parser::peek(std::vector<Token>& line_tokens){
     if(_token_index < line_tokens.size())
@@ -119,8 +120,7 @@ void Parser::set_lines(FILE *source_file)
     while(fgets(line_text,sizeof(line_text),source_file)){
         Line _line;
         _line.tokens = tokenizer::tokenize_line_text(line_text);  
-        _line.text = line_text;
-        if (_line.text[0] == '\n' || _line.tokens.size() == 0){
+        if (line_text[0] == '\n' || _line.tokens.size() == 0){
             counter2++;
             continue;
         }
@@ -196,8 +196,12 @@ void Parser::parse_lines(){
     for(Line& line : _lines){
         rewind();
         AST_Node *head = parse_line(line);
-        if(head != nullptr)
-            _heads.push_back(head);
+        if(head != nullptr){
+            if(ast_analyser::analyse_line_ast(head) == 1)
+                _heads.push_back(head); 
+            else
+                exit_code = false;
+        }
     }
 }
 void Parser::print_tokens_labels(){
@@ -220,6 +224,10 @@ void Parser::run(FILE* source_file){
 #endif
     resolve_identifiers();
     parse_lines();
+    if(exit_code == false){
+        printf("Assembling was unsuccessful.\n");
+        exit(1);
+    }
 }
 const std::vector<AST_Node *>& Parser::get_ast_nodes(){
     return _heads;

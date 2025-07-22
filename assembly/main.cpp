@@ -13,8 +13,6 @@ int main(int argc, char** argv){
     }
     Parser parser;
     parser.run(source_file);
-    if(ast_analyser::analyse_ast_lines(parser.get_ast_nodes()) == 1) 
-        return 1;
     instr_gen::generator gen;
     gen.generate_instructions(parser.get_ast_nodes());
     code_gen::generate_bin_file(argv[2],gen.get_instructions());

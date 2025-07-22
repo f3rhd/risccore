@@ -5,7 +5,6 @@
 #include "token.hpp"
 struct Line{
 
-    std::string                 text;
     std::vector<Token>          tokens;
     // by extras we mean comments and label names
     uint32_t                    memory_row_number;

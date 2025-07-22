@@ -161,11 +161,15 @@ namespace utils{
     void throw_error_message(const Error_Message& msg){
 
         std::cout << "\n==================== ERROR ====================\n";
-        std::cout << "Line " << msg.error_causing_line->true_row_number << ": " << msg.error_causing_line->text;
-            if(msg.error_causing_str_ptr == nullptr)
-            std::cout << "Cause:   '" << "" << "'\n";
-            else
-            std::cout << "Cause:   '" << *msg.error_causing_str_ptr << "'\n";
+        std::cout << "Line " << msg.error_causing_line->true_row_number << ": " ;
+        for(const Token& token : msg.error_causing_line->tokens){
+            std::cout << token.word;
+        }
+        std::cout << '\n';
+        if(msg.error_causing_str_ptr == nullptr)
+        std::cout << "Cause:   '" << "" << "'\n";
+        else
+        std::cout << "Cause:   '" << *msg.error_causing_str_ptr << "'\n";
         std::cout << "Message: " << msg.message << "\n";
         std::cout << "==============================================\n\n";
     }

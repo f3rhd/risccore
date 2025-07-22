@@ -17,6 +17,7 @@ private:
     std::unordered_map<const std::string*,size_t> _labels;
     std::vector<Line> _lines;
     std::vector<AST_Node *> _heads;
+    bool exit_code = true;
 
 private:
     void parse_lines();
