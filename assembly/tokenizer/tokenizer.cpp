@@ -72,6 +72,7 @@ namespace tokenizer {
 
     std::vector<Token> tokenize_line_text(const std::string& line_raw) {
         std::vector<Token> tokens;
+        tokens.reserve(8);
 
         uint64_t comment_pos = line_raw.find('#');
         std::string line = (comment_pos != std::string::npos) ? line_raw.substr(0, comment_pos) : line_raw;

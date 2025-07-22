@@ -222,8 +222,8 @@ void Parser::run(FILE* source_file){
 #ifdef PRINT_TOKENS_LABELS
     print_tokens_labels();
 #endif
-    resolve_identifiers();
     parse_lines();
+    resolve_identifiers();
     if(exit_code == false){
         printf("Assembling was unsuccessful.\n");
         exit(1);

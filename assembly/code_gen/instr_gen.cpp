@@ -261,6 +261,8 @@ namespace instr_gen{
         return instr;
     }
     void generator::generate_instructions(const std::vector<AST_Node *> &heads){
+
+        _instructions.reserve(heads.size());
         for(AST_Node* head : heads){
 
             _instructions.push_back(convert_to_instr(head));
