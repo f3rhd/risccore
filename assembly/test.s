@@ -1,2 +1,1 @@
-nopnop
-addi x0,x1,x2
+lw s8, 20(s3)
