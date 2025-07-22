@@ -10,7 +10,7 @@ class Parser{
 
 public:
     void run(FILE *source_file);
-    const std::vector<AST_Node *> get_ast_nodes();
+    const std::vector<AST_Node *>& get_ast_nodes();
 private:
     uint32_t _token_index = 0;
     uint32_t _line_index = 0;
@@ -19,7 +19,7 @@ private:
     std::vector<AST_Node *> _heads;
 
 private:
-    std::vector<AST_Node*> parse_lines();
+    void parse_lines();
     void set_labels();
     void resolve_identifiers(); // this vector stores ast of each line
     void print_labels();
@@ -28,5 +28,5 @@ private:
     const Token *peek(std::vector<Token> &line_tokens);
     const Token *eat(std::vector<Token> &line_tokens);
     void rewind();
-    void print_tokens();
+    void print_tokens_labels();
 };

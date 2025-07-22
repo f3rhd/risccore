@@ -56,7 +56,11 @@ AST_Node* Parser::parse_line(Line& line){
             ...
         */
         if(active_token == nullptr){
+            _labels.insert({line.label, line.memory_row_number + 1});
             return nullptr;
+        }else{
+
+            _labels.insert({line.label, line.memory_row_number});
         }
     }
 
@@ -136,24 +140,25 @@ void Parser::set_lines(FILE *source_file)
     uint32_t label_amount = 0;
 
     while(fgets(line_text,sizeof(line_text),source_file)){
-        Line line;
-        std::vector<Token> line_tokens = tokenizer::tokenize_line_text(line_text);
-        line.text = line_text;
-        if (line.text[0] == '\n' || line_tokens.size() == 0){
+        Line _line;
+        _line.tokens = tokenizer::tokenize_line_text(line_text);  
+        _line.text = line_text;
+        if (_line.text[0] == '\n' || _line.tokens.size() == 0){
             counter2++;
             continue;
         }
-        line.tokens = line_tokens;
-        line.ctx.has_label = utils::line_has_label(line);
-        if(line.ctx.has_label)
-            line.label = utils::get_label_in_line(line);
+        // We move the tokens to the _lines so when we do line.label = utils::get_label_in_line(line) we get the std::string* in the _lines 
+        _lines.push_back(_line);
+        Line &line = _lines[_lines.size() - 1];
+        line.label = utils::get_label_in_line(line);
+        if(line.label != nullptr)
+            line.ctx.has_label = true;
         line.ctx.is_label_only = utils::line_is_label_only(line);
-        line.ctx.has_identifier = utils::line_has_identifier(line);
-        if(line.ctx.has_identifier)
-            line.identifier = utils::get_identifier_in_line(line);
+        line.identifier = utils::get_identifier_in_line(line);
+        if(line.identifier)
+            line.ctx.has_identifier = true;
         line.memory_row_number = counter;
         line.true_row_number = counter2;
-        _lines.push_back(line);
         counter++;
         counter2++;
     }
@@ -211,10 +216,10 @@ void Parser::resolve_identifiers(){
 }
 void Parser::print_labels(){
     for(auto& it : _labels){
-        std::cout << it.first << std::endl;
+        std::cout << *(it.first) << std::endl;
     }
 }
-std::vector<AST_Node*> Parser::parse_lines(){
+void Parser::parse_lines(){
 
     for(Line& line : _lines){
         rewind();
@@ -222,12 +227,16 @@ std::vector<AST_Node*> Parser::parse_lines(){
         if(head != nullptr)
             _heads.push_back(head);
     }
-    return _heads;
 }
-void Parser::print_tokens(){
+void Parser::print_tokens_labels(){
     for(Line& line : _lines){
-        for(Token& token :line.tokens){
-            std::cout << token.word << '\n';
+        std::cout << "Line " << line.true_row_number << '\n';
+        if(line.label != nullptr)
+            std::cout << "Label in the line:" << *line.label << '\n';
+        std::cout << "Label string memory address" << line.label << '\n';
+        for (Token &token : line.tokens)
+        {
+            std::cout << '\t' << token.word << "@" << &token.word << "=" << utils::token_type_to_string(token.type) << '\n';
         }
     }
 }
@@ -235,15 +244,11 @@ void Parser::run(FILE* source_file){
 
     set_lines(source_file);
 #ifdef PRINT_TOKENS
-    print_tokens();
+    print_tokens_labels();
 #endif
+    resolve_identifiers();
     parse_lines();
-    set_labels();
-#ifdef  PRINT_LABELS
-    print_labels();
-#endif
-  resolve_identifiers();
 }
-const std::vector<AST_Node *> Parser::get_ast_nodes(){
+const std::vector<AST_Node *>& Parser::get_ast_nodes(){
     return _heads;
 }

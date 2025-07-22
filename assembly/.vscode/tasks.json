@@ -3,12 +3,21 @@
 	"tasks": [
 		{
 			"type": "shell",
-			"label": "Build main.cpp",
+			"label": "Build release",
 			"command": "g++ -g -std=c++20 -Icommon -Itokenizer -Iparser -Icode_gen main.cpp code_gen/*.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o fasm.exe",
 			"group": "build",
 			"problemMatcher": [
 				"$gcc"
 			]
-		}
+		},
+		{
+			"type": "shell",
+			"label": "Build debug",
+			"command": "g++ -g -std=c++20 -Icommon -Itokenizer -Iparser -Icode_gen -DPRINT_TOKENS -DPRINT_LABELS main.cpp code_gen/*.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o fasm_debug.exe",
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			]
+		},
 	]
 }

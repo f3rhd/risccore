@@ -8,7 +8,7 @@
             "name": "Debug main.exe",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/fasm.exe",
+            "program": "${workspaceFolder}/fasm_debug.exe",
             "args": ["test.s","../schematics/output"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
