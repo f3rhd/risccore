@@ -243,7 +243,7 @@ void Parser::print_tokens_labels(){
 void Parser::run(FILE* source_file){
 
     set_lines(source_file);
-#ifdef PRINT_TOKENS
+#ifdef PRINT_TOKENS_LABELS
     print_tokens_labels();
 #endif
     resolve_identifiers();

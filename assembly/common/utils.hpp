@@ -16,8 +16,6 @@ namespace utils {
     std::string               opr_type_to_string(instruction_look_up::OPERATION_TYPE type);
     const std::string*        get_label_in_line(const Line &line);
     const std::string*        get_identifier_in_line(const Line &line);
-    bool                      line_has_identifier(const Line &line);
-    bool                      line_has_label(const Line &line);
     bool                      line_is_label_only(const Line &line);
     int32_t                   calculate_offset(uint32_t label_row_number, uint32_t identifier_row_number);
     int32_t                   str_to_int32(const std::string &s);

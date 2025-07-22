@@ -138,22 +138,6 @@ namespace utils{
             return true;
         return false;
     } 
-    bool line_has_label(const Line& line){
-        for(const Token& token : line.tokens){
-            if(token.type == TOKEN_TYPE::LABEL){
-                return true;
-            }
-        }
-        return false;
-    }
-    bool line_has_identifier(const Line& line){
-        for(const Token& token : line.tokens){
-            if(token.type == TOKEN_TYPE::IDENTIFIER){
-                return true;
-            }
-        }
-        return false;
-    }   
     const std::string* get_identifier_in_line(const Line& line){
         for(const Token& token : line.tokens){
             if(token.type == TOKEN_TYPE::IDENTIFIER){
