@@ -20,9 +20,7 @@ private:
 
 private:
     void parse_lines();
-    void set_labels();
     void resolve_identifiers(); // this vector stores ast of each line
-    void print_labels();
     void set_lines(FILE *source_file); // returns the number of memory rows
     AST_Node *parse_line(Line& line_token);
     const Token *peek(std::vector<Token> &line_tokens);

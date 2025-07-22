@@ -18,7 +18,7 @@ struct AST_Node{
 
 
     instruction_look_up::OPERATION_TYPE opr_type = instruction_look_up::OPERATION_TYPE::UNKNOWN;
-    const std::string* str_value;
+    const std::string* str_ptr_value;
     AST_NODE_TYPE node_type = AST_NODE_TYPE::UNKNOWN;
     AST_Node *left = nullptr;
     AST_Node *right = nullptr;

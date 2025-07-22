@@ -1,8 +1,0 @@
-    beq t2, s1, label_equal  # if t2 == s1 jump to label_equal
-    j end
-
-label_equal:
-    addi a0, zero, 1         # a0 = 1 (success)
-
-end:
-    j end                    # infinite loop to end testbench

@@ -129,23 +129,28 @@ namespace instruction_look_up{
         return std::find(registers.begin(),registers.end(),s) != registers.end();
     }
 
-    bool is_register(const std::string_view &s){
-        return std::find(registers_view.begin(),registers_view.end(),s) != registers_view.end();
-    }
-    bool is_immediate(const std::string_view& s){
-        static const std::regex hex_pattern(R"(0[xX][0-9a-fA-F]+)");
-        static const std::regex dec_pattern(R"(-?[0-9]+)");
-
-        if (s.size() >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
-            return std::regex_match(s.begin(), s.end(), hex_pattern);
-        }
-        return std::regex_match(s.begin(), s.end(), dec_pattern);
-    }
     bool is_immediate(const std::string& s){
-        if(s.size() >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')){
-            return std::regex_match(s, std::regex("0[xX][0-9a-fA-F]+"));
+        if (s.empty()) return false;
+        // Hexadecimal: 0x or 0X prefix
+        if (s.size() > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+            for (size_t i = 2; i < s.size(); ++i) {
+                char c = s[i];
+                if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+                    return false;
+                }
+            }
+            return true;
         }
-        return std::regex_match(s, std::regex("-?[0-9]+"));
+        // Decimal: optional leading '-' and digits
+        size_t i = 0;
+        if (s[0] == '-') i = 1;
+        if (i == s.size()) return false;
+        for (; i < s.size(); ++i) {
+            if (!std::isdigit(static_cast<unsigned char>(s[i]))) {
+                return false;
+            }
+        }
+        return true;
     }
     uint8_t get_register_index(const std::string &reg_id){
         uint8_t index = std::find(registers.begin(), registers.end(), reg_id) - registers.begin();

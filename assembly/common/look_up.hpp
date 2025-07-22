@@ -40,12 +40,8 @@ namespace instruction_look_up{
     extern const std::unordered_set<std::string> pseudo_ops_type_5;
     extern const std::unordered_set<std::string> pseudo_ops_type_6;
 
-    extern const std::unordered_set<std::string_view> operations_view;
-    extern const std::unordered_set<std::string_view> registers_view;
     OPERATION_TYPE get_opr_type(const std::string &instr);
     bool is_register(const std::string &s);
-    bool is_register(const std::string_view &s);
-    bool is_immediate(const std::string_view& s);
     bool is_immediate(const std::string &s);
     uint8_t get_register_index(const std::string &reg_id);
     /*

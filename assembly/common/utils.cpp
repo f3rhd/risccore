@@ -11,7 +11,7 @@ namespace utils{
             printf("Error! -> Malloc Failed");
             exit(1);
         }
-        reg_node->str_value = reg_identifier;
+        reg_node->str_ptr_value = reg_identifier;
         reg_node->node_type = AST_NODE_TYPE::REGISTER;
         reg_node->line_info = line_info_;
         return reg_node;
@@ -23,7 +23,7 @@ namespace utils{
             printf("Error! -> Malloc Failed");
             exit(1);
         }
-        opr_node->str_value = opr_identifier;
+        opr_node->str_ptr_value = opr_identifier;
         opr_node->node_type = AST_NODE_TYPE::OPERATION;
         opr_node->opr_type = instr_type;
         opr_node->line_info = line_info_;
@@ -37,7 +37,7 @@ namespace utils{
             printf("Error! -> Malloc Failed");
             exit(1);
         }
-        imm_node->str_value = imm_val;
+        imm_node->str_ptr_value = imm_val;
         imm_node->node_type = AST_NODE_TYPE::IMMEDIATE;
         imm_node->line_info = line_info_;
         return imm_node;
@@ -50,7 +50,7 @@ namespace utils{
             printf("Error! -> Malloc Failed");
             exit(1);
         }
-        id_node->str_value = _id;
+        id_node->str_ptr_value = _id;
         id_node->node_type = AST_NODE_TYPE::IDENTIFIER;
         id_node->line_info = line_info_;
 
@@ -162,10 +162,10 @@ namespace utils{
 
         std::cout << "\n==================== ERROR ====================\n";
         std::cout << "Line " << msg.error_causing_line->true_row_number << ": " << msg.error_causing_line->text;
-            if(msg.error_causing_word == nullptr)
+            if(msg.error_causing_str_ptr == nullptr)
             std::cout << "Cause:   '" << "" << "'\n";
             else
-            std::cout << "Cause:   '" << *msg.error_causing_word << "'\n";
+            std::cout << "Cause:   '" << *msg.error_causing_str_ptr << "'\n";
         std::cout << "Message: " << msg.message << "\n";
         std::cout << "==============================================\n\n";
     }
