@@ -111,37 +111,33 @@ void Parser::set_lines(FILE *source_file)
 {
     char line_text[500];
 
-    static bool had_label = false;
-    uint32_t counter = 1;
-    uint32_t counter2 = 1;
+    uint32_t counter = 1; // true line number
+    uint32_t memory_row_number = 1; // instruction address
     uint32_t label_amount = 0;
 
     while(fgets(line_text,sizeof(line_text),source_file)){
         Line _line;
-        _line.tokens = tokenizer::tokenize_line_text(line_text);  
+        _line.tokens = tokenizer::tokenize_line_text(line_text);
 
-        if (line_text[0] == '\n' || _line.tokens.size() == 0){
+        if (line_text[0] == '\n' || _line.tokens.size() == 0) {
             counter++;
             continue;
         }
-        // We move the tokens to the _lines so when we do line.label = utils::get_label_in_line(line) we get the std::string* in the _lines 
+
         _lines.push_back(_line);
         Line &line = _lines[_lines.size() - 1];
-        line.memory_row_number = counter2;
         line.label_str_ptr = utils::get_label_in_line(line);
-        if(had_label ){
-            line.memory_row_number = counter2--;
-        }
-
-        if(line.label_str_ptr != nullptr){
-            had_label = true;
-        }else {
-            had_label = false;
-        }
         line.identifier_str_ptr = utils::get_identifier_in_line(line);
         line.true_row_number = counter;
+
+        // If the line is label-only (first token is LABEL and only one token), do not increment memory_row_number
+        if (line.tokens.size() == 1 && line.tokens[0].type == TOKEN_TYPE::LABEL) {
+            line.memory_row_number = memory_row_number;
+        } else {
+            line.memory_row_number = memory_row_number;
+            memory_row_number++;
+        }
         counter++;
-        counter2++;
     }
 
     _heads.reserve(counter);
