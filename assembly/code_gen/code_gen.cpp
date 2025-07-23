@@ -118,7 +118,15 @@ namespace code_gen  {
         for(const Instruction& instr : instructions){
             uint32_t raw = encode_instr(instr);
             #ifdef PRINT_INSTRUCTIONS
-            std::cout << "Instruction binary: " << std::hex << std::setw(8) << std::setfill('0') << raw << std::dec << '\n';
+            printf("opcode: %u, funct3: %u, funct7: %u, rd: %u, rs1: %u, rs2: %u, imm: %d\n",
+                instr.opcode,
+                instr.func3,
+                instr.func7,
+                instr.rd,
+                instr.rs1,
+                instr.rs2,
+                instr.imm);
+            std::cout << "Hex: " << std::hex << std::setw(8) << std::setfill('0') << raw << std::dec << '\n';
             #endif
             fwrite(&raw, sizeof(raw), 1,output_file);
         }

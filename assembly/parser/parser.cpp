@@ -196,15 +196,13 @@ void Parser::parse_lines(){
     for(Line& line : _lines){
         rewind();
         AST_Node *head = parse_line(line);
+        if(head != nullptr)
+            _heads.push_back(head);
     }
     for(AST_Node* head : _heads){
-        if(head != nullptr){
-            resolve_identifier(head);
-            if(ast_analyser::analyse_line_ast(head) == 1)
-                _heads.push_back(head); 
-            else
-                exit_code = false;
-        }
+        resolve_identifier(head);
+        if(ast_analyser::analyse_line_ast(head) != 1)
+            exit_code = false;
 
     }
 }

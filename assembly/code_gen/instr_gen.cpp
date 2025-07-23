@@ -291,18 +291,6 @@ namespace instr_gen{
 
             _instructions.push_back(convert_to_instr(head));
         }
-        #ifdef PRINT_INSTRUCTIONS 
-        for(Instruction& instr : _instructions){
-            printf("opcode: %u, funct3: %u, funct7: %u, rd: %u, rs1: %u, rs2: %u, imm: %d\n",
-                instr.opcode,
-                instr.func3,
-                instr.func7,
-                instr.rd,
-                instr.rs1,
-                instr.rs2,
-                instr.imm);
-        }
-        #endif
     }
     const std::vector<Instruction> &generator::get_instructions()
     {
