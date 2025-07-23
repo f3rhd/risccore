@@ -1,2 +1,11 @@
-lw s4,0(s4)
-add s3,s8,s4
+main:
+    beq zero,zero,main
+    add zero,zero,zero
+    add zero,zero,zero
+    add zero,zero,zero
+    add zero,zero,zero
+    add zero,zero,zero
+    add zero,zero,zero
+    add zero,zero,zero
+    add zero,zero,zero
+    add zero,zero,zero

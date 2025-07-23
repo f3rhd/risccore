@@ -28,11 +28,16 @@ Date: 7/16/2025
         101 - READ_BYTE - SIGN_EXTEND  (lb)
 
 
-    Ram write signals:
+    Ram write signals: // Single cycle version
         00 - WRITE_WORD
         01 - WRITE_HALF_WORD
         10 - WRITE_BYTE
         11 - NO_WRITE
+    Ram write signals: // Pipelined  version
+        11 - WRITE_WORD
+        01 - WRITE_HALF_WORD
+        10 - WRITE_BYTE
+        00 - NO_WRITE
     System is little endian
     Load data path is done - 12:21 AM
     Im going to sleep now, time is 12:36 AM, i will continue in the morning.
@@ -181,4 +186,6 @@ Now we need to handle branch predicition
 I need to change the control unit for the branch prediction omg
 Lets do that the logic behind is simple thankfully
 
-22/7/2025 78:03PM the pipelined 32 bit cpu with hazard unit is officially done
+22/7/2025 7:03PM the pipelined 32 bit cpu with hazard unit is officially done
+23/7/2025 3:40 PM
+I will change the ram write signal 00 will be no write and 11 will be write word
