@@ -130,12 +130,13 @@ void Parser::set_lines(FILE *source_file)
         line.memory_row_number = counter2;
         line.label_str_ptr = utils::get_label_in_line(line);
         if(had_label ){
-            line.memory_row_number = counter2-1;
-            had_label = false;
+            line.memory_row_number = counter2--;
         }
 
         if(line.label_str_ptr != nullptr){
             had_label = true;
+        }else {
+            had_label = false;
         }
         line.identifier_str_ptr = utils::get_identifier_in_line(line);
         line.true_row_number = counter;
