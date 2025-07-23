@@ -163,7 +163,7 @@ namespace utils{
         std::cout << "\n==================== ERROR ====================\n";
         std::cout << "Line " << msg.error_causing_line->true_row_number << ": " ;
         for(const Token& token : msg.error_causing_line->tokens){
-            std::cout << token.word;
+            std::cout << token.word << ' ';
         }
         std::cout << '\n';
         if(msg.error_causing_str_ptr == nullptr)

@@ -16,18 +16,5 @@ int main(int argc, char** argv){
     instr_gen::generator gen;
     gen.generate_instructions(parser.get_ast_nodes());
     code_gen::generate_bin_file(argv[2],gen.get_instructions());
-
-    #ifdef PRINT_INSTR
-    for(Instruction& instr : instructions){
-        printf("opcode: %u, funct3: %u, funct7: %u, rd: %u, rs1: %u, rs2: %u, imm: %d\n",
-            instr.opcode,
-            instr.func3,
-            instr.func7,
-            instr.rd,
-            instr.rs1,
-            instr.rs2,
-            instr.imm);
-    }
-    #endif
     printf("Assembled successfully");
 }

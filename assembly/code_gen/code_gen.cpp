@@ -1,6 +1,8 @@
 
 #include "code_gen.hpp"
 
+#include <iomanip>
+#include <iostream>
 namespace code_gen  {
     static uint32_t encode_r(const Instruction &instr){
          return (instr.func7 << 25) |
@@ -115,6 +117,9 @@ namespace code_gen  {
 
         for(const Instruction& instr : instructions){
             uint32_t raw = encode_instr(instr);
+            #ifdef PRINT_INSTRUCTIONS
+            std::cout << "Instruction binary: " << std::hex << std::setw(8) << std::setfill('0') << raw << std::dec << '\n';
+            #endif
             fwrite(&raw, sizeof(raw), 1,output_file);
         }
         fclose(output_file);

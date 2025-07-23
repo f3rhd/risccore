@@ -13,7 +13,7 @@
 		{
 			"type": "shell",
 			"label": "Debug",
-			"command": "g++ -g -std=c++20 -Icommon -Itokenizer -Iparser -Icode_gen -DPRINT_TOKENS_LABELS main.cpp code_gen/*.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o fasm_debug.exe",
+			"command": "g++ -g -std=c++20 -Icommon -Itokenizer -Iparser -Icode_gen -DPRINT_TOKENS_LABELS -DPRINT_INSTRUCTIONS main.cpp code_gen/*.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o fasm_debug.exe",
 			"group": "build",
 			"problemMatcher": [
 				"$gcc"

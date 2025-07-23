@@ -209,7 +209,6 @@ void Parser::print_tokens_labels(){
         std::cout << "Line " << line.true_row_number << '\n';
         if(line.label_str_ptr != nullptr)
             std::cout << "Label in the line:" << *line.label_str_ptr << '\n';
-        std::cout << "Label string memory address" << line.label_str_ptr << '\n';
         for (Token &token : line.tokens)
         {
             std::cout << '\t' << token.word << "@" << &token.word << "=" << utils::token_type_to_string(token.type) << '\n';
