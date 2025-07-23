@@ -14,15 +14,15 @@ public:
 private:
     uint32_t _token_index = 0;
     uint32_t _line_index = 0;
-    std::unordered_map<const std::string*,size_t> _labels;
+    std::unordered_map<std::string,size_t> _labels;
     std::vector<Line> _lines;
-    std::vector<AST_Node *> _heads;
+    std::vector<AST_Node *> _heads;// this vector stores ast of each line
     bool exit_code = true;
 
 private:
     void parse_lines();
-    void resolve_identifiers(); // this vector stores ast of each line
-    void set_lines(FILE *source_file); // returns the number of memory rows
+    void resolve_identifier(AST_Node* head);
+    void set_lines(FILE *source_file);
     AST_Node *parse_line(Line& line_token);
     const Token *peek(std::vector<Token> &line_tokens);
     const Token *eat(std::vector<Token> &line_tokens);

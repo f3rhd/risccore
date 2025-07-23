@@ -29,16 +29,14 @@ AST_Node* Parser::parse_line(Line& line){
     }
     if(active_token->type == TOKEN_TYPE::LABEL){
         active_token = eat(line.tokens);
-        // This happens in single line labels only
+
+        _labels.emplace(*line.label_str_ptr, line.memory_row_number);
+        // This happens in label only lines
         /* main:
             ...
         */
         if(active_token == nullptr){
-            _labels.emplace(line.label_str_ptr, line.memory_row_number + 1);
             return nullptr;
-        }else{
-
-            _labels.emplace(line.label_str_ptr, line.memory_row_number);
         }
     }
 
@@ -113,6 +111,7 @@ void Parser::set_lines(FILE *source_file)
 {
     char line_text[500];
 
+    static bool had_label = false;
     uint32_t counter = 1;
     uint32_t counter2 = 1;
     uint32_t label_amount = 0;
@@ -120,22 +119,26 @@ void Parser::set_lines(FILE *source_file)
     while(fgets(line_text,sizeof(line_text),source_file)){
         Line _line;
         _line.tokens = tokenizer::tokenize_line_text(line_text);  
+
         if (line_text[0] == '\n' || _line.tokens.size() == 0){
-            counter2++;
+            counter++;
             continue;
         }
         // We move the tokens to the _lines so when we do line.label = utils::get_label_in_line(line) we get the std::string* in the _lines 
         _lines.push_back(_line);
         Line &line = _lines[_lines.size() - 1];
+        line.memory_row_number = counter2;
         line.label_str_ptr = utils::get_label_in_line(line);
-        if(line.label_str_ptr != nullptr)
-            line.has_label = true;
-        line.is_label_only = utils::line_is_label_only(line);
+        if(had_label ){
+            line.memory_row_number = counter2-1;
+            had_label = false;
+        }
+
+        if(line.label_str_ptr != nullptr){
+            had_label = true;
+        }
         line.identifier_str_ptr = utils::get_identifier_in_line(line);
-        if(line.identifier_str_ptr)
-            line.has_identifier = true;
-        line.memory_row_number = counter;
-        line.true_row_number = counter2;
+        line.true_row_number = counter;
         counter++;
         counter2++;
     }
@@ -143,10 +146,8 @@ void Parser::set_lines(FILE *source_file)
     _heads.reserve(counter);
     _labels.reserve(label_amount);
 }
-void Parser::resolve_identifiers(){
+void Parser::resolve_identifier(AST_Node* head){
 
-
-    for(AST_Node* head :  _heads){
         AST_Node *candidate_label_identifier_node;
         
         switch(head->opr_type){
@@ -157,8 +158,8 @@ void Parser::resolve_identifiers(){
                 candidate_label_identifier_node = head->right;
                 break;
             }
-            case OPERATION_TYPE::J_TYPE : {
-            case OPERATION_TYPE::PSEUDO_TYPE_2:
+            case OPERATION_TYPE::J_TYPE : 
+            case OPERATION_TYPE::PSEUDO_TYPE_2:{
                 candidate_label_identifier_node = head->middle;
                 break;
             }
@@ -168,20 +169,20 @@ void Parser::resolve_identifiers(){
                 break;
             }
             default: // Means that the instruction is not branching type
-                continue;
+                return;
         }
 
         if( candidate_label_identifier_node && candidate_label_identifier_node->node_type ==  AST_NODE_TYPE::IDENTIFIER){
                     
             // look for label table
-            auto it = _labels.find(candidate_label_identifier_node->str_ptr_value);
+            auto it = _labels.find(*candidate_label_identifier_node->str_ptr_value);
 
             if(it == _labels.end()){ 
 
                 // If we are in this block means that the identifier points to non existent label
                 // Make the identifier immediate value -1 to be able to tell the ast analyser that this is nullptr type thing
                 candidate_label_identifier_node->identifier_immediate = -1;
-                continue;
+                return;
             }
 
             size_t label_row_number = it->second;
@@ -189,26 +190,28 @@ void Parser::resolve_identifiers(){
             candidate_label_identifier_node->identifier_immediate = utils::calculate_offset(label_row_number, candidate_label_identifier_node->line_info->memory_row_number);
         }
 
-    }
 }
 void Parser::parse_lines(){
 
     for(Line& line : _lines){
         rewind();
         AST_Node *head = parse_line(line);
+    }
+    for(AST_Node* head : _heads){
         if(head != nullptr){
+            resolve_identifier(head);
             if(ast_analyser::analyse_line_ast(head) == 1)
                 _heads.push_back(head); 
             else
                 exit_code = false;
         }
+
     }
 }
 void Parser::print_tokens_labels(){
+    //Tokens
     for(Line& line : _lines){
-        std::cout << "Line " << line.true_row_number << '\n';
-        if(line.label_str_ptr != nullptr)
-            std::cout << "Label in the line:" << *line.label_str_ptr << '\n';
+        std::cout << "Line " << line.true_row_number << '(' << line.memory_row_number << ')' << ':' << '\n';
         for (Token &token : line.tokens)
         {
             std::cout << '\t' << token.word << "@" << &token.word << "=" << utils::token_type_to_string(token.type) << '\n';
@@ -222,9 +225,8 @@ void Parser::run(FILE* source_file){
     print_tokens_labels();
 #endif
     parse_lines();
-    resolve_identifiers();
     if(exit_code == false){
-        printf("Assembling was unsuccessful.\n");
+        printf("Assembling failed.\n");
         exit(1);
     }
 }

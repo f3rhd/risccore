@@ -109,19 +109,19 @@ namespace ast_analyser{
     }
     static void b_type_analysis(AST_Node* head, bool& success){
 
-        if(head->right == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
-            if(head->right == nullptr)
-                val = nullptr;
-            else
-                val = head->right->str_ptr_value;
-            utils::throw_error_message({"Operation should have a register as second operand.", val, head->line_info});
-            success = 0;
-        }
-        if(head->middle == nullptr || head->right->node_type != AST_NODE_TYPE::IDENTIFIER){
+        if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
             if(head->middle == nullptr)
                 val = nullptr;
             else
                 val = head->middle->str_ptr_value;
+            utils::throw_error_message({"Operation should have a register as second operand.", val, head->line_info});
+            success = 0;
+        }
+        if(head->right == nullptr || head->right->node_type != AST_NODE_TYPE::IDENTIFIER){
+            if(head->middle == nullptr)
+                val = nullptr;
+            else
+                val = head->right->str_ptr_value;
             utils::throw_error_message({"Operation should have a label identifier as third operand.", val, head->line_info});
             success = 0;
         }
@@ -142,7 +142,7 @@ namespace ast_analyser{
             success = 0;
         }
         if(head->middle->identifier_immediate == -1){
-            utils::throw_error_message({"Identifier points to non-valid label.", head->right->str_ptr_value, head->line_info});
+            utils::throw_error_message({"Identifier points to non-valid label.", head->middle->str_ptr_value, head->line_info});
             success = 0;
         } 
         if(head->right != nullptr){
@@ -202,6 +202,14 @@ namespace ast_analyser{
         }
     }
     static void pseudo_type_5_analysis(AST_Node *head, bool &success) {
+        if(head->left == nullptr || head->left->node_type != AST_NODE_TYPE::IDENTIFIER){
+            if(head->left == nullptr)
+                val = nullptr;
+            else
+                val = head->left->str_ptr_value;
+            utils::throw_error_message({"Operation should have an label identifier as first operand", val, head->line_info});
+            success = 0;
+        }
         if(head->middle != nullptr){
             utils::throw_error_message({"Operation can not have a second operand", head->middle->str_ptr_value, head->line_info});
             success = 0;
