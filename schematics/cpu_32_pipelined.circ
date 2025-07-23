@@ -532,6 +532,10 @@
     <comp lib="5" loc="(2670,4000)" name="Button">
       <a name="label" val="RESET"/>
     </comp>
+    <comp lib="8" loc="(2915,2890)" name="Text">
+      <a name="font" val="SansSerif bolditalic 57"/>
+      <a name="text" val="F3_32P :)"/>
+    </comp>
     <comp lib="8" loc="(3430,3575)" name="Text">
       <a name="font" val="SansSerif italic 16"/>
       <a name="text" val="PC"/>

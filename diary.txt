@@ -20,14 +20,19 @@ Date : 7/15/2025
 Date: 7/16/2025
     Turns out i will have to implement my own ram
     I almost finished it:
-    Ram read control signals:
+    Ram read control signals:(single cycle)
         000 - READ_WORD 
         010 - READ_HALF_WORD - ZERO_EXTEND (lhu)
         011 - READ_HALF_WORD - SIGN_EXTEND (lh)
         100 - READ_BYTE - ZERO_EXTEND (lbu)
         101 - READ_BYTE - SIGN_EXTEND  (lb)
 
-
+    (pipelined)
+        001 - READ_WORD 
+        010 - READ_HALF_WORD - ZERO_EXTEND (lhu)
+        011 - READ_HALF_WORD - SIGN_EXTEND (lh)
+        100 - READ_BYTE - ZERO_EXTEND (lbu)
+        101 - READ_BYTE - SIGN_EXTEND  (lb)
     Ram write signals: // Single cycle version
         00 - WRITE_WORD
         01 - WRITE_HALF_WORD
