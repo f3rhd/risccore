@@ -194,3 +194,21 @@ Lets do that the logic behind is simple thankfully
 22/7/2025 7:03PM the pipelined 32 bit cpu with hazard unit is officially done
 23/7/2025 3:40 PM
 I will change the ram write signal 00 will be no write and 11 will be write word
+Okay today(23-24 july 2027) so many things happened fixed bugs in the both cpu and parser
+Cpu hazard controlling took a lot of time because of logisim's signal propogation and stuff I had to sync the flushing and stalling the pipeline stages with respect to logisim
+So far cpu works good i have tested two programs - fibonnaci sequence and some stack operations they work quite well. 
+From now on i will focus on the assembly wise 
+Maybe after the assembly i will add input output to the cpu?
+Cus right now it is just turing complete machine noi
+We need I/O too.
+Step by step..
+Also so far i have not implemented my own kind of syntax in the assembler yet...
+
+Okay today is the 24th july 2025 Im gonna implement macros on the assembler
+Normally macros do not exist on the classic riscv assembler but let us have our touch on it
+We gotta define the syntax for the macros
+Im thinking of the syntax.
+.macro name arg1 arg2 arg3
+    ....
+.endmacro
+25th July 2025 the macro edition is completed

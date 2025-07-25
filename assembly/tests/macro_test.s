@@ -1,11 +1,10 @@
-.macro inc register,val
-    addi register,zero,val
-    nop
+.macro inc register, value
+    addi register, register, value
 .endm
-.macro dec register,val
-    addi register,register,-val
+.macro dec register, value
+    addi register, register, -value
 .endm
 main:
     inc ra,5
-    dec ra,2
+    dec ra,3 
     nop
