@@ -14,15 +14,15 @@ enum class AST_NODE_TYPE
     IDENTIFIER,
     UNKNOWN
 };
-struct AST_Node{
+struct Ast_Node{
 
 
     instruction_look_up::OPERATION_TYPE opr_type = instruction_look_up::OPERATION_TYPE::UNKNOWN;
     const std::string* str_ptr_value;
     AST_NODE_TYPE node_type = AST_NODE_TYPE::UNKNOWN;
-    AST_Node *left = nullptr;
-    AST_Node *right = nullptr;
-    AST_Node *middle = nullptr;
+    Ast_Node *left = nullptr;
+    Ast_Node *right = nullptr;
+    Ast_Node *middle = nullptr;
     Line      *line_info = nullptr;
     int32_t identifier_immediate = 0;  // imm value of that identifier
 };

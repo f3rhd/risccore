@@ -3,14 +3,14 @@ namespace ast_analyser{
 
     // assumes that it head is not nullptr
     static const std::string* val;
-    static void ast_has_valid_operation(AST_Node *node, bool &success) {
+    static void ast_has_valid_operation(Ast_Node *node, bool &success) {
         if(node->node_type != AST_NODE_TYPE::OPERATION){
 
             utils::throw_error_message({"Instruction should start with an operation.", node->str_ptr_value,node->line_info});
             success = 0;
         }
     };
-    static void ast_must_have_register_first(AST_Node* node,bool& success){
+    static void ast_must_have_register_first(Ast_Node* node,bool& success){
 
         if(node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6 
             && node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4
@@ -23,7 +23,7 @@ namespace ast_analyser{
             success = 0;
         }
     }
-    static void r_type_analysis(AST_Node *head, bool &success) {
+    static void r_type_analysis(Ast_Node *head, bool &success) {
 
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
 
@@ -44,7 +44,7 @@ namespace ast_analyser{
             success = 0;
         }
     };
-    static void i_type_analysis(AST_Node* head, bool& success){
+    static void i_type_analysis(Ast_Node* head, bool& success){
 
         if((*(head->str_ptr_value))[0] == 'l' ) // below logic is for lw,lh,lbu,lhu and jalr
         {
@@ -107,7 +107,7 @@ namespace ast_analyser{
             }
         }
     }
-    static void b_type_analysis(AST_Node* head, bool& success){
+    static void b_type_analysis(Ast_Node* head, bool& success){
 
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
             if(head->middle == nullptr)
@@ -131,7 +131,7 @@ namespace ast_analyser{
             success = 0;
         } 
     }
-    static void j_type_analysis(AST_Node *head, bool &success) {
+    static void j_type_analysis(Ast_Node *head, bool &success) {
 
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IDENTIFIER){
             if(head->middle == nullptr)
@@ -150,7 +150,7 @@ namespace ast_analyser{
             success = 0;
         }
     };
-    static void u_type_analysis(AST_Node* head, bool& success){
+    static void u_type_analysis(Ast_Node* head, bool& success){
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IMMEDIATE){
             if(head->middle == nullptr)
                 val = nullptr;
@@ -164,7 +164,7 @@ namespace ast_analyser{
             success = 0;
         }
     }
-    static void pseudo_type_1_analysis(AST_Node *head, bool &success) {
+    static void pseudo_type_1_analysis(Ast_Node *head, bool &success) {
 
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
             if(head->middle == nullptr)
@@ -181,7 +181,7 @@ namespace ast_analyser{
             success = 0;
         }
     };
-    static void pseudo_type_4_analysis(AST_Node *head, bool &success) {
+    static void pseudo_type_4_analysis(Ast_Node *head, bool &success) {
         if(head->left == nullptr || head->left->node_type != AST_NODE_TYPE::IDENTIFIER){
             if(head->left == nullptr)
                 val = nullptr;
@@ -201,7 +201,7 @@ namespace ast_analyser{
             success = 0;
         }
     }
-    static void pseudo_type_5_analysis(AST_Node *head, bool &success) {
+    static void pseudo_type_5_analysis(Ast_Node *head, bool &success) {
         if(head->left == nullptr || head->left->node_type != AST_NODE_TYPE::IDENTIFIER){
             if(head->left == nullptr)
                 val = nullptr;
@@ -220,13 +220,13 @@ namespace ast_analyser{
             success = 0;
         }
     }
-    static void pseudo_type_6_analysis(AST_Node *head, bool &success) {
+    static void pseudo_type_6_analysis(Ast_Node *head, bool &success) {
         if(head->left != nullptr || head->middle != nullptr || head->right != nullptr){
             utils::throw_error_message({"Operation can not have any operands", nullptr, head->line_info });
             success = 0;
         }
     }
-    bool analyse_line_ast(AST_Node* head) {
+    bool analyse_line_ast(Ast_Node* head) {
 
         bool success = 1;
 

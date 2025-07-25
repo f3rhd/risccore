@@ -11,4 +11,5 @@ struct Line{
     uint32_t                    true_row_number;
     const std::string*          identifier_str_ptr;
     const std::string*          label_str_ptr;
+    bool                        macro_related = false;
 };

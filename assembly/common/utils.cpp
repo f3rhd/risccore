@@ -3,9 +3,9 @@
 
 namespace utils{
 
-    AST_Node* make_reg_node(const std::string* reg_identifier,Line* line_info_){
+    Ast_Node* make_reg_node(const std::string* reg_identifier,Line* line_info_){
 
-        AST_Node *reg_node = new AST_Node;
+        Ast_Node *reg_node = new Ast_Node;
 
         if(reg_node == nullptr){ 
             printf("Error! -> Malloc Failed");
@@ -17,8 +17,8 @@ namespace utils{
         return reg_node;
     }
 
-    AST_Node* make_operation_node(const std::string* opr_identifier,instruction_look_up::OPERATION_TYPE instr_type,Line* line_info_) {
-        AST_Node *opr_node = new AST_Node;
+    Ast_Node* make_operation_node(const std::string* opr_identifier,instruction_look_up::OPERATION_TYPE instr_type,Line* line_info_) {
+        Ast_Node *opr_node = new Ast_Node;
         if(opr_node == nullptr){ 
             printf("Error! -> Malloc Failed");
             exit(1);
@@ -30,8 +30,8 @@ namespace utils{
 
         return opr_node;
     }
-    AST_Node *make_imm_node(const std::string* imm_val,Line* line_info_){
-        AST_Node *imm_node = new AST_Node;
+    Ast_Node *make_imm_node(const std::string* imm_val,Line* line_info_){
+        Ast_Node *imm_node = new Ast_Node;
 
         if(imm_node == nullptr){ 
             printf("Error! -> Malloc Failed");
@@ -42,8 +42,8 @@ namespace utils{
         imm_node->line_info = line_info_;
         return imm_node;
     }
-    AST_Node* make_identifier_node(const std::string* _id,Line* line_info_){
-        AST_Node *id_node = new AST_Node;
+    Ast_Node* make_identifier_node(const std::string* _id,Line* line_info_){
+        Ast_Node *id_node = new Ast_Node;
 
         if(id_node == nullptr){ 
 

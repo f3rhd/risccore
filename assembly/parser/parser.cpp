@@ -20,7 +20,7 @@ const Token* Parser::eat(std::vector<Token>& line_tokens){
 void Parser::rewind(){
     _token_index = 0;
 }
-AST_Node* Parser::parse_line(Line& line){
+Ast_Node* Parser::parse_line(Line& line){
 
     const Token  *active_token = eat(line.tokens);
 
@@ -44,7 +44,7 @@ AST_Node* Parser::parse_line(Line& line){
 
         case TOKEN_TYPE::OPERATION: {
         
-            AST_Node* opr_node  = utils::make_operation_node(&(active_token->word), instruction_look_up::get_opr_type(active_token->word),&line);
+            Ast_Node* opr_node  = utils::make_operation_node(&(active_token->word), instruction_look_up::get_opr_type(active_token->word),&line);
             opr_node->left = parse_line(line);
             const Token *comma_lp_token = peek(line.tokens);
 
@@ -90,12 +90,12 @@ AST_Node* Parser::parse_line(Line& line){
         }
 
         case TOKEN_TYPE::REGISTER : {
-            AST_Node *reg_node = utils::make_reg_node(&(active_token->word),&line);
+            Ast_Node *reg_node = utils::make_reg_node(&(active_token->word),&line);
             return reg_node;
         }
         case TOKEN_TYPE::IMMEDIATE : {
 
-            AST_Node *imm_node = utils::make_imm_node(&(active_token->word),&line);
+            Ast_Node *imm_node = utils::make_imm_node(&(active_token->word),&line);
             return imm_node;
         }
         case TOKEN_TYPE::IDENTIFIER: {
@@ -115,6 +115,8 @@ void Parser::set_lines(FILE *source_file)
     uint32_t memory_row_number = 1; // instruction address
     uint32_t label_amount = 0;
 
+    bool macro_start = false;
+    bool macro_finish = false;
     while(fgets(line_text,sizeof(line_text),source_file)){
         Line _line;
         _line.tokens = tokenizer::tokenize_line_text(line_text);
@@ -123,7 +125,28 @@ void Parser::set_lines(FILE *source_file)
             counter++;
             continue;
         }
-
+        if(!macro_start && _line.tokens[0].word == ".macro"){
+            macro_start = true;
+            macro_finish = false;
+            counter++;
+            continue;
+        }
+        if(macro_start){
+            if(_line.tokens[0].word == ".endm"){
+                macro_start = false;
+                macro_finish = true;
+                continue;
+            }
+            if(macro_finish){
+                utils::throw_error_message({"Macro definition ended before .endm directive", nullptr, &_line});
+                exit(1);
+            }
+            counter++;
+            continue;
+        }
+        if(_line.tokens[0].type == TOKEN_TYPE::LABEL){
+            label_amount++;
+        }
         _lines.push_back(_line);
         Line &line = _lines[_lines.size() - 1];
         line.label_str_ptr = utils::get_label_in_line(line);
@@ -143,9 +166,9 @@ void Parser::set_lines(FILE *source_file)
     _heads.reserve(counter);
     _labels.reserve(label_amount);
 }
-void Parser::resolve_identifier(AST_Node* head){
+void Parser::resolve_identifier(Ast_Node* head){
 
-        AST_Node *candidate_label_identifier_node;
+        Ast_Node *candidate_label_identifier_node;
         
         switch(head->opr_type){
             using namespace instruction_look_up;
@@ -192,11 +215,11 @@ void Parser::parse_lines(){
 
     for(Line& line : _lines){
         rewind();
-        AST_Node *head = parse_line(line);
+        Ast_Node *head = parse_line(line);
         if(head != nullptr)
             _heads.push_back(head);
     }
-    for(AST_Node* head : _heads){
+    for(Ast_Node* head : _heads){
         resolve_identifier(head);
         if(ast_analyser::analyse_line_ast(head) != 1)
             exit_code = false;
@@ -213,9 +236,14 @@ void Parser::print_tokens_labels(){
         }
     }
 }
-void Parser::run(FILE* source_file){
+void Parser::run(const std::string& processed_file_path){
 
-    set_lines(source_file);
+    FILE* processed_source_file = fopen(processed_file_path.c_str(), "rb");
+    if(processed_source_file == nullptr){
+        std::cerr << "Error opening file: " << processed_file_path << std::endl;
+        exit(1);
+    }
+    set_lines(processed_source_file);
 #ifdef PRINT_TOKENS_LABELS
     print_tokens_labels();
 #endif
@@ -224,7 +252,9 @@ void Parser::run(FILE* source_file){
         printf("Assembling failed.\n");
         exit(1);
     }
+    fclose(processed_source_file);
+    remove(processed_file_path.c_str());
 }
-const std::vector<AST_Node *>& Parser::get_ast_nodes(){
+const std::vector<Ast_Node *>& Parser::get_ast_nodes(){
     return _heads;
 }

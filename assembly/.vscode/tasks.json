@@ -4,7 +4,7 @@
 		{
 			"type": "shell",
 			"label": "Release",
-			"command": "g++ -Ofast  -flto -march=native -funroll-loops -g -std=c++20 -Icommon -Itokenizer -Iparser -Icode_gen main.cpp code_gen/*.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o fasm.exe",
+			"command": "g++ -Ofast  -flto -march=native -funroll-loops -g -std=c++20 -Icommon -Itokenizer -Iparser -Icode_gen -Ipreprocessor main.cpp preprocessor/*.cpp code_gen/*.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o f3-riscv-asm.exe",
 			"group": "build",
 			"problemMatcher": [
 				"$gcc"
@@ -13,7 +13,7 @@
 		{
 			"type": "shell",
 			"label": "Debug",
-			"command": "g++ -g -std=c++20 -Icommon -Itokenizer -Iparser -Icode_gen -DPRINT_INSTRUCTIONS -DPRINT_TOKENS_LABELS  main.cpp code_gen/*.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o fasm_debug.exe",
+			"command": "g++ -g -std=c++20 -Icommon -Itokenizer -Iparser -Icode_gen -Ipreprocessor -DPRINT_INSTRUCTIONS -DPRINT_TOKENS_LABELS -DPRINT_MACROS main.cpp preprocessor/*.cpp code_gen/*.cpp common/*.cpp parser/*.cpp tokenizer/*.cpp -o f3-riscv-asm-debug.exe",
 			"group": "build",
 			"problemMatcher": [
 				"$gcc"

@@ -6,7 +6,7 @@
 // generates instruction based on the ast
 namespace instr_gen{
 
-    Instruction generator::convert_to_instr(AST_Node* head){
+    Instruction generator::convert_to_instr(Ast_Node* head){
 
         // Extract fields from AST_Node
         Instruction instr;
@@ -284,10 +284,10 @@ namespace instr_gen{
         
         return instr;
     }
-    void generator::generate_instructions(const std::vector<AST_Node *> &heads){
+    void generator::generate_instructions(const std::vector<Ast_Node *> &heads){
 
         _instructions.reserve(heads.size());
-        for(AST_Node* head : heads){
+        for(Ast_Node* head : heads){
 
             _instructions.push_back(convert_to_instr(head));
         }

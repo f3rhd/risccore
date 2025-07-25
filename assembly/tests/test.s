@@ -1,4 +1,10 @@
+.macro inc register
+    addi register,zero,1
+    nop
+.endm
+#   inc - arguments
+#   |
+#   definition
 main:
-    sw sp,0(sp)
-    addi sp,sp,4
-    beq zero,zero,main
+    inc ra
+    nop
