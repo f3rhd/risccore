@@ -43,10 +43,10 @@ namespace instruction_look_up{
         "seqz","snez","sltz","sgtz","beqz",
         "bnez","blez","bgez","bltz","bgtz",
         "ble","bgt","bleu","bgtu","j","jal",
-        "jr","jalr","ret","call","la"     // @Incomplete  : We have 3 or 4 more pseudo operations.
+        "jr","jalr","ret","call","la"       
     };
 
-    const std::unordered_set<std::string> pseudo_ops_type_0 = { //@Incomplete
+    const std::unordered_set<std::string> pseudo_ops_type_0 = { 
         "li"
     };
     const std::unordered_set<std::string> pseudo_ops_type_1 = { // These bitches have two operands and both of them are registers

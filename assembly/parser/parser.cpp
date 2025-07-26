@@ -185,7 +185,7 @@ void Parser::resolve_identifier(Ast_Node* head){
                 break;
             }
 
-            case OPERATION_TYPE::PSEUDO_TYPE_4:  { // @Incomplete : Some Pseudo instructions also jump and do shit
+            case OPERATION_TYPE::PSEUDO_TYPE_4:  { 
                 candidate_label_identifier_node = head->left;
                 break;
             }
