@@ -7,7 +7,7 @@
 int main(int argc, char** argv){
     Preprocessor prc(argv[1]);
     Parser parser;
-    parser.run(prc.process());
+    parser.parse_lines(prc.process());
     instr_gen::generator gen;
     gen.generate_instructions(parser.get_ast_nodes());
     code_gen::generate_bin_file(argv[2],gen.get_instructions());

@@ -315,7 +315,7 @@ namespace instr_gen{
     }
     void generator::generate_instructions(std::vector<Ast_Node *> &heads){
 
-        _instructions.reserve(heads.size());
+        _instructions.reserve(heads.size()*sizeof(Instruction));
         for(Ast_Node* head : heads){
 
             std::vector<Instruction> instrs = convert_to_instr(head);

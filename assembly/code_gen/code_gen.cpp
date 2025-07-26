@@ -3,6 +3,8 @@
 
 #include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 namespace code_gen  {
     static uint32_t encode_r(const Instruction &instr){
          return (instr.func7 << 25) |
@@ -115,9 +117,11 @@ namespace code_gen  {
 
         FILE *output_file = fopen(output_file_path.c_str(), "wb");
 
+        std::vector<uint32_t> buffer;
+        buffer.reserve(instructions.size() * sizeof(uint32_t));
         for(const Instruction& instr : instructions){
             uint32_t raw = encode_instr(instr);
-            #ifdef PRINT_INSTRUCTIONS
+            #ifdef DEBUG 
             printf("opcode: %u, funct3: %u, funct7: %u, rd: %u, rs1: %u, rs2: %u, imm: %d\n",
                 instr.opcode,
                 instr.func3,
@@ -128,8 +132,9 @@ namespace code_gen  {
                 instr.imm);
             std::cout << "Hex: " << std::hex << std::setw(8) << std::setfill('0') << raw << std::dec << '\n';
             #endif
-            fwrite(&raw, sizeof(raw), 1,output_file);
+            buffer.push_back(raw);
         }
+        fwrite(buffer.data(), buffer.size() * sizeof(uint32_t),1,output_file);
         fclose(output_file);
     }
 }

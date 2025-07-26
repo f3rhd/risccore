@@ -4,6 +4,7 @@
 #include "parser.hpp"
 #include "../common/utils.hpp"
 #include "../code_gen/ast_analyser.hpp"
+#include "../common/macro.hpp"
 
 const Token* Parser::peek(std::vector<Token>& line_tokens){
     if(_token_index < line_tokens.size())
@@ -107,66 +108,6 @@ Ast_Node* Parser::parse_line(Line& line){
     }
 
 }
-
-void Parser::set_lines(FILE *source_file)
-{
-    char line_text[500];
-
-    uint32_t counter = 1; // true line number
-    uint32_t memory_row_number = 1; // instruction address
-    uint32_t label_amount = 0;
-
-    bool macro_start = false;
-    bool macro_finish = false;
-    while(fgets(line_text,sizeof(line_text),source_file)){
-        Line _line;
-        _line.tokens = tokenizer::tokenize_line_text(line_text);
-
-        if (line_text[0] == '\n' || _line.tokens.size() == 0) {
-            counter++;
-            continue;
-        }
-        if(!macro_start && _line.tokens[0].word == ".macro"){
-            macro_start = true;
-            macro_finish = false;
-            counter++;
-            continue;
-        }
-        if(macro_start){
-            if(_line.tokens[0].word == ".endm"){
-                macro_start = false;
-                macro_finish = true;
-                continue;
-            }
-            if(macro_finish){
-                utils::throw_error_message({"Macro definition ended before .endm directive", nullptr, &_line});
-                exit(1);
-            }
-            counter++;
-            continue;
-        }
-        if(_line.tokens[0].type == TOKEN_TYPE::LABEL){
-            label_amount++;
-        }
-        _lines.push_back(_line);
-        Line &line = _lines[_lines.size() - 1];
-        line.label_str_ptr = utils::get_label_in_line(line);
-        line.identifier_str_ptr = utils::get_identifier_in_line(line);
-        line.true_row_number = counter;
-
-        // If the line is label-only (first token is LABEL and only one token), do not increment memory_row_number
-        if (line.tokens.size() == 1 && line.tokens[0].type == TOKEN_TYPE::LABEL) {
-            line.memory_row_number = memory_row_number;
-        } else {
-            line.memory_row_number = memory_row_number;
-            memory_row_number++;
-        }
-        counter++;
-    }
-
-    _heads.reserve(counter);
-    _labels.reserve(label_amount);
-}
 void Parser::resolve_identifier(Ast_Node* head){
 
         Ast_Node *candidate_label_identifier_node;
@@ -212,9 +153,10 @@ void Parser::resolve_identifier(Ast_Node* head){
         }
 
 }
-void Parser::parse_lines(){
+void Parser::parse_lines(std::vector<Line>& lines){
 
-    for(Line& line : _lines){
+    _heads.reserve(sizeof(Ast_Node *) * lines.size());
+    for(Line& line : lines){
         rewind();
         Ast_Node *head = parse_line(line);
         if(head != nullptr)
@@ -226,39 +168,12 @@ void Parser::parse_lines(){
             exit_code = false;
 
     }
-}
-void Parser::print_tokens_labels(){
-    //Tokens
-    for(Line& line : _lines){
-        std::cout << "Line " << line.true_row_number << '(' << line.memory_row_number << ')' << ':' << '\n';
-        for (Token &token : line.tokens)
-        {
-            std::cout << '\t' << token.word << "@" << &token.word << "=" << utils::token_type_to_string(token.type) << '\n';
-        }
-    }
-}
-void Parser::run(const std::string& processed_file_path){
-
-    FILE* processed_source_file = fopen(processed_file_path.c_str(), "rb");
-    if(processed_source_file == nullptr){
-        std::cerr << "Error opening file: " << processed_file_path << std::endl;
-        exit(1);
-    }
-    set_lines(processed_source_file);
-#ifdef PRINT_TOKENS_LABELS
-    print_tokens_labels();
-#endif
-    parse_lines();
     if(exit_code == false){
-        remove(processed_file_path.c_str());
         printf("Assembling failed.\n");
-        fclose(processed_source_file);
-        remove(processed_file_path.c_str());
         exit(1);
     }
-    fclose(processed_source_file);
-    remove(processed_file_path.c_str());
 }
+
 std::vector<Ast_Node *>& Parser::get_ast_nodes(){
     return _heads;
 }

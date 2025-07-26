@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <algorithm>
+#include <sstream>
+#include <fstream>
 Preprocessor::Preprocessor(const std::string& source_file_path){
 
     FILE* source_file = fopen(source_file_path.c_str(), "r");
@@ -11,62 +13,54 @@ Preprocessor::Preprocessor(const std::string& source_file_path){
     }
     _source_file = source_file;
 }
-std::string Preprocessor::process()
+std::vector<Line>& Preprocessor::process()
 {
-    FILE *processed_file = fopen("processed.s", "wb");
     char _line[500];
     bool macro_start = false;
     bool macro_finish = false;
     Macro macro;
-    uint32_t line_counter = 0;
+    macro.arguments.reserve(3*sizeof(std::string));
+    macro.definition.reserve(3*sizeof(std::string));
     std::string macro_name;
     while(fgets(_line,sizeof(_line),_source_file) != 0){
-        line_counter++;
+        true_line_number++;
+        Line line;
         std::vector<Token> line_tokens = tokenizer::tokenize_line_text(_line);
         if(line_tokens.size() == 0) continue;
         if(line_tokens[0].type == TOKEN_TYPE::IDENTIFIER){
-
             const Macro* called_macro = get_macro_by_name(line_tokens[0].word);
             if(called_macro){
                 std::vector<std::string> caller_arguments = get_arguments(line_tokens,0);
                 if(caller_arguments.size() != const_cast<Macro*>(called_macro)->arguments.size()){
-                    Line line;
-                    line.tokens = line_tokens;
-                    line.true_row_number = line_counter;
                     utils::throw_error_message({"Macro and caller arguments did not match. Unexpected behavior is possible.", &caller_arguments.back(),&line});
                 }
                 for (uint32_t i = 0; i < called_macro->definition.size();i++){
                     std::string converted_defintion = const_cast<Macro*>(called_macro)->definition[i];
                     for (uint32_t j = 0; j < const_cast<Macro*>(called_macro)->arguments.size();j++){
-
                         if(j < caller_arguments.size())
                             utils::replace_in_string(converted_defintion, const_cast<Macro *>(called_macro)->arguments[j], caller_arguments[j]); 
                     }
-                    fprintf(processed_file, "%s", converted_defintion.c_str());
+                    line_tokens = tokenizer::tokenize_line_text(converted_defintion);
+                    handle_line(line_tokens);
                 }
                 continue;
             }
         }
         if(!macro_start && line_tokens[0].type != TOKEN_TYPE::DIRECTIVE){
-            fprintf(processed_file, "%s", _line);
+            handle_line(line_tokens);
             continue;
         }
         if(!macro_start && line_tokens[0].word == ".macro"){
-
             macro_name.clear();
             macro.arguments.clear();
             macro.definition.clear();
             macro_name = line_tokens[1].word;
-            // means that this is macro definition line
             macro.arguments = get_arguments(line_tokens,true);
             macro_start = true;
             macro_finish = false;
-            // means that print the macro beginning
-            fprintf(processed_file, "%s", _line);
             continue;
         }
         if(!macro_finish && macro_start &&line_tokens[0].word == ".endm"){
-
             macro_start = false;
             macro_finish = true;
             _macro_map.insert({macro_name, macro});
@@ -74,14 +68,31 @@ std::string Preprocessor::process()
         if(macro_start && !macro_finish){
             macro.definition.emplace_back(_line);
         }
-        fprintf(processed_file, "%s", _line);
     }
     fclose(_source_file);
-    fclose(processed_file);
-    #ifdef PRINT_MACROS
-        print_macros();
+    #ifdef DEBUG
+    print_macros();
+    print_lines();
     #endif
-    return "processed.s";
+    return _lines;
+}
+void Preprocessor::handle_line(std::vector<Token>& line_tokens){
+    Line _line;
+    _line.tokens = line_tokens;
+    if (line_tokens.size() == 0) return;
+    _lines.push_back(_line);
+    Line &line = _lines[_lines.size() - 1];
+    line.label_str_ptr = utils::get_label_in_line(line);
+    line.identifier_str_ptr = utils::get_identifier_in_line(line);
+    line.true_row_number = true_line_number;
+
+    // If the line is label-only (first token is LABEL and only one token), do not increment memory_row_number
+    if (line.tokens.size() == 1 && line.tokens[0].type == TOKEN_TYPE::LABEL) {
+        line.memory_row_number = memory_row_number;
+    } else {
+        line.memory_row_number = memory_row_number;
+        memory_row_number++;
+    }
 }
 std::vector<std::string> Preprocessor::get_arguments(const std::vector<Token>& tokens,bool is_macro_line){
     std::vector<std::string> arguments;
@@ -114,4 +125,15 @@ void Preprocessor::print_macros(){
         }
         std::cout << std::endl;
     }
+}
+void Preprocessor::print_lines(){
+
+   //Tokens
+   for(const Line& line : _lines){
+       std::cout << "Line " << line.true_row_number << '(' << line.memory_row_number << ')' << ':' << '\n';
+       for (const Token &token : line.tokens)
+       {
+           std::cout << '\t' << token.word << "@" << &token.word << "=" << utils::token_type_to_string(token.type) << '\n';
+       }
+   }
 }
