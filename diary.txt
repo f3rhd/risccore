@@ -212,3 +212,5 @@ Im thinking of the syntax.
     ....
 .endmacro
 25th July 2025 the macro edition is completed
+26th July 2025 we throw warnings when number of macro arguments and caller arguments do not match. (Turns out it compiles correctly when they do not match it just doesnt care about the non matching argument)
+Im going to implement li pseudo instructions

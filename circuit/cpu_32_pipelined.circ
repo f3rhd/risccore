@@ -80,6 +80,7 @@
     <a name="appearance" val="logisim_evolution"/>
     <a name="circuit" val="main"/>
     <a name="circuitnamedboxfixedsize" val="true"/>
+    <a name="downloadFrequency" val="2083333.3333333333"/>
     <a name="simulationFrequency" val="2048000.0"/>
     <appear>
       <polyline fill="none" points="119,110 171,110" stroke="#000000"/>
@@ -2069,6 +2070,7 @@
     <a name="appearance" val="custom"/>
     <a name="circuit" val="byte_adrr_ram"/>
     <a name="circuitnamedboxfixedsize" val="true"/>
+    <a name="downloadFrequency" val="2083333.3333333333"/>
     <a name="simulationFrequency" val="2048000.0"/>
     <appear>
       <rect height="4" stroke="none" width="10" x="50" y="58"/>
@@ -2094,6 +2096,14 @@
       <circ-port dir="in" pin="740,950" x="50" y="140"/>
       <circ-port dir="out" pin="1900,1160" x="260" y="70"/>
     </appear>
+    <boardmap boardname="TERASIC_DE0">
+      <mc/>
+      <mc/>
+      <mc/>
+      <mc/>
+      <mc/>
+      <mc/>
+    </boardmap>
     <comp lib="0" loc="(1280,1550)" name="Splitter">
       <a name="appear" val="center"/>
       <a name="bit1" val="0"/>
@@ -2267,21 +2277,25 @@
       <a name="addrWidth" val="24"/>
       <a name="appearance" val="classic"/>
       <a name="enables" val="line"/>
+      <a name="label" val="RAM_2"/>
     </comp>
     <comp lib="4" loc="(800,1290)" name="RAM">
       <a name="addrWidth" val="24"/>
       <a name="appearance" val="classic"/>
       <a name="enables" val="line"/>
+      <a name="label" val="RAM_3"/>
     </comp>
     <comp lib="4" loc="(800,1500)" name="RAM">
       <a name="addrWidth" val="24"/>
       <a name="appearance" val="classic"/>
       <a name="enables" val="line"/>
+      <a name="label" val="RAM_4"/>
     </comp>
     <comp lib="4" loc="(800,880)" name="RAM">
       <a name="addrWidth" val="24"/>
       <a name="appearance" val="classic"/>
       <a name="enables" val="line"/>
+      <a name="label" val="RAM_1"/>
     </comp>
     <wire from="(1040,1150)" to="(1190,1150)"/>
     <wire from="(1040,1350)" to="(1220,1350)"/>
