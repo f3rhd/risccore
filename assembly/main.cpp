@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "parser/parser.hpp"
 #include "preprocessor/preprocessor.hpp"
 #include "code_gen/ast_analyser.hpp"
