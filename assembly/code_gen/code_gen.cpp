@@ -118,7 +118,7 @@ namespace code_gen  {
         FILE *output_file = fopen(output_file_path.c_str(), "wb");
 
         std::vector<uint32_t> buffer;
-        buffer.reserve(instructions.size() * sizeof(uint32_t));
+        buffer.reserve(instructions.size());
         for(const Instruction& instr : instructions){
             uint32_t raw = encode_instr(instr);
             #ifdef DEBUG 
