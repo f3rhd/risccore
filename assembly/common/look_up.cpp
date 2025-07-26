@@ -22,7 +22,7 @@ namespace instruction_look_up{
     const std::unordered_set<std::string> r_type_ops = {
         "add","sub","sll","sltu","xor","srl","sra",
         "or","and","sll","slt","sltu","xor","srl","sra",
-        "or","and"
+        "or","and","mull","mulh","mulhsu","mulhu","div","divu","rem","remu"
     };
     const std::unordered_set<std::string> s_type_ops = {
         "sb","sh","sw"
@@ -177,26 +177,28 @@ namespace instruction_look_up{
             return 0x20;
         if(op_str == "srl")
             return 0x00;
+        if(op_str == "mul" || op_str == "mulh" || op_str == "mulhsu" || op_str == "mulhu" || op_str == "div" || op_str == "divu" || op_str == "rem" || op_str == "remu")
+            return 0x01;
         // For other instructions, return 0x00 by default (most I-type, S-type, etc. don't use funct7)
         return 0x00;
     }
     uint8_t get_func3(const std::string& op_str){
         // R-type and I-type funct3 values
-        if(op_str == "add" || op_str == "sub" || op_str == "addi")
+        if(op_str == "add" || op_str == "sub" || op_str == "addi" || op_str == "mul")
             return 0x0;
-        if(op_str == "sll" || op_str == "slli")
+        if(op_str == "sll" || op_str == "slli" || op_str == "mulh")
             return 0x1;
-        if(op_str == "slt" || op_str == "slti")
+        if(op_str == "slt" || op_str == "slti" || op_str == "mulhsu")
             return 0x2;
-        if(op_str == "sltu" || op_str == "sltiu")
+        if(op_str == "sltu" || op_str == "sltiu" || op_str == "mulhu")
             return 0x3;
-        if(op_str == "xor" || op_str == "xori")
+        if(op_str == "xor" || op_str == "xori" || op_str == "div")
             return 0x4;
-        if(op_str == "srl" || op_str == "srli" || op_str == "sra" || op_str == "srai")
+        if(op_str == "srl" || op_str == "srli" || op_str == "sra" || op_str == "srai" || op_str == "divu")
             return 0x5;
-        if(op_str == "or" || op_str == "ori")
+        if(op_str == "or" || op_str == "ori" || op_str == "rem")
             return 0x6;
-        if(op_str == "and" || op_str == "andi")
+        if(op_str == "and" || op_str == "andi" || op_str == "remu")
             return 0x7;
         // Loads
         if(op_str == "lb") return 0x0;
