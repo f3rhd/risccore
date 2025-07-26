@@ -18,16 +18,23 @@ std::string Preprocessor::process()
     bool macro_start = false;
     bool macro_finish = false;
     Macro macro;
+    uint32_t line_counter = 0;
     std::string macro_name;
     while(fgets(_line,sizeof(_line),_source_file) != 0){
+        line_counter++;
         std::vector<Token> line_tokens = tokenizer::tokenize_line_text(_line);
-        
         if(line_tokens.size() == 0) continue;
         if(line_tokens[0].type == TOKEN_TYPE::IDENTIFIER){
 
             const Macro* called_macro = get_macro_by_name(line_tokens[0].word);
             if(called_macro){
                 std::vector<std::string> caller_arguments = get_arguments(line_tokens,0);
+                if(caller_arguments.size() != const_cast<Macro*>(called_macro)->arguments.size()){
+                    Line line;
+                    line.tokens = line_tokens;
+                    line.true_row_number = line_counter;
+                    utils::throw_error_message({"Macro and caller arguments did not match. Unexpected behavior is possible.", &caller_arguments.back(),&line});
+                }
                 for (uint32_t i = 0; i < called_macro->definition.size();i++){
                     std::string converted_defintion = const_cast<Macro*>(called_macro)->definition[i];
                     for (uint32_t j = 0; j < const_cast<Macro*>(called_macro)->arguments.size();j++){

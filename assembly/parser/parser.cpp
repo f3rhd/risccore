@@ -69,12 +69,13 @@ Ast_Node* Parser::parse_line(Line& line){
             opr_node->middle = parse_line(line);
             comma_lp_token = peek(line.tokens);
 
-            // J,U,PSEUDO_1 and PSEUDO_2 type operations have two operands, so we do not need to check for second comma
+            // J,U,PSEUDO_1,PSEUDO_0 and PSEUDO_2 type operations have two operands, so we do not need to check for second comma
             if(opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4 &&  
                 opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5 &&
                 opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_1 &&
                 opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_2 &&
                 opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6 &&
+                opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_0 && 
                 opr_node->opr_type != instruction_look_up::OPERATION_TYPE::J_TYPE && 
                 opr_node->opr_type != instruction_look_up::OPERATION_TYPE::U_TYPE){
                 if(comma_lp_token != nullptr && (comma_lp_token->type == TOKEN_TYPE::COMMA || comma_lp_token->type == TOKEN_TYPE::LPAREN)){

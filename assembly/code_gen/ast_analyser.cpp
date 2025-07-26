@@ -164,6 +164,23 @@ namespace ast_analyser{
             success = 0;
         }
     }
+    static void pseudo_tpye_0_analysis(Ast_Node* head, bool& success){
+        if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::IMMEDIATE){
+
+            if(head->middle  == nullptr)
+                val = nullptr;
+            else
+                val = head->middle->str_ptr_value;
+
+            utils::throw_error_message({"Operation should have an immediate value as second operand.", val, head->line_info});
+            success = 0;
+        }
+        if(head->right != nullptr){
+            val = head->right->str_ptr_value;
+            utils::throw_error_message({"Operation can not have a third operand.", val, head->line_info});
+            success = 0;
+        }
+    }
     static void pseudo_type_1_analysis(Ast_Node *head, bool &success) {
 
         if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
@@ -171,7 +188,7 @@ namespace ast_analyser{
                 val = nullptr;
             else
                 val = head->middle->str_ptr_value;
-            utils::throw_error_message({"Operation should have a register as second operand", val, head->line_info});
+            utils::throw_error_message({"Operation should have a register as second operand.", val, head->line_info});
             success = 0;
         }
 
@@ -187,17 +204,17 @@ namespace ast_analyser{
                 val = nullptr;
             else
                 val = head->left->str_ptr_value;
-            utils::throw_error_message({"Operation should have an label identifier as first operand", val, head->line_info});
+            utils::throw_error_message({"Operation should have an label identifier as first operand.", val, head->line_info});
             success = 0;
         }
 
         if(head->middle != nullptr){
-            utils::throw_error_message({"Operation can not have a second operand", head->middle->str_ptr_value, head->line_info});
+            utils::throw_error_message({"Operation can not have a second operand.", head->middle->str_ptr_value, head->line_info});
             success = 0;
         }
         if(head->right != nullptr){
 
-            utils::throw_error_message({"Operation can not have a third operand", head->right->str_ptr_value, head->line_info});
+            utils::throw_error_message({"Operation can not have a third operand.", head->right->str_ptr_value, head->line_info});
             success = 0;
         }
     }
@@ -211,18 +228,18 @@ namespace ast_analyser{
             success = 0;
         }
         if(head->middle != nullptr){
-            utils::throw_error_message({"Operation can not have a second operand", head->middle->str_ptr_value, head->line_info});
+            utils::throw_error_message({"Operation can not have a second operand.", head->middle->str_ptr_value, head->line_info});
             success = 0;
         }
         if(head->right != nullptr){
 
-            utils::throw_error_message({"Operation can not have a third operand", head->right->str_ptr_value, head->line_info});
+            utils::throw_error_message({"Operation can not have a third operand.", head->right->str_ptr_value, head->line_info});
             success = 0;
         }
     }
     static void pseudo_type_6_analysis(Ast_Node *head, bool &success) {
         if(head->left != nullptr || head->middle != nullptr || head->right != nullptr){
-            utils::throw_error_message({"Operation can not have any operands", nullptr, head->line_info });
+            utils::throw_error_message({"Operation can not have any operands.", nullptr, head->line_info });
             success = 0;
         }
     }
@@ -246,6 +263,10 @@ namespace ast_analyser{
             case instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_3:
             case instruction_look_up::OPERATION_TYPE::B_TYPE : {
                 b_type_analysis(head, success);
+                break;
+            }
+            case instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_0: {
+                pseudo_tpye_0_analysis(head, success);
                 break;
             }
             case instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_2:

@@ -13,7 +13,7 @@ namespace instr_gen {
             const std::vector<Instruction> &get_instructions();
 
         private:
-            Instruction convert_to_instr(Ast_Node *head);
+            std::vector<Instruction> convert_to_instr(Ast_Node *head);
 
         private:
             std::vector<Instruction> _instructions;

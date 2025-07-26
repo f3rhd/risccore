@@ -47,6 +47,7 @@ namespace instruction_look_up{
     };
 
     const std::unordered_set<std::string> pseudo_ops_type_0 = { //@Incomplete
+        "li"
     };
     const std::unordered_set<std::string> pseudo_ops_type_1 = { // These bitches have two operands and both of them are registers
         "mv","not","neg","seqz","snez","sltz","sgtz"

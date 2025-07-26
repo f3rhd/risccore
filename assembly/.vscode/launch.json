@@ -8,7 +8,7 @@
             "name": "Debug main.exe",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/fasm_debug.exe",
+            "program": "${workspaceFolder}/f3-riscv-asm-debug.exe",
             "args": ["tests/test.s","../schematics/output"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",

@@ -6,10 +6,12 @@
 // generates instruction based on the ast
 namespace instr_gen{
 
-    Instruction generator::convert_to_instr(Ast_Node* head){
+    std::vector<Instruction> generator::convert_to_instr(Ast_Node* head){
 
         // Extract fields from AST_Node
         Instruction instr;
+        Instruction _instr; // this is needed for load 32 bit immediate
+        bool need_second_instr = false;
         instr.type = head->opr_type;
         instr.opcode = instruction_look_up::get_op_code(instr.type,*head->str_ptr_value);
         instr.func3 = instruction_look_up::get_func3(*head->str_ptr_value);
@@ -70,6 +72,7 @@ namespace instr_gen{
                 instr.imm = utils::str_to_int32(*head->middle->str_ptr_value);
                 break;
             }
+            case OPERATION_TYPE::PSEUDO_TYPE_0:
             case OPERATION_TYPE::PSEUDO_TYPE_1:
             case OPERATION_TYPE::PSEUDO_TYPE_2:
             case OPERATION_TYPE::PSEUDO_TYPE_3:
@@ -77,21 +80,21 @@ namespace instr_gen{
             case OPERATION_TYPE::PSEUDO_TYPE_5:
             case OPERATION_TYPE::PSEUDO_TYPE_6:{ // I hate this...
                 if(*head->str_ptr_value == "nop"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_ptr_value);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
                     instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
                     instr.rd = instruction_look_up::get_register_index("zero");
                     instr.rs1 = instruction_look_up::get_register_index("zero");
                     instr.imm = 0;
                 }
                 else if(*head->str_ptr_value == "mv"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_ptr_value);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
                     instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
                     instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
                     instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
                     instr.imm = 0;
                 }
                 else if(*head->str_ptr_value == "not"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_ptr_value);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
                     instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
                     instr.func3 = instruction_look_up::get_func3("xori");
                     instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
@@ -109,7 +112,7 @@ namespace instr_gen{
                 }
                 else if(*head->str_ptr_value  ==  "seqz"){
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_ptr_value);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
                     instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
                     instr.func3 = instruction_look_up::get_func3("sltiu");
                     instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
@@ -260,7 +263,7 @@ namespace instr_gen{
                 }
                 else if(*head->str_ptr_value == "ret") {
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,*head->str_ptr_value);
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,"jalr");
                     instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
                     instr.rd = instruction_look_up::get_register_index("zero");
                     instr.rs1 = instruction_look_up::get_register_index("ra");
@@ -273,6 +276,30 @@ namespace instr_gen{
                     instr.imm = head->left->identifier_immediate;
 
                 }
+                else if(*head->str_ptr_value == "li"){
+
+                    int32_t imm_value = utils::str_to_int32(*head->middle->str_ptr_value);
+                    if(imm_value < 2048){
+                        instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                        instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
+                        instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                        instr.rs1 = instruction_look_up::get_register_index("zero");
+                        instr.imm = imm_value;
+                    }else{
+
+                        need_second_instr = true;
+                        instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::U_TYPE,"lui");
+                        instr.type = instruction_look_up::OPERATION_TYPE::U_TYPE;
+                        instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                        instr.imm = (imm_value >> 12) & 0xFFFFF;
+
+                        _instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                        _instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
+                        _instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                        instr.rs1 = instruction_look_up::get_register_index("zero");
+                        instr.imm = imm_value & 0xFFF;
+                    }
+                }
                 break;
             }
                 
@@ -281,15 +308,20 @@ namespace instr_gen{
                 // Unknown: do nothing or error
                 break;
         }
-        
-        return instr;
+
+        if(need_second_instr)
+            return {instr, _instr};
+        return {instr};
     }
     void generator::generate_instructions(const std::vector<Ast_Node *> &heads){
 
         _instructions.reserve(heads.size());
         for(Ast_Node* head : heads){
 
-            _instructions.push_back(convert_to_instr(head));
+            std::vector<Instruction> instrs = convert_to_instr(head);
+            _instructions.push_back(instrs[0]);
+            if(instrs.size() == 2)
+                _instructions.push_back(instrs[1]);
         }
     }
     const std::vector<Instruction> &generator::get_instructions()
