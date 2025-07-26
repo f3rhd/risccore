@@ -22,7 +22,7 @@ namespace instruction_look_up{
     const std::unordered_set<std::string> r_type_ops = {
         "add","sub","sll","sltu","xor","srl","sra",
         "or","and","sll","slt","sltu","xor","srl","sra",
-        "or","and","mull","mulh","mulhsu","mulhu","div","divu","rem","remu"
+        "or","and","mul","mulh","mulhsu","mulhu","div","divu","rem","remu"
     };
     const std::unordered_set<std::string> s_type_ops = {
         "sb","sh","sw"
