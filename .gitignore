@@ -1,4 +1,7 @@
 .vscode
 *.exe
 .VSCodeCounter
-*.bin
+output
+.gitignore
+.vscode/settings.json
+.vscode/tasks.json 
