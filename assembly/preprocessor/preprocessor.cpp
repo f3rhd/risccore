@@ -40,7 +40,7 @@ std::string Preprocessor::process()
                     for (uint32_t j = 0; j < const_cast<Macro*>(called_macro)->arguments.size();j++){
 
                         if(j < caller_arguments.size())
-                            replace_in_string(converted_defintion, const_cast<Macro *>(called_macro)->arguments[j], caller_arguments[j]); 
+                            utils::replace_in_string(converted_defintion, const_cast<Macro *>(called_macro)->arguments[j], caller_arguments[j]); 
                     }
                     fprintf(processed_file, "%s", converted_defintion.c_str());
                 }
@@ -94,13 +94,6 @@ std::vector<std::string> Preprocessor::get_arguments(const std::vector<Token>& t
             arguments.push_back(tokens[i].word);
     }
     return arguments;
-}
-void Preprocessor::replace_in_string(std::string &_str, const std::string &from, const std::string &to){
-    size_t start_pos = 0;
-    while((start_pos = _str.find(from, start_pos)) != std::string::npos) {
-        _str.replace(start_pos, from.length(), to);
-        start_pos += to.length(); // Move past the replaced part
-    }
 }
 const Macro* Preprocessor::get_macro_by_name(const std::string& macro_name){
     return _macro_map.find(macro_name) != _macro_map.end() ? &_macro_map[macro_name] : nullptr;

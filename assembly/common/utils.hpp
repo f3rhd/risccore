@@ -20,4 +20,6 @@ namespace utils {
     int32_t                   calculate_offset(uint32_t label_row_number, uint32_t identifier_row_number);
     int32_t                   str_to_int32(const std::string &s);
     void                      throw_error_message(const Error_Message &msg);
+    void                      free_ast(Ast_Node* head);
+    void                      replace_in_string(std::string &str, const std::string &from, const std::string &to);
 };

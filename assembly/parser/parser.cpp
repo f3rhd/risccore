@@ -250,12 +250,15 @@ void Parser::run(const std::string& processed_file_path){
 #endif
     parse_lines();
     if(exit_code == false){
+        remove(processed_file_path.c_str());
         printf("Assembling failed.\n");
+        fclose(processed_source_file);
+        remove(processed_file_path.c_str());
         exit(1);
     }
     fclose(processed_source_file);
     remove(processed_file_path.c_str());
 }
-const std::vector<Ast_Node *>& Parser::get_ast_nodes(){
+std::vector<Ast_Node *>& Parser::get_ast_nodes(){
     return _heads;
 }

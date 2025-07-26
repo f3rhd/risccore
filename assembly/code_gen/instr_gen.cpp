@@ -313,7 +313,7 @@ namespace instr_gen{
             return {instr, _instr};
         return {instr};
     }
-    void generator::generate_instructions(const std::vector<Ast_Node *> &heads){
+    void generator::generate_instructions(std::vector<Ast_Node *> &heads){
 
         _instructions.reserve(heads.size());
         for(Ast_Node* head : heads){
@@ -322,6 +322,8 @@ namespace instr_gen{
             _instructions.push_back(instrs[0]);
             if(instrs.size() == 2)
                 _instructions.push_back(instrs[1]);
+            // Free the AST node after processing
+            utils::free_ast(head);
         }
     }
     const std::vector<Instruction> &generator::get_instructions()

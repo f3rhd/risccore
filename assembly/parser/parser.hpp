@@ -10,7 +10,7 @@ class Parser{
 
 public:
     void run(const std::string& source_file_path);
-    const std::vector<Ast_Node *>& get_ast_nodes();
+    std::vector<Ast_Node *>& get_ast_nodes();
 private:
     uint32_t _token_index = 0;
     uint32_t _line_index = 0;

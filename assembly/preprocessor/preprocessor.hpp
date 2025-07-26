@@ -21,5 +21,4 @@ private:
     const Macro* get_macro_by_name(const std::string &macro_name);
     std::unordered_map<std::string, Macro> _macro_map;
     std::vector<std::string> get_arguments(const std::vector<Token> &tokens, bool is_macro_line);
-    void replace_in_string(std::string &str, const std::string &from, const std::string &to);
 };

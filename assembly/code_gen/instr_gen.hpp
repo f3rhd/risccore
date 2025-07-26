@@ -9,7 +9,7 @@ namespace instr_gen {
 
     class generator {
         public:
-            void generate_instructions(const std::vector<Ast_Node *> &heads);
+            void generate_instructions(std::vector<Ast_Node *> &heads);
             const std::vector<Instruction> &get_instructions();
 
         private:

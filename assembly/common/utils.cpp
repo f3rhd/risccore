@@ -102,6 +102,13 @@ namespace utils{
         }
     }
 
+    void replace_in_string(std::string &_str, const std::string &from, const std::string &to){
+        size_t start_pos = 0;
+        while((start_pos = _str.find(from, start_pos)) != std::string::npos) {
+            _str.replace(start_pos, from.length(), to);
+            start_pos += to.length(); // Move past the replaced part
+        }
+    }
     std::string opr_type_to_string(instruction_look_up::OPERATION_TYPE type) {
         using instruction_look_up::OPERATION_TYPE;
         switch (type) {
@@ -132,6 +139,16 @@ namespace utils{
         }
     }
 
+    void free_ast(Ast_Node* head) {
+        if (head == nullptr) return;
+
+        free_ast(head->left);
+        free_ast(head->right);
+        free_ast(head->middle);
+
+        // Free the current node
+        delete head;
+    }
     bool line_is_label_only(const Line& line){
 
         if(line.tokens.size() == 1 && line.tokens[0].type == TOKEN_TYPE::LABEL)
