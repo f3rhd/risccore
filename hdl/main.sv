@@ -38,7 +38,7 @@ module cpu(
         .pc_in(_pc_in),
         .pc_out(_pc_out)
     );
-    rom instr_memory(
+    rom #(256) instr_memory(
         .word_addr(_pc_out),
         .rom_out(_rom_instr_out)
     );
@@ -224,7 +224,7 @@ module cpu(
         .ctrl_signals_out(_pip_ex_mem_ctrl_signals_out),
         .lt_sgn_ext_out(_pip_ex_mem_lt_sgn_ext_out),
         .alu_result_out(_pip_ex_mem_alu_result_out),
-        .ram_data_out(_pip_ex_mem_ram_data_out),
+        .ram_datain_out(_pip_ex_mem_ram_data_out),
         .imm_out(_pip_ex_mem_imm_out),
         .pcimm_out(_pip_ex_mem_pcimm_out),
         .pc4_out(_pip_ex_mem_pc4_out),
@@ -232,7 +232,7 @@ module cpu(
     );
 
     logic[31:0] _ram_out;
-    ram data_memory(
+    ram #(256) data_memory(
         .clk(clk),
         .word_addr(_pip_ex_mem_alu_result_out),
         .data_in(_pip_ex_mem_ram_data_out),
@@ -253,7 +253,7 @@ module cpu(
         .enable(one),
         .ctrl_signals_in({_pip_ex_mem_ctrl_signals_out[8],_pip_ex_mem_ctrl_signals_out[2:0]}),
         .lt_sgn_ext_in(_pip_ex_mem_lt_sgn_ext_out),
-        .ram_output_in(_pip_ex_mem_ram_data_out),
+        .ram_output_in(_ram_out),
         .alu_result_in(_pip_ex_mem_alu_result_out),
         .imm_in(_pip_ex_mem_imm_out),
         .pcimm_in(_pip_ex_mem_pcimm_out),
