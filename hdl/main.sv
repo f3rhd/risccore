@@ -18,6 +18,7 @@ module cpu(
     logic _stall_if_id_pipeline; // is output of hazard unit
     logic _flush_if_id_pipeline; // is output of hazard unit
 
+    logic[31:0] _pip_ex_mem_pcimm_in;
     adder pc_four_adder(
         .a(_pc_out),
         .b(four),
@@ -26,7 +27,7 @@ module cpu(
 
     mux pc_select_mux(
         .a(_pc_four_adder_out),
-        .b(_write_stage_result),
+        .b(_pip_ex_mem_pcimm_in),
         .select(_pc_select_signal),
         .out(_pc_in)
     );
@@ -70,13 +71,14 @@ module cpu(
     logic[3:0] _pip_mem_wb_ctrl_signals_out; // is output of pip_mem_wb
     logic[31:0] _reg_file_read_data_1;
     logic[31:0] _reg_file_read_data_2;
+    logic[4:0] _pip_mem_wb_reg_write_addr_out ; // is output of pip_mem_wb
     reg_file  _reg_file(
         .clk(clk),
         .reset(_reset),
         .write_enable(_pip_mem_wb_ctrl_signals_out[3]),
         .read_addr_1(_pip_if_id_instr_out[19:15]),
         .read_addr_2(_pip_if_id_instr_out[24:20]),
-        .write_addr(_pip_if_id_instr_out[11:7]),
+        .write_addr(_pip_mem_wb_reg_write_addr_out),
         .write_data(_write_stage_result),
         .read_data_1(_reg_file_read_data_1),
         .read_data_2(_reg_file_read_data_2)
@@ -126,7 +128,6 @@ module cpu(
 
     logic[4:0] _pip_ex_mem_reg_write_addr_out; // is output of pip_ex_mem
     logic[9:0] _pip_ex_mem_ctrl_signals_out;// is output of pip_ex_mem
-    logic[4:0] _pip_mem_wb_reg_write_addr_out ; // is output of pip_mem_wb
     logic[1:0] _forward_alu_a;
     logic[1:0] _forward_alu_b;
 
@@ -196,11 +197,10 @@ module cpu(
         .should_branch(_pc_select_signal)
     );
     
-    logic[31:0] _pip_ex_mem_pcimm;
     adder _adder(
         .a(_pip_id_ex_imm_out),
         .b(_pip_id_ex_pc_out),
-        .out(_pip_ex_mem_pcimm)
+        .out(_pip_ex_mem_pcimm_in)
     );
 
     logic[31:0] _pip_ex_mem_lt_sgn_ext_out;
@@ -217,7 +217,7 @@ module cpu(
         .alu_result_in(_alu_result),
         .ram_data_in(_alu_b_forward),
         .imm_in(_pip_id_ex_imm_out),
-        .pcimm_in(_pip_ex_mem_pcimm),
+        .pcimm_in(_pip_ex_mem_pcimm_in),
         .pc4_in(_pip_id_ex_pc4_out),
         .reg_write_addr_in(_pip_id_ex_reg_write_addr_out),
 

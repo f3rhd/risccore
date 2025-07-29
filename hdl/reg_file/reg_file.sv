@@ -19,6 +19,7 @@ module reg_file(
             end
         end
         else if(write_enable && write_addr != 5'd0) begin 
+            $display("Wrote 0x%0h to the register 0x%0h",write_data,write_addr);
             registers[write_addr] <= write_data;
         end
     end
