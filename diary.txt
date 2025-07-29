@@ -2,14 +2,20 @@ Date : 7/15/2025
     Today is the day I start building 32 bit cpu that uses RISC-V arcitechture.
     I have finished building ALU
     Following are the control signals for ALU:
-        000 - A^B
-        001 - A&B
-        010 - A+B
-        011 - A<<B (logical)
-        100 - A>>B (logical)
-        101 - A>>B (arithmetic)
-        110 - A-B
-        111 - A|B
+        0000 - A^B
+        0001 - A&B
+        0010 - A+B
+        0011 - A<<B (logical)
+        0100 - A>>B (logical)
+        0101 - A>>B (arithmetic)
+        0110 - A-B
+        0111 - A|B
+        1000 - A*B 
+        1001 - A/B (signed)
+        1010 - A/B (unsigned)
+        1011 - A/B (signed) remainder
+        1100 - A/B (unsigned) remainder
+
     Now, I am building the register file.
     Register file is done. 9:24 PM
 

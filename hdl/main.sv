@@ -1,13 +1,7 @@
-module main(
-    input logic _clk
+module cpu(
+    input logic clk,
+    input logic _reset
 );
-    logic clk;
-    always begin
-        clk = _clk;
-        #5;
-        clk = _clk;
-        #5;
-    end
 
     const logic zero = 0;
     const logic one = 1;
@@ -20,7 +14,7 @@ module main(
     logic[31:0] _rom_instr_out;
 
     logic _pc_select_signal; //is output of  branch module 
-    logic _pc_enable; // is output of hazard unit
+    logic _pc_stall; // is output of hazard unit
     logic _stall_if_id_pipeline; // is output of hazard unit
     logic _flush_if_id_pipeline; // is output of hazard unit
 
@@ -38,8 +32,8 @@ module main(
     );
     program_counter pc(
         .clk(clk),
-        .reset(zero),
-        .enable(_pc_enable),
+        .reset(zero | _reset),
+        .enable(~_pc_stall),
         .pc_in(_pc_in),
         .pc_out(_pc_out)
     );
@@ -52,10 +46,11 @@ module main(
     logic[31:0] _pip_if_id_pc_out;
     logic[31:0] _pip_if_id_pc4_out;
 
+
     pipeline_register_if_id pip_if_id(
         .clk(clk),
-        .reset(_flush_if_id_pipeline),
-        .enable(_stall_if_id_pipeline),
+        .reset(_flush_if_id_pipeline | _reset),
+        .enable(~_stall_if_id_pipeline),
         .instr_in(_rom_instr_out),
         .pc_in(_pc_out),
         .pc4_in(_pc_four_adder_out),
@@ -72,13 +67,12 @@ module main(
     );
 
 
-    logic _reg_file_reset;
     logic[3:0] _pip_mem_wb_ctrl_signals_out; // is output of pip_mem_wb
     logic[31:0] _reg_file_read_data_1;
     logic[31:0] _reg_file_read_data_2;
     reg_file  _reg_file(
         .clk(clk),
-        .reset(_reg_file_reset),
+        .reset(_reset),
         .write_enable(_pip_mem_wb_ctrl_signals_out[3]),
         .read_addr_1(_pip_if_id_instr_out[19:15]),
         .read_addr_2(_pip_if_id_instr_out[24:20]),
@@ -108,7 +102,7 @@ module main(
     logic[4:0] _pip_id_ex_rs2_addr_out;
     pipeline_register_id_ex pip_id_ex(
         .clk(clk),
-        .reset(_flush_id_ex_pipeline),
+        .reset(_flush_id_ex_pipeline | _reset),
         .enable(one),
         .ctrl_signals_in(_ctrl_signals),
         .read1_in(_reg_file_read_data_1),
@@ -117,7 +111,7 @@ module main(
         .pc_in(_pip_if_id_pc_out),
         .pc4_in(_pip_if_id_pc4_out),
         .reg_write_addr_in(_pip_if_id_instr_out[11:7]),
-        .rs1_addr_in(_pip_if_id_instr_out[17:15]),
+        .rs1_addr_in(_pip_if_id_instr_out[19:15]),
         .rs2_addr_in(_pip_if_id_instr_out[24:20]),
         .ctrl_signals_out(_pip_id_ex_ctrl_signals_out),
         .read1_out(_pip_id_ex_read1_out),
@@ -140,7 +134,7 @@ module main(
         .ex_rs1_addr(_pip_id_ex_rs1_addr_out),
         .ex_rs2_addr(_pip_id_ex_rs2_addr_out),
         .ex_rd_addr(_pip_id_ex_reg_write_addr_out),
-        .dec_rs1_addr(_pip_if_id_instr_out[17:15]),
+        .dec_rs1_addr(_pip_if_id_instr_out[19:15]),
         .dec_rs2_addr(_pip_if_id_instr_out[24:20]),
         .mem_reg_write_addr(_pip_ex_mem_reg_write_addr_out),
         .mem_reg_write_signal(_pip_ex_mem_ctrl_signals_out[8]),
@@ -151,26 +145,28 @@ module main(
         .forward_alu_a(_forward_alu_a),
         .forward_alu_b(_forward_alu_b),
         .flush_dec_ex_pipeline(_flush_id_ex_pipeline),
-        .stall_pc(_pc_enable),
+        .stall_pc(_pc_stall),
         .stall_fetch_decode_pipeline(_stall_if_id_pipeline),
         .flush_fetch_decode_pipeline(_flush_if_id_pipeline)
     );
 
-    logic[31:0] _pip_ex_mem_alu_result; // is input for _pip_ex_mem
+    logic[31:0] _pip_ex_mem_alu_result_out;
     logic[31:0] _alu_a_in;
     logic[31:0] _alu_b_forward;
     mux2 alu_a_select(
         .a(_pip_id_ex_read1_out),
+        .b(32'd0),
         .c(_write_stage_result),
-        .d(_pip_ex_mem_alu_result),
+        .d(_pip_ex_mem_alu_result_out),
         .select(_forward_alu_a),
         .out(_alu_a_in)
     );
 
     mux2 alu_forward_select(
         .a(_pip_id_ex_read2_out),
+        .b(32'd0),
         .c(_write_stage_result),
-        .d(_pip_ex_mem_alu_result),
+        .d(_pip_ex_mem_alu_result_out),
         .select(_forward_alu_b),
         .out(_alu_b_forward)
     );
@@ -208,16 +204,15 @@ module main(
     );
 
     logic[31:0] _pip_ex_mem_lt_sgn_ext_out;
-    logic[31:0] _pip_ex_mem_alu_result_out;
     logic[31:0] _pip_ex_mem_ram_data_out;
     logic[31:0] _pip_ex_mem_imm_out;
     logic[31:0] _pip_ex_mem_pcimm_out;// pc+imm
     logic[31:0] _pip_ex_mem_pc4_out;
     pipeline_register_ex_mem pip_ex_mem(
         .clk(clk),
-        .reset(zero),
+        .reset(zero | _reset),
         .enable(one),
-        .ctrl_signals_in({1'b0,_pip_id_ex_ctrl_signals_out[14],_pip_id_ex_ctrl_signals_out[11:8],_pip_id_ex_ctrl_signals_out[4:3],_pip_id_ex_ctrl_signals_out[2:0]}),
+        .ctrl_signals_in({1'b0,_pip_id_ex_ctrl_signals_out[14],_pip_id_ex_ctrl_signals_out[7:5],_pip_id_ex_ctrl_signals_out[4:3],_pip_id_ex_ctrl_signals_out[2:0]}),
         .lt_sgn_ext_in({32{_comparison_flags[2]}}),
         .alu_result_in(_alu_result),
         .ram_data_in(_alu_b_forward),
@@ -254,8 +249,8 @@ module main(
     logic[31:0] _pip_mem_wb_pc4_out;
     pipeline_register_mem_wb pip_mem_wb(
         .clk(clk),
-        .reset(zero),
-        .enable(1),
+        .reset(zero | _reset),
+        .enable(one),
         .ctrl_signals_in({_pip_ex_mem_ctrl_signals_out[8],_pip_ex_mem_ctrl_signals_out[2:0]}),
         .lt_sgn_ext_in(_pip_ex_mem_lt_sgn_ext_out),
         .ram_output_in(_pip_ex_mem_ram_data_out),
@@ -276,6 +271,8 @@ module main(
      );
 
      mux3 write_select(
+        .in0(32'd0),
+        .in1(32'd0),
         .in2(_pip_mem_wb_lt_sgn_ext_out),
         .in3(_pip_mem_wb_alu_result_out),
         .in4(_pip_mem_wb_imm_out),

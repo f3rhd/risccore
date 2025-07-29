@@ -14,7 +14,7 @@ module reg_file(
     assign read_data_2 = registers[read_addr_2];
     always_ff @(negedge clk) begin 
         if(reset) begin
-            for(int i = 1; i < 32; i++) begin
+            for(int i = 0; i < 32; i++) begin
                 registers[i] <= 32'd0;
             end
         end

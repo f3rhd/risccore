@@ -7,7 +7,7 @@ module rom #(parameter SIZE = (4 << 20)) // 4MB
 
     // === Initialization from file ===
     initial begin
-        $readmemh("instructions.mem", cells);
+        $readmemb("instructions.mem", cells);
     end
 
     // === Read 32-bit word (little-endian) ===

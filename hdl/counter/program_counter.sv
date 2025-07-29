@@ -8,7 +8,7 @@ module program_counter(
 
     logic [31:0] pc;
 
-    always_ff @(posedge clk or posedge reset) begin
+    always_ff @(posedge clk) begin
         if (reset)
             pc <= 32'd0;
         else if (enable)

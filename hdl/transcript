@@ -1,0 +1,39 @@
+# vsim -voptargs="+acc" main_tb 
+# Start time: 18:22:23 on Jul 28,2025
+# Loading sv_std.std
+# Loading work.main_tb
+# Loading work.cpu
+# Loading work.adder
+# Loading work.mux
+# Loading work.program_counter
+# Loading work.rom
+# Loading work.pipeline_register_if_id
+# Loading work.control_unit
+# Loading work.reg_file
+# Loading work.imm_select
+# Loading work.pipeline_register_id_ex
+# Loading work.hazard_unit
+# Loading work.mux2
+# Loading work.alu
+# Loading work.branch
+# Loading work.pipeline_register_ex_mem
+# Loading work.ram
+# Loading work.pipeline_register_mem_wb
+# Loading work.mux3
+add wave -r *
+run 
+run
+restart -sim
+run
+run
+run
+run
+run
+run
+run
+run
+run
+run
+add wave -r *
+# End time: 18:25:05 on Jul 28,2025, Elapsed time: 0:02:42
+# Errors: 0, Warnings: 0

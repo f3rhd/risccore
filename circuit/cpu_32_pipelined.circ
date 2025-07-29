@@ -417,7 +417,7 @@
     </comp>
     <comp lib="4" loc="(4390,3550)" name="Register">
       <a name="appearance" val="logisim_evolution"/>
-      <a name="label" val="EXE_PC_FINAL"/>
+      <a name="label" val="EXE_PC"/>
       <a name="width" val="32"/>
     </comp>
     <comp lib="4" loc="(4390,3660)" name="Register">
