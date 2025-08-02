@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <unordered_map>
 
 namespace instruction_look_up{
 
@@ -23,7 +24,7 @@ namespace instruction_look_up{
         PSEUDO_TYPE_6,
         UNKNOWN
     };
-    extern const std::vector<std::string> registers;
+    extern const std::unordered_map<std::string,uint8_t> registers;
     extern const std::unordered_set<std::string> i_type_ops;
     extern const std::unordered_set<std::string> s_type_ops;
     extern const std::unordered_set<std::string> r_type_ops;
