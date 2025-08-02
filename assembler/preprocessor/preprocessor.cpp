@@ -14,7 +14,7 @@ Preprocessor::Preprocessor(const std::string& source_file_path){
 }
 std::vector<Line>& Preprocessor::process()
 {
-    char _line[500];
+    char _line[100];
     bool macro_start = false;
     bool macro_finish = false;
     Macro macro;
@@ -22,8 +22,9 @@ std::vector<Line>& Preprocessor::process()
     macro.definition.reserve(3);
     std::string macro_name;
     while(fgets(_line,sizeof(_line),_source_file) != 0){
+        std::vector<Token> line_tokens;
         true_line_number++;
-        std::vector<Token> line_tokens = tokenizer::tokenize_line_text(_line);
+        line_tokens = tokenizer::tokenize_line_text(_line);
         if(line_tokens.size() == 0) continue;
         if(line_tokens[0].type == TOKEN_TYPE::IDENTIFIER){
             const Macro* called_macro = get_macro_by_name(line_tokens[0].word);
@@ -44,13 +45,13 @@ std::vector<Line>& Preprocessor::process()
                 }
                 for(const auto& line_str : expanded_lines){
                     std::vector<Token> tokens = tokenizer::tokenize_line_text(line_str);
-                    handle_line(tokens);
+                    handle_line(std::move(tokens));
                 }
                 continue;
             }
         }
         if(!macro_start && line_tokens[0].type != TOKEN_TYPE::DIRECTIVE){
-            handle_line(line_tokens);
+            handle_line(std::move(line_tokens));
             continue;
         }
         if(!macro_start && line_tokens[0].word == ".macro"){
@@ -66,7 +67,7 @@ std::vector<Line>& Preprocessor::process()
         if(!macro_finish && macro_start &&line_tokens[0].word == ".endm"){
             macro_start = false;
             macro_finish = true;
-            _macro_map.insert({macro_name, macro});
+            _macro_map.emplace(macro_name, macro);
         }
         if(macro_start && !macro_finish){
             macro.definition.emplace_back(_line);
@@ -79,23 +80,21 @@ std::vector<Line>& Preprocessor::process()
     #endif
     return _lines;
 }
-void Preprocessor::handle_line(std::vector<Token>& line_tokens){
-    Line _line;
-    _line.tokens = line_tokens;
-    if (line_tokens.size() == 0) return;
-    _lines.push_back(_line);
+void Preprocessor::handle_line(std::vector<Token>&& line_tokens){
+    _lines.emplace_back();
     Line &line = _lines[_lines.size() - 1];
+    line.tokens = line_tokens;
+
     line.label_str_ptr = utils::get_label_in_line(line);
     line.identifier_str_ptr = utils::get_identifier_in_line(line);
     line.true_row_number = true_line_number;
 
     // If the line is label-only (first token is LABEL and only one token), do not increment memory_row_number
        
+    line.memory_row_number = memory_row_number;
     if (line.tokens.size() == 1 && line.tokens[0].type == TOKEN_TYPE::LABEL) {
-        line.memory_row_number = memory_row_number;
         _labels.emplace(*line.label_str_ptr, line.memory_row_number);
     } else {
-        line.memory_row_number = memory_row_number;
         if(line.tokens[0].type == TOKEN_TYPE::LABEL)
             _labels.emplace(*line.label_str_ptr, line.memory_row_number);
         memory_row_number++;

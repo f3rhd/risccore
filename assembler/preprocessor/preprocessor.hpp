@@ -18,7 +18,7 @@ public:
 private:
     const Macro* get_macro_by_name(const std::string &macro_name);
     std::vector<std::string> get_arguments(const std::vector<Token> &tokens, bool is_macro_line);
-    void handle_line(std::vector<Token>& line_tokens);
+    void handle_line(std::vector<Token>&& line_tokens);
     void print_lines();
 private:
     uint32_t true_line_number = 0;

@@ -1,5 +1,6 @@
 #include "utils.hpp"
 #include <iostream>
+#include <format>
 
 namespace utils{
 
@@ -204,5 +205,39 @@ namespace utils{
             val = 0; // Could add error handling here if needed
         }
         return val;
+    }
+    void print_loading_bar(double fraction, int width) {
+        int filled = static_cast<int>(fraction * width + 0.5);
+        if (filled > width) filled = width;
+        std::string bar(filled, '#');
+        bar += std::string(width - filled, '-');
+        int percent = static_cast<int>(fraction * 100 + 0.5);
+        std::printf("[%-*s] %3d%%\n", width, bar.c_str(), percent);
+    }
+    std::string format_duration(std::chrono::nanoseconds ns) {
+        using namespace std::chrono;
+        if (ns >= seconds(1)) {
+            double secs = duration<double>(ns).count();
+            return std::format("{:.3f} s", secs);
+        } else if (ns >= milliseconds(1)) {
+            double ms = duration<double, std::milli>(ns).count();
+            return std::format("{:.3f} ms", ms);
+        } else if (ns >= microseconds(1)) {
+            double us = duration<double, std::micro>(ns).count();
+            return std::format("{:.3f} µs", us);
+        } else {
+            double nsd = static_cast<double>(ns.count());
+            return std::format("{:.0f} ns", nsd);
+        }
+    }
+
+    static uintmax_t get_file_size(FILE* file_pointer){
+        fseek(file_pointer, 0ull, SEEK_END);
+        return ftell(file_pointer);
+    }
+    uintmax_t approx_num_of_lines(FILE* fp){
+        uintmax_t num_of_chars = get_file_size(fp);
+        // avg instruction takes 20 chars
+        return num_of_chars / 20ull;
     }
 }

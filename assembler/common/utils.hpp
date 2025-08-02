@@ -1,10 +1,13 @@
 #pragma once
+#include <chrono>
+#include <cstdio>
+#include <iomanip>
+
 #include "ast_node.hpp"
 #include "look_up.hpp"
 #include "../tokenizer/tokenizer.hpp"
 #include "line.hpp"
 #include "error.hpp"
-#include <regex>
 namespace utils {
 
     Ast_Node                  *make_reg_node(const std::string* reg_identfier,Line* line_info_);
@@ -22,4 +25,7 @@ namespace utils {
     void                      throw_error_message(const Error_Message &msg);
     void                      free_ast(Ast_Node* head);
     void                      replace_in_string(std::string &str, const std::string &from, const std::string &to);
+    std::string               format_duration(std::chrono::nanoseconds ns);
+    void                      print_loading_bar(double fraction, int width = 40);
+    uintmax_t                 approx_num_of_lines(FILE *fp);
 };
