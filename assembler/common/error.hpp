@@ -7,7 +7,7 @@
 struct Error_Message{
 
     const std::string& message;
-    const std::string* error_causing_str_ptr;
-    Line *error_causing_line;
+    const std::string* error_causing_str_ptr = nullptr;
+    Line *error_causing_line = nullptr;
 };
 
