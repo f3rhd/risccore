@@ -32,10 +32,8 @@ namespace instr_gen{
                 if((*(head->str_ptr_value))[0] == 'l'){
                     instr.imm = utils::str_to_int32(*(head->middle->str_ptr_value));
                     instr.rs1 = instruction_look_up::get_register_index(*head->right->str_ptr_value);
-                }else if((*(head->str_ptr_value))[0] == 'j') {
-                    instr.imm = head->middle->identifier_immediate;
                 }
-                else{
+                else {
                     instr.imm = utils::str_to_int32(*head->right->str_ptr_value);
                     instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
                 }
@@ -92,58 +90,31 @@ namespace instr_gen{
                     instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
                     instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
                     instr.imm = 0;
-                }
-                else if(*head->str_ptr_value == "not"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
-                    instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
-                    instr.func3 = instruction_look_up::get_func3("xori");
-                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
-                    instr.imm = -1;
-                }
-                else if(*head->str_ptr_value == "neg"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
-                    instr.type = instruction_look_up::OPERATION_TYPE::R_TYPE;
-                    instr.func7 = instruction_look_up::get_func7("sub");
-                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                    instr.rs1 = instruction_look_up::get_register_index("zero");
-                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
+                }                 
+                else if(*head->str_ptr_value == "li"){
 
-                }
-                else if(*head->str_ptr_value  ==  "seqz"){
+                    int32_t imm_value = utils::str_to_int32(*head->middle->str_ptr_value);
+                    if(imm_value < 2048){
+                        instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                        instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
+                        instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                        instr.rs1 = instruction_look_up::get_register_index("zero");
+                        instr.imm = imm_value;
+                    }else{
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
-                    instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
-                    instr.func3 = instruction_look_up::get_func3("sltiu");
-                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
-                    instr.imm = 1;
-                }
-                else if(*head->str_ptr_value == "snez"){
+                        need_second_instr = true;
+                        instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::U_TYPE,"lui");
+                        instr.type = instruction_look_up::OPERATION_TYPE::U_TYPE;
+                        instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                        instr.imm = imm_value & 0xFFF00;
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
-                    instr.type = instruction_look_up::OPERATION_TYPE::R_TYPE;
-                    instr.func3 = instruction_look_up::get_func3("sltu");
-                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                    instr.rs1 = instruction_look_up::get_register_index("zero");
-                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
-                }
-                else if(*head->str_ptr_value == "sltz"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
-                    instr.type = instruction_look_up::OPERATION_TYPE::R_TYPE;
-                    instr.func3 = instruction_look_up::get_func3("slt");
-                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
-                    instr.rs2 = instruction_look_up::get_register_index("zero");
-                }
-                else if(*head->str_ptr_value == "sgtz"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
-                    instr.type = instruction_look_up::OPERATION_TYPE::R_TYPE;
-                    instr.func3 = instruction_look_up::get_func3("slt");
-                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                    instr.rs1 = instruction_look_up::get_register_index("zero");
-                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
-                }
+                        _instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                        _instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
+                        _instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                        _instr.rs1 = instruction_look_up::get_register_index("zero");
+                        _instr.imm = imm_value & 0xFFF;
+                    }
+                }             
                 else if(*head->str_ptr_value == "beqz"){
                     instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::B_TYPE);
                     instr.type = instruction_look_up::OPERATION_TYPE::B_TYPE;
@@ -230,6 +201,21 @@ namespace instr_gen{
                     instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
                     instr.rs2 = instruction_look_up::get_register_index(*head->left->str_ptr_value);
                     instr.imm = head->right->identifier_immediate;
+                }                
+                else if(*head->str_ptr_value == "ret") {
+
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,"jalr");
+                    instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
+                    instr.rd = instruction_look_up::get_register_index("zero");
+                    instr.rs1 = instruction_look_up::get_register_index("ra");
+                    instr.imm = 0;
+                }
+                else if(*head->str_ptr_value == "call"){
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::J_TYPE);
+                    instr.type = instruction_look_up::OPERATION_TYPE::J_TYPE;
+                    instr.rd = instruction_look_up::get_register_index("ra");
+                    instr.imm = head->left->identifier_immediate;
+
                 }
                 else if(*head->str_ptr_value == "j") {
 
@@ -261,51 +247,65 @@ namespace instr_gen{
                     instr.imm = 0;
 
                 }
-                else if(*head->str_ptr_value == "ret") {
 
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE,"jalr");
+                else if(*head->str_ptr_value == "not"){
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
                     instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
-                    instr.rd = instruction_look_up::get_register_index("zero");
-                    instr.rs1 = instruction_look_up::get_register_index("ra");
-                    instr.imm = 0;
+                    instr.func3 = instruction_look_up::get_func3("xori");
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
+                    instr.imm = -1;
                 }
-                else if(*head->str_ptr_value == "call"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::J_TYPE);
-                    instr.type = instruction_look_up::OPERATION_TYPE::J_TYPE;
-                    instr.rd = instruction_look_up::get_register_index("ra");
-                    instr.imm = head->left->identifier_immediate;
+                else if(*head->str_ptr_value == "neg"){
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
+                    instr.type = instruction_look_up::OPERATION_TYPE::R_TYPE;
+                    instr.func7 = instruction_look_up::get_func7("sub");
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                    instr.rs1 = instruction_look_up::get_register_index("zero");
+                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
 
                 }
-                else if(*head->str_ptr_value == "li"){
+                else if(*head->str_ptr_value  ==  "seqz"){
 
-                    int32_t imm_value = utils::str_to_int32(*head->middle->str_ptr_value);
-                    if(imm_value < 2048){
-                        instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
-                        instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
-                        instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                        instr.rs1 = instruction_look_up::get_register_index("zero");
-                        instr.imm = imm_value;
-                    }else{
-
-                        need_second_instr = true;
-                        instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::U_TYPE,"lui");
-                        instr.type = instruction_look_up::OPERATION_TYPE::U_TYPE;
-                        instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                        instr.imm = (imm_value >> 12) & 0xFFFFF;
-
-                        _instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
-                        _instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
-                        _instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-                        instr.rs1 = instruction_look_up::get_register_index("zero");
-                        instr.imm = imm_value & 0xFFF;
-                    }
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
+                    instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
+                    instr.func3 = instruction_look_up::get_func3("sltiu");
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
+                    instr.imm = 1;
                 }
+                else if(*head->str_ptr_value == "snez"){
+
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
+                    instr.type = instruction_look_up::OPERATION_TYPE::R_TYPE;
+                    instr.func3 = instruction_look_up::get_func3("sltu");
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                    instr.rs1 = instruction_look_up::get_register_index("zero");
+                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
+                }
+                else if(*head->str_ptr_value == "sltz"){
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
+                    instr.type = instruction_look_up::OPERATION_TYPE::R_TYPE;
+                    instr.func3 = instruction_look_up::get_func3("slt");
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                    instr.rs1 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
+                    instr.rs2 = instruction_look_up::get_register_index("zero");
+                }
+                else if(*head->str_ptr_value == "sgtz"){
+                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::R_TYPE);
+                    instr.type = instruction_look_up::OPERATION_TYPE::R_TYPE;
+                    instr.func3 = instruction_look_up::get_func3("slt");
+                    instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
+                    instr.rs1 = instruction_look_up::get_register_index("zero");
+                    instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
+                }
+
+
                 break;
             }
                 
             case OPERATION_TYPE::UNKNOWN:
             default:
-                // Unknown: do nothing or error
                 break;
         }
 
@@ -322,7 +322,6 @@ namespace instr_gen{
             _instructions.push_back(instrs[0]);
             if(instrs.size() == 2)
                 _instructions.push_back(instrs[1]);
-            // Free the AST node after processing
             utils::free_ast(head);
         }
     }
