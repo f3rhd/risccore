@@ -53,6 +53,7 @@ module ram #(parameter SIZE = (4<<20) // 4MB
         automatic logic [ADDR_WIDTH-1:0] _word_addr = word_addr[ADDR_WIDTH-1:0];
         case (write_ctrl)
             2'b11: begin // write word
+                
                 if (_word_addr < SIZE)
                     cells[_word_addr] <= data_in[7:0];
 

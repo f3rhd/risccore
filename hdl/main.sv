@@ -18,7 +18,7 @@ module cpu(
     logic _stall_if_id_pipeline; // is output of hazard unit
     logic _flush_if_id_pipeline; // is output of hazard unit
 
-    logic[31:0] _pip_ex_mem_pcimm_in;
+    logic[31:0] _pc_branch_addr;
     adder pc_four_adder(
         .a(_pc_out),
         .b(four),
@@ -27,7 +27,7 @@ module cpu(
 
     mux pc_select_mux(
         .a(_pc_four_adder_out),
-        .b(_pip_ex_mem_pcimm_in),
+        .b(_pc_branch_addr),
         .select(_pc_select_signal),
         .out(_pc_in)
     );
@@ -38,7 +38,7 @@ module cpu(
         .pc_in(_pc_in),
         .pc_out(_pc_out)
     );
-    rom #(256) instr_memory(
+    rom instr_memory(
         .word_addr(_pc_out),
         .rom_out(_rom_instr_out)
     );
@@ -61,7 +61,7 @@ module cpu(
     );
 
 
-    logic[24:0] _ctrl_signals;
+    logic[25:0] _ctrl_signals;
     control_unit _control_unit(
         .instr(_pip_if_id_instr_out),
         .ctrl_signals(_ctrl_signals)
@@ -87,13 +87,13 @@ module cpu(
     logic[31:0] _imm_val_output;
     imm_select _imm_select(
         .instr(_pip_if_id_instr_out),
-        .imm_select_ctrl(_ctrl_signals[17:15]),
+        .imm_select_ctrl(_ctrl_signals[18:16]),
         .output_imm_val(_imm_val_output)
     );
 
     logic _flush_id_ex_pipeline; // is output of hazard unit
 
-    logic[24:0] _pip_id_ex_ctrl_signals_out;
+    logic[25:0] _pip_id_ex_ctrl_signals_out;
     logic[31:0] _pip_id_ex_read1_out;
     logic[31:0] _pip_id_ex_read2_out;
     logic[31:0] _pip_id_ex_imm_out;
@@ -141,7 +141,7 @@ module cpu(
         .mem_reg_write_signal(_pip_ex_mem_ctrl_signals_out[8]),
         .wb_reg_write_signal(_pip_mem_wb_ctrl_signals_out[3]),
         .wb_reg_write_addr(_pip_mem_wb_reg_write_addr_out),
-        .ex_ram_read_signal(_pip_id_ex_ctrl_signals_out[7:5]),
+        .ex_ram_read_signal(_pip_id_ex_ctrl_signals_out[8:6]), /**/
         .pc_select(_pc_select_signal),
         .forward_alu_a(_forward_alu_a),
         .forward_alu_b(_forward_alu_b),
@@ -176,7 +176,7 @@ module cpu(
     mux alu_b_select(
         .a(_alu_b_forward),
         .b(_pip_id_ex_imm_out),
-        .select(_pip_id_ex_ctrl_signals_out[13]),
+        .select(_pip_id_ex_ctrl_signals_out[14]),/**/
         .out(_alu_b_in)
     );
     
@@ -186,23 +186,30 @@ module cpu(
     alu _alu(
         .alu_a(_alu_a_in),
         .alu_b(_alu_b_in),
-        .alu_operation_type(_pip_id_ex_ctrl_signals_out[11:8]),
-        .comparison_mode(_pip_id_ex_ctrl_signals_out[12]),
+        .alu_operation_type(_pip_id_ex_ctrl_signals_out[12:9]),/**/
+        .comparison_mode(_pip_id_ex_ctrl_signals_out[13]),/**/
         .alu_result(_alu_result),
         .comparison_flags(_comparison_flags)
     );
     branch _branch(
         .alu_flags(_comparison_flags),
-        .control_flags(_pip_id_ex_ctrl_signals_out[24:18]),
+        .control_flags(_pip_id_ex_ctrl_signals_out[25:19]), /**/
         .should_branch(_pc_select_signal)
     );
     
+    logic[31:0] _pip_ex_mem_pcimm_in;
     adder _adder(
         .a(_pip_id_ex_imm_out),
         .b(_pip_id_ex_pc_out),
         .out(_pip_ex_mem_pcimm_in)
     );
 
+    mux pc_branch_addr_selector(
+        .a(_pip_ex_mem_pcimm_in),
+        .b(_alu_result),
+        .select(_pip_id_ex_ctrl_signals_out[0]),
+        .out(_pc_branch_addr)
+    );
     logic[31:0] _pip_ex_mem_lt_sgn_ext_out;
     logic[31:0] _pip_ex_mem_ram_data_out;
     logic[31:0] _pip_ex_mem_imm_out;
@@ -212,7 +219,7 @@ module cpu(
         .clk(clk),
         .reset(zero | _reset),
         .enable(one),
-        .ctrl_signals_in({1'b0,_pip_id_ex_ctrl_signals_out[14],_pip_id_ex_ctrl_signals_out[7:5],_pip_id_ex_ctrl_signals_out[4:3],_pip_id_ex_ctrl_signals_out[2:0]}),
+        .ctrl_signals_in({1'b0,_pip_id_ex_ctrl_signals_out[15],_pip_id_ex_ctrl_signals_out[8:6],_pip_id_ex_ctrl_signals_out[5:4],_pip_id_ex_ctrl_signals_out[3:1]}), /**/
         .lt_sgn_ext_in({32{_comparison_flags[2]}}),
         .alu_result_in(_alu_result),
         .ram_data_in(_alu_b_forward),
@@ -232,7 +239,7 @@ module cpu(
     );
 
     logic[31:0] _ram_out;
-    ram #(256) data_memory(
+    ram data_memory(
         .clk(clk),
         .word_addr(_pip_ex_mem_alu_result_out),
         .data_in(_pip_ex_mem_ram_data_out),

@@ -220,3 +220,6 @@ Im thinking of the syntax.
 25th July 2025 the macro edition is completed
 26th July 2025 we throw warnings when number of macro arguments and caller arguments do not match. (Turns out it compiles correctly when they do not match it just doesnt care about the non matching argument)
 Im going to implement li pseudo instructions
+3 august 2025:
+sus moment happened it turns out jalr doesnt even function correctly in jalr Pc becomes rs1+imm but we do not have data path for that i will fix that by adding a mux that selects between pcimm and alu result
+I fixed hardware and assembler wise  in sysverilog ofc logisim is fucked up  i will sketch the diagram from scratch anyways

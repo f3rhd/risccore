@@ -2,7 +2,7 @@ module pipeline_register_id_ex(
     input logic clk,
     input logic reset,
     input logic enable,
-    input logic[24:0] ctrl_signals_in,
+    input logic[25:0] ctrl_signals_in,
     input logic[31:0] read1_in,
     input logic[31:0] read2_in,
     input logic[31:0] imm_in,
@@ -12,7 +12,7 @@ module pipeline_register_id_ex(
     input logic[4:0] rs1_addr_in,
     input logic[4:0] rs2_addr_in,
 
-    output logic[24:0] ctrl_signals_out,
+    output logic[25:0] ctrl_signals_out,
     output logic[31:0] read1_out,
     output logic[31:0] read2_out,
     output logic[31:0] imm_out,
