@@ -1,0 +1,1 @@
+The simulation wont work as expected as this circuit is only used for diagram. The diagram stays loyal to the sysverilog description.

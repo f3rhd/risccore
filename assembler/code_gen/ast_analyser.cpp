@@ -219,12 +219,12 @@ namespace ast_analyser{
         }
     }
     static void pseudo_type_5_analysis(Ast_Node *head, bool &success) {
-        if(head->left == nullptr || head->left->node_type != AST_NODE_TYPE::IDENTIFIER){
+        if(head->left == nullptr || head->left->node_type != AST_NODE_TYPE::REGISTER){
             if(head->left == nullptr)
                 val = nullptr;
             else
                 val = head->left->str_ptr_value;
-            utils::throw_error_message({"Operation should have an label identifier as first operand", val, head->line_info});
+            utils::throw_error_message({"Operation should have a register as first operand", val, head->line_info});
             success = 0;
         }
         if(head->middle != nullptr){

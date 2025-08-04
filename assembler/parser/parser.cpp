@@ -45,9 +45,13 @@ Ast_Node *Parser::parse_line(Line &line) {
 
         Ast_Node *opr_node = utils::make_operation_node(&(active_token->word),
                                                         instruction_look_up::get_opr_type(active_token->word), &line);
-        opr_node->left = parse_line(line);
-        const Token *comma_lp_token = peek(line.tokens);
 
+        const Token *comma_lp_token = peek(line.tokens);
+        if(comma_lp_token != nullptr && comma_lp_token->type ==  TOKEN_TYPE::COMMA){
+            utils::throw_error_message({"Unexpected comma.", &comma_lp_token->word, &line});
+        }
+        opr_node->left = parse_line(line);
+        comma_lp_token = peek(line.tokens);
         // jalr and jal instructions can act as pseudo even tho they are truly not
         if ((*(opr_node->str_ptr_value))[0] == 'j') {
             if (opr_node->opr_type == instruction_look_up::OPERATION_TYPE::I_TYPE && comma_lp_token == nullptr)

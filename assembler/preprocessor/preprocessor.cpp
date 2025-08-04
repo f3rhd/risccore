@@ -64,7 +64,7 @@ std::vector<Line>& Preprocessor::process()
             macro_finish = false;
             continue;
         }
-        if(!macro_finish && macro_start &&line_tokens[0].word == ".endm"){
+        if(!macro_finish && macro_start && line_tokens[0].word == ".endm"){
             macro_start = false;
             macro_finish = true;
             _macro_map.emplace(macro_name, macro);

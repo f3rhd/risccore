@@ -22,7 +22,7 @@ namespace instruction_look_up{
     const std::unordered_set<std::string> r_type_ops = {
         "add","sub","sll","sltu","xor","srl","sra",
         "or","and","sll","slt","sltu","xor","srl","sra",
-        "or","and","mul","div","divu","rem","remu"
+        "or","and","mul","mulh","mulhsu","mulhu","div","divu","rem","remu"
     };
     const std::unordered_set<std::string> s_type_ops = {
         "sb","sh","sw"
@@ -49,10 +49,10 @@ namespace instruction_look_up{
     const std::unordered_set<std::string> pseudo_ops_type_0 = { 
         "li"
     };
-    const std::unordered_set<std::string> pseudo_ops_type_1 = { // These bitches have two operands and both of them are registers
+    const std::unordered_set<std::string> pseudo_ops_type_1 = { // These  have two operands and both of them are registers
         "mv","not","neg","seqz","snez","sltz","sgtz"
     };
-    const std::unordered_set<std::string> pseudo_ops_type_2 = { // These bithces have two operands and left is register while middle is label identifier
+    const std::unordered_set<std::string> pseudo_ops_type_2 = { // These  have two operands and left is register while middle is label identifier
         "beqz", "bnez", "blez", "bgez", "bltz", "bgtz"
     };
     const std::unordered_set<std::string> pseudo_ops_type_3 = { // These baddies have three operands left and middle are registers while right is label identifier
@@ -64,7 +64,7 @@ namespace instruction_look_up{
     const std::unordered_set<std::string> pseudo_ops_type_5 = { // These mommas have also one operand only and they are just registers
         "jr","jalr"
     };
-    const std::unordered_set<std::string> pseudo_ops_type_6 = { // These mad bitches dont got any operands
+    const std::unordered_set<std::string> pseudo_ops_type_6 = { // These  dont got any operands
         "ret","nop"
     };
     OPERATION_TYPE get_opr_type(const std::string& instr){

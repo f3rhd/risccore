@@ -21,6 +21,9 @@ module alu(input logic[31:0] alu_a,
             4'b1010 : alu_result = (alu_b == 32'd0) ? 32'd0 : alu_a / alu_b;
             4'b1011 : alu_result = (alu_b == 32'd0) ? 32'd0 : $signed(alu_a) % $signed(alu_b);
             4'b1100 : alu_result = (alu_b == 32'd0) ? 32'd0 : alu_a % alu_b;
+            4'b1101 : alu_result = {$signed(alu_a) * $signed(alu_b)}[63:32];
+            4'b1110 : alu_result = {$signed(alu_a) * alu_b}[63:32];
+            4'b1111 : alu_result = {alu_a* alu_b}[63:32];
             default : alu_result = 32'd0;
         endcase
         comparison_flags[0] = (alu_a == alu_b);

@@ -141,7 +141,7 @@ module cpu(
         .mem_reg_write_signal(_pip_ex_mem_ctrl_signals_out[8]),
         .wb_reg_write_signal(_pip_mem_wb_ctrl_signals_out[3]),
         .wb_reg_write_addr(_pip_mem_wb_reg_write_addr_out),
-        .ex_ram_read_signal(_pip_id_ex_ctrl_signals_out[8:6]), /**/
+        .ex_ram_read_signal(_pip_id_ex_ctrl_signals_out[8:6]), 
         .pc_select(_pc_select_signal),
         .forward_alu_a(_forward_alu_a),
         .forward_alu_b(_forward_alu_b),
@@ -176,7 +176,7 @@ module cpu(
     mux alu_b_select(
         .a(_alu_b_forward),
         .b(_pip_id_ex_imm_out),
-        .select(_pip_id_ex_ctrl_signals_out[14]),/**/
+        .select(_pip_id_ex_ctrl_signals_out[14]),
         .out(_alu_b_in)
     );
     
@@ -186,14 +186,14 @@ module cpu(
     alu _alu(
         .alu_a(_alu_a_in),
         .alu_b(_alu_b_in),
-        .alu_operation_type(_pip_id_ex_ctrl_signals_out[12:9]),/**/
-        .comparison_mode(_pip_id_ex_ctrl_signals_out[13]),/**/
+        .alu_operation_type(_pip_id_ex_ctrl_signals_out[12:9]),
+        .comparison_mode(_pip_id_ex_ctrl_signals_out[13]),
         .alu_result(_alu_result),
         .comparison_flags(_comparison_flags)
     );
     branch _branch(
         .alu_flags(_comparison_flags),
-        .control_flags(_pip_id_ex_ctrl_signals_out[25:19]), /**/
+        .control_flags(_pip_id_ex_ctrl_signals_out[25:19]), 
         .should_branch(_pc_select_signal)
     );
     
@@ -219,7 +219,7 @@ module cpu(
         .clk(clk),
         .reset(zero | _reset),
         .enable(one),
-        .ctrl_signals_in({1'b0,_pip_id_ex_ctrl_signals_out[15],_pip_id_ex_ctrl_signals_out[8:6],_pip_id_ex_ctrl_signals_out[5:4],_pip_id_ex_ctrl_signals_out[3:1]}), /**/
+        .ctrl_signals_in({1'b0,_pip_id_ex_ctrl_signals_out[15],_pip_id_ex_ctrl_signals_out[8:6],_pip_id_ex_ctrl_signals_out[5:4],_pip_id_ex_ctrl_signals_out[3:1]}), 
         .lt_sgn_ext_in({32{_comparison_flags[2]}}),
         .alu_result_in(_alu_result),
         .ram_data_in(_alu_b_forward),

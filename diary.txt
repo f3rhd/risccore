@@ -60,166 +60,181 @@ Date 7/16/2025:
     Starting design at 1:38 PM
     Done at 1:50 PM
 
-I am going to do S type instructions now.
-S type datapath is done. 
-Now b type datapath
-the immediate of b type instruction is wtf
-B type data path is done. 3:14 PM
-It is 4:14 PM and I have finished all data path for all instructions now it is time to build the control unit
+    I am going to do S type instructions now.
+    S type datapath is done. 
+    Now b type datapath
+    the immediate of b type instruction is wtf
+    B type data path is done. 3:14 PM
+    It is 4:14 PM and I have finished all data path for all instructions now it is time to build the control unit
 
 
-Here are the following control signals
+    Here are the following control signals
 
-PC_SELECT(2),
-IMM_TYPE_SELECT(3),
-REG_WRITE(1),
-ALU_B_OPERAND_SELECT(1),
-ALU_CMP_TYPE(1),
-ALU_OP_TYPE(3),
-RAM_READ_TYPE(3),
-RAM_WRITE_TYPE(2),
-WRITE_DATA_SELECT(3)
+    PC_SELECT(2),
+    IMM_TYPE_SELECT(3),
+    REG_WRITE(1),
+    ALU_B_OPERAND_SELECT(1),
+    ALU_CMP_TYPE(1),
+    ALU_OP_TYPE(3),
+    RAM_READ_TYPE(3),
+    RAM_WRITE_TYPE(2),
+    WRITE_DATA_SELECT(3)
+    Note from 4th august 2025 :  These are outdated the current control signals are more
 
 Date 16/7/2025:
     Cpu is finished
     It is one cycle cpu 
     We are going to pipeline it after having an assembler
 
-Now let's think of the assembler
-In my previous cpu i was converting the assembly to the hex directly
-Here I will just convert it into a binary file
-Im thinking of writing the assembler in c++ or c
-Since we are going to work with strings a lot, c++ is the way to go
+    Now let's think of the assembler
+    In my previous cpu i was converting the assembly to the hex directly
+    Here I will just convert it into a binary file
+    Im thinking of writing the assembler in c++ or c
+    Since we are going to work with strings a lot, c++ is the way to go
 
-To be honest i dont like the RISC-V assembly that much I am thinking of having x86 like syntax(especially the ones that work with memory and stuff) that will compile down to the machine code
+    To be honest i dont like the RISC-V assembly that much I am thinking of having x86 like syntax(especially the ones that work with memory and stuff) that will compile down to the machine code
 
-First thing first  let's see the actual instructions followed by the pseudo ones
-
-
-I_TYPE_INSTRUCTIONS:
-
-    lb,lh,lw,lbu,lhu rd, imm(rs1) 
-        this instruction loads the rs1+imm to the rd from data memory it is heavily used in function calls and stuff
-        to be honest, i am not very fan of the paranthesis syntax
-        maybe something like? 
-        lb,lh,lw,lbu,lhu rd, [rs1+imm] with blocks i can easily see that it is a memory address
-        We are gonna go with lb,lh,lw,lbu,lhu rd, [rs1+imm]
-    jalr  rd,  rs1, imm
-    
-    addi,slli, slti,sltiu,xori,srli,srai,ori,andi rd, rs1, imm
-        This is ok
-    
-
-U_TYPE_INSTRUCTIONS:
-    these are good themselves
-    lui   rd,  upimm
-    auipc rd,  upimm
-
-S_TYPE_INSTRUCTIONS:
-    sb,sh,sw rs2 , imm(rs1)
-    same thing with ld instructions we are gonna write 
-    sb rs2 [rs1+imm]
-
-R_TYPE_INSTRUCTIONS:
-    I just thought, instead of having add and addi - two seperate instructions for addition
-    we can have just one add instruction and based on its arguments we may compile it down to the addi machine code or add
-    What i mean is that
-    Maybe instead of two seperate instruction for addition process
-        add x1,x2,x3
-        addi x2,x3,1024;
-    Just have  one add instruction and the assembler will assemble it based on the arguments
-    for instance add x1,x2,1023 would compile to addi x1,x2,1023;
+    First thing first  let's see the actual instructions followed by the pseudo ones
 
 
-Actually i will make the assembler support both my version of assembly and some pseudo instructions
+    I_TYPE_INSTRUCTIONS:
+
+        lb,lh,lw,lbu,lhu rd, imm(rs1) 
+            this instruction loads the rs1+imm to the rd from data memory it is heavily used in function calls and stuff
+            to be honest, i am not very fan of the paranthesis syntax
+            maybe something like? 
+            lb,lh,lw,lbu,lhu rd, [rs1+imm] with blocks i can easily see that it is a memory address
+            We are gonna go with lb,lh,lw,lbu,lhu rd, [rs1+imm]
+        jalr  rd,  rs1, imm
+        
+        addi,slli, slti,sltiu,xori,srli,srai,ori,andi rd, rs1, imm
+            This is ok
+        
+
+    U_TYPE_INSTRUCTIONS:
+        these are good themselves
+        lui   rd,  upimm
+        auipc rd,  upimm
+
+    S_TYPE_INSTRUCTIONS:
+        sb,sh,sw rs2 , imm(rs1)
+        same thing with ld instructions we are gonna write 
+        sb rs2 [rs1+imm]
+
+    R_TYPE_INSTRUCTIONS:
+        I just thought, instead of having add and addi - two seperate instructions for addition
+        we can have just one add instruction and based on its arguments we may compile it down to the addi machine code or add
+        What i mean is that
+        Maybe instead of two seperate instruction for addition process
+            add x1,x2,x3
+            addi x2,x3,1024;
+        Just have  one add instruction and the assembler will assemble it based on the arguments
+        for instance add x1,x2,1023 would compile to addi x1,x2,1023;
+
+
+    Actually i will make the assembler support both my version of assembly and some pseudo instructions
 Let me make the assembler support unextenden version aka base version first
 
 Date 17/7/2025:
- I have been coding the assembler past 4 hours
- It is func
- I have finished parser tokenizer and stuff and now im going to make parser resolve labels and stuff 
- 
- Label handling stuff is done, also added analyser
+    I have been coding the assembler past 4 hours
+    It is func
+    I have finished parser tokenizer and stuff and now im going to make parser resolve labels and stuff 
+    
+    Label handling stuff is done, also added analyser
 
-Date 19/8/1025: 12:54 AM
-Assembler is mostly done in the morning I will check whether there are any bugs in the cpu and will make sure that each instruction executes as intendeed
- 
-5:22 PM now the assembler supports most of the pseudo insructions, i will try to optimize assembler when i come back to baku, right now here i will try to pipeline the cpu 
-I wont be doing the pipelining Today
-I have been working too much lately 
-I need to complete remanin 4 or pseudo instr and directives im also thinking of adding macros they sound very fun but i will do these after pipelining
+    Date 19/8/1025: 12:54 AM
+    Assembler is mostly done in the morning I will check whether there are any bugs in the cpu and will make sure that each instruction executes as intendeed
+    
+    5:22 PM now the assembler supports most of the pseudo insructions, i will try to optimize assembler when i come back to baku, right now here i will try to pipeline the cpu 
+    I wont be doing the pipelining Today
+    I have been working too much lately 
+    I need to complete remanin 4 or pseudo instr and directives im also thinking of adding macros they sound very fun but i will do these after pipelining
 
-Plans after pipelining:
-    Add directives.
-    Add remanining pseudo insrtuctions
-    optimize the assembler
+    Plans after pipelining:
+        Add directives.
+        Add remanining pseudo insrtuctions
+        optimize the assembler
 
 
-20th July 2025: I have been in baku for about 3 hours and i have implemented pipelining stages the only thing is left is hazard unit 
-which is work of tomorrow i wil try to optimize the assembler for now.
-21tj July 2025: 12:38 AM
-Okay i have done some optimizations and the results are good. 
-Before optimziation it was compiling 1.1 million lines of codes under 3 minutes
-After optimization it compiled 1.5 million lines of code under 1 minute
-I optimized tokenzier a little bit and it did it under 20 seconds that is mind boggling 
-I can optimize tokenizer furthermore but it is enough for now. Im tired as fuck
-TODO:
-    There is one bug appearing with the current "test.s" file figure that out.
-    Also maybe instead of doing that is_label_only find_identifier type of wizard shit do those in parse_line()?
+    20th July 2025: I have been in baku for about 3 hours and i have implemented pipelining stages the only thing is left is hazard unit 
+    which is work of tomorrow i wil try to optimize the assembler for now.
+    21tj July 2025: 12:38 AM
+    Okay i have done some optimizations and the results are good. 
+    Before optimziation it was compiling 1.1 million lines of codes under 3 minutes
+    After optimization it compiled 1.5 million lines of code under 1 minute
+    I optimized tokenzier a little bit and it did it under 20 seconds that is mind boggling 
+    I can optimize tokenizer furthermore but it is enough for now. Im tired as fuck
+    TODO:
+        There is one bug appearing with the current "test.s" file figure that out.
+        Also maybe instead of doing that is_label_only find_identifier type of wizard shit do those in parse_line()?
 
-Yeah we solved these problems i did a little bit more optimizatons and will check the performance with 3.5 million lines
-Results are appealing. It assembled 3.5 million lines under 4 seconds
+    Yeah we solved these problems i did a little bit more optimizatons and will check the performance with 3.5 million lines
+    Results are appealing. It assembled 3.5 million lines under 4 seconds
 
-So it is 5:31Pm 22/7/2025 Im implementing forwarding
+    So it is 5:31Pm 22/7/2025 Im implementing forwarding
 
-FORWARDING FOR A:
-1X 1 0 0 
-01 0 1 0
-00 0 0 1
-if((EXE_RS1 == MEM_REG_WRITE_ADR) & MEM_REG_WRITE & (EXE_RS1 != 0)):
-	FORWARD_A = 11
-else if(EXE_RS1 == WRITE_REG_WRITE_ADR) & WRITE_REG_WRITE & (EXE_RS1 !=0)):
-	FORWARD_A = 10
-else 
-	FORWARD_A = 00
+    FORWARDING FOR A:
+    1X 1 0 0 
+    01 0 1 0
+    00 0 0 1
+    if((EXE_RS1 == MEM_REG_WRITE_ADR) & MEM_REG_WRITE & (EXE_RS1 != 0)):
+        FORWARD_A = 11
+    else if(EXE_RS1 == WRITE_REG_WRITE_ADR) & WRITE_REG_WRITE & (EXE_RS1 !=0):
+        FORWARD_A = 10
+    else 
+        FORWARD_A = 00
 
-FORWARDING FOR B:
-if((EXE_RS2 == MEM_REG_WRITE_ADR) & MEM_REG_WRITE & (EXE_RS2 != 0)):
-	FORWARD_A = 11
-else if(EXE_RS2 == WRITE_REG_WRITE_ADR) & WRITE_REG_WRITE & (EXE_RS2 !=0)):
-	FORWARD_A = 10
-else 
-	FORWARD_A = 00
-Let's build the hardware for that
+    FORWARDING FOR B:
+    if((EXE_RS2 == MEM_REG_WRITE_ADR) & MEM_REG_WRITE & (EXE_RS2 != 0)):
+        FORWARD_A = 11
+    else if(EXE_RS2 == WRITE_REG_WRITE_ADR) & WRITE_REG_WRITE & (EXE_RS2 !=0):
+        FORWARD_A = 10
+    else 
+        FORWARD_A = 00
+    Let's build the hardware for that
 
-Forwarding and stalling is done i love how the idea behind these two is very simple
-Now we need to handle branch predicition
-I need to change the control unit for the branch prediction omg
+    Forwarding and stalling is done i love how the idea behind these two is very simple
+    Now we need to handle branch predicition
+    I need to change the control unit for the branch prediction omg
 Lets do that the logic behind is simple thankfully
 
-22/7/2025 7:03PM the pipelined 32 bit cpu with hazard unit is officially done
+22/7/2025 7:03PM 
+    The pipelined 32 bit cpu with hazard unit is officially done (Lmaoooooo, there were a lot of bugs i didnt know about in this stage -Farhad 4th august 2025, frankly, they are fixed now)
 23/7/2025 3:40 PM
-I will change the ram write signal 00 will be no write and 11 will be write word
-Okay today(23-24 july 2027) so many things happened fixed bugs in the both cpu and parser
-Cpu hazard controlling took a lot of time because of logisim's signal propogation and stuff I had to sync the flushing and stalling the pipeline stages with respect to logisim
-So far cpu works good i have tested two programs - fibonnaci sequence and some stack operations they work quite well. 
-From now on i will focus on the assembly wise 
-Maybe after the assembly i will add input output to the cpu?
-Cus right now it is just turing complete machine noi
-We need I/O too.
-Step by step..
-Also so far i have not implemented my own kind of syntax in the assembler yet...
+    I will change the ram write signal 00 will be no write and 11 will be write word
+    Okay today(23-24 july 2027) so many things happened fixed bugs in the both cpu and parser
+    Cpu hazard controlling took a lot of time because of logisim's signal propogation and stuff I had to sync the flushing and stalling the pipeline stages with respect to logisim
+    So far cpu works good i have tested two programs - fibonnaci sequence and some stack operations they work quite well. 
+    From now on i will focus on the assembly wise 
+    Maybe after the assembly i will add input output to the cpu?
+    Cus right now it is just turing complete machine noi
+    We need I/O too.
+    Step by step..
+    Also so far i have not implemented my own kind of syntax in the assembler yet...
 
-Okay today is the 24th july 2025 Im gonna implement macros on the assembler
-Normally macros do not exist on the classic riscv assembler but let us have our touch on it
-We gotta define the syntax for the macros
-Im thinking of the syntax.
-.macro name arg1 arg2 arg3
-    ....
-.endmacro
-25th July 2025 the macro edition is completed
-26th July 2025 we throw warnings when number of macro arguments and caller arguments do not match. (Turns out it compiles correctly when they do not match it just doesnt care about the non matching argument)
-Im going to implement li pseudo instructions
+    Okay today is the 24th july 2025 Im gonna implement macros on the assembler
+    Normally macros do not exist on the classic riscv assembler but let us have our touch on it
+    We gotta define the syntax for the macros
+    Im thinking of the syntax.
+    .macro name arg1 arg2 arg3
+        ....
+.endmacro // this turned out to be .endm
+25th July 2025 
+    the macro edition is completed
+26th July 2025 
+    we throw warnings when number of macro arguments and caller arguments do not match. (Turns out it compiles correctly when they do not match it just doesnt care about the non matching argument)
+    Im going to implement li pseudo instructions
 3 august 2025:
-sus moment happened it turns out jalr doesnt even function correctly in jalr Pc becomes rs1+imm but we do not have data path for that i will fix that by adding a mux that selects between pcimm and alu result
-I fixed hardware and assembler wise  in sysverilog ofc logisim is fucked up  i will sketch the diagram from scratch anyways
+    sus moment happened it turns out jalr doesnt even function correctly in jalr Pc becomes rs1+imm but we do not have data path for that i will fix that by adding a mux that selects between pcimm and alu result
+    I fixed hardware and assembler wise  in sysverilog ofc logisim is fucked up  i will sketch the diagram from scratch anyways
+    I also added call far away function stuff to the assembler
+
+August 4th 2025:
+    So, we have built our cpu it is turing complete so far and does several stuff
+    I want to make this more capable by turning it into a superscalar (2 way) one maybe oOe?
+    also change the branch predicitonf from static to dynamic
+    I will be doing these when i come back from the vacation and start reading the new book
+    For now im thinking of designing a small high language that will compile down to the riscv assembly
+    Let's think of the syntax together 
+    Whatever, I will play roblox
+

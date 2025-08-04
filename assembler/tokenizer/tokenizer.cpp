@@ -65,7 +65,7 @@ namespace tokenizer {
             else if (instruction_look_up::is_immediate(token)) {
                 tokens.emplace_back(token, TOKEN_TYPE::IMMEDIATE);
             }
-            else if (!token.empty() && token[0] == '.') {
+            else if (!token.empty() && token[0] == '.' && token == ".macro") {
                 tokens.emplace_back(token, TOKEN_TYPE::DIRECTIVE);
             }
             else {

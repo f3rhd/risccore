@@ -10,7 +10,7 @@ namespace instr_gen{
 
         // Extract fields from AST_Node
         Instruction instr;
-        Instruction _instr; // this is needed for load 32 bit immediate
+        Instruction _instr; // this is needed for load 32 bit immediate and call far away function
         bool need_second_instr = false;
         instr.type = head->opr_type;
         instr.opcode = instruction_look_up::get_op_code(instr.type,*head->str_ptr_value);
@@ -211,10 +211,24 @@ namespace instr_gen{
                     instr.imm = 0;
                 }
                 else if(*head->str_ptr_value == "call"){
-                    instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::J_TYPE);
-                    instr.type = instruction_look_up::OPERATION_TYPE::J_TYPE;
-                    instr.rd = instruction_look_up::get_register_index("ra");
-                    instr.imm = head->left->identifier_immediate;
+                    if(head->left->identifier_immediate <= 1048574){
+                        instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::J_TYPE);
+                        instr.type = instruction_look_up::OPERATION_TYPE::J_TYPE;
+                        instr.rd = instruction_look_up::get_register_index("ra");
+                        instr.imm = head->left->identifier_immediate;
+                    }
+                    else{
+                        need_second_instr = true;
+                        instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::U_TYPE, "auipc");
+                        instr.type = instruction_look_up::OPERATION_TYPE::U_TYPE;
+                        instr.rd = instruction_look_up::get_register_index("ra");
+                        instr.imm = head->left->identifier_immediate & 0xFFF00;
+
+                        _instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::J_TYPE);
+                        _instr.type = instruction_look_up::OPERATION_TYPE::J_TYPE;
+                        _instr.rd = _instr.rs1 = instruction_look_up::get_register_index("ra");
+                        _instr.imm = head->left->identifier_immediate & 0xFFF;
+                    }
 
                 }
                 else if(*head->str_ptr_value == "j") {
@@ -299,8 +313,6 @@ namespace instr_gen{
                     instr.rs1 = instruction_look_up::get_register_index("zero");
                     instr.rs2 = instruction_look_up::get_register_index(*head->middle->str_ptr_value);
                 }
-
-
                 break;
             }
                 
