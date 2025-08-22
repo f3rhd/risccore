@@ -14,8 +14,6 @@ module cpu(
     logic[31:0] _rom_instr_out;
 
     logic _pc_select_signal; //is output of  branch module 
-    logic _pc_stall; // is output of hazard unit
-    logic _stall_if_id_pipeline; // is output of hazard unit
     logic _flush_if_id_pipeline; // is output of hazard unit
 
     logic[31:0] _pc_branch_addr;
@@ -146,8 +144,6 @@ module cpu(
         .forward_alu_a(_forward_alu_a),
         .forward_alu_b(_forward_alu_b),
         .flush_dec_ex_pipeline(_flush_id_ex_pipeline),
-        .stall_pc(_pc_stall),
-        .stall_fetch_decode_pipeline(_stall_if_id_pipeline),
         .flush_fetch_decode_pipeline(_flush_if_id_pipeline)
     );
 
@@ -219,7 +215,7 @@ module cpu(
         .clk(clk),
         .reset(zero | _reset),
         .enable(one),
-        .ctrl_signals_in({1'b0,_pip_id_ex_ctrl_signals_out[15],_pip_id_ex_ctrl_signals_out[8:6],_pip_id_ex_ctrl_signals_out[5:4],_pip_id_ex_ctrl_signals_out[3:1]}), 
+        .ctrl_signals_in({_pip_id_ex_ctrl_signals_out[8:6],_pip_id_ex_ctrl_signals_out[15],_pip_id_ex_ctrl_signals_out[8:6],_pip_id_ex_ctrl_signals_out[5:4],_pip_id_ex_ctrl_signals_out[3:1]}), 
         .lt_sgn_ext_in({32{_comparison_flags[2]}}),
         .alu_result_in(_alu_result),
         .ram_data_in(_alu_b_forward),
