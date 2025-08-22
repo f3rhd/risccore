@@ -6,7 +6,6 @@ module hazard_unit(
     input logic[4:0] dec_rs2_addr,
     input logic[4:0] mem_reg_write_addr,
     input logic[4:0] wb_reg_write_addr,
-    input logic[2:0] ex_ram_read_signal,
     input logic mem_reg_write_signal,
     input logic wb_reg_write_signal,
     input logic pc_select,
