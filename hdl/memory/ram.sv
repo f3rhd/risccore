@@ -10,6 +10,14 @@ module ram #(parameter SIZE = (4<<20) // 4MB
     logic [7:0] cells [0:SIZE-1];
     localparam int ADDR_WIDTH = $clog2(SIZE);
 
+    int i;
+    initial begin
+        i = 0;
+        while(i<SIZE) begin
+            cells[i] = 8'b0;
+            i++;
+        end
+    end
     always_comb begin
         automatic logic [ADDR_WIDTH-1:0] _word_addr = word_addr[ADDR_WIDTH-1:0];
         case (read_ctrl)

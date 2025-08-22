@@ -2,7 +2,7 @@ module pipeline_register_ex_mem(
     input logic clk,
     input logic reset,
     input logic enable,
-    input logic[9:0] ctrl_signals_in, 
+    input logic[9:0] ctrl_signals_in,
     input logic[31:0] lt_sgn_ext_in,
     input logic[31:0] alu_result_in,
     input logic[31:0] ram_data_in,
@@ -10,7 +10,7 @@ module pipeline_register_ex_mem(
     input logic[31:0] pcimm_in, // pc+imm
     input logic[31:0] pc4_in,
     input logic[4:0] reg_write_addr_in,
-    output logic[9:0] ctrl_signals_out,
+    output logic[11:0] ctrl_signals_out,
     output logic[31:0] lt_sgn_ext_out,
     output logic[31:0] alu_result_out,
     output logic[31:0] ram_datain_out,
