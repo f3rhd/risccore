@@ -74,3 +74,43 @@ quit -sim
 # End time: 00:49:39 on Aug 23,2025, Elapsed time: 0:07:43
 # Errors: 0, Warnings: 0
 vsim main_tb
+# vsim main_tb 
+# Start time: 00:51:12 on Aug 23,2025
+# Loading sv_std.std
+# Loading work.main_tb
+# Loading work.cpu
+# Loading work.adder
+# Loading work.mux
+# Loading work.program_counter
+# Loading work.rom
+# Loading work.pipeline_register_if_id
+# Loading work.control_unit
+# Loading work.reg_file
+# Loading work.imm_select
+# Loading work.pipeline_register_id_ex
+# Loading work.hazard_unit
+# Loading work.mux2
+# Loading work.alu
+# Loading work.branch
+# Loading work.pipeline_register_ex_mem
+# Loading work.ram
+# Loading work.pipeline_register_mem_wb
+# Loading work.mux3
+run 60ns
+# Wrote 0x0 to the register 0x2 at time:50000
+# Wrote 0x1f to the register 0x2 at time:60000
+restart -sim
+# Warning: Invalid arguments '-sim' to restart ignored.
+restart 
+add wave -r *
+run 1000ns
+# GetModuleFileName: The specified module could not be found.
+# 
+# 
+# Wrote 0x1f to the register 0x5 at time:50000
+# Wrote 0xff to the register 0x2 at time:60000
+# Wrote 0x1f to the register 0x2 at time:80000
+# Wrote 0x3e to the register 0x2 at time:90000
+# A time value could not be extracted from the current line
+# End time: 01:10:51 on Aug 23,2025, Elapsed time: 0:19:39
+# Errors: 0, Warnings: 0
