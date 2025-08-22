@@ -2,7 +2,7 @@ module pipeline_register_ex_mem(
     input logic clk,
     input logic reset,
     input logic enable,
-    input logic[9:0] ctrl_signals_in,
+    input logic[11:0] ctrl_signals_in,
     input logic[31:0] lt_sgn_ext_in,
     input logic[31:0] alu_result_in,
     input logic[31:0] ram_data_in,
@@ -19,7 +19,6 @@ module pipeline_register_ex_mem(
     output logic[31:0] pc4_out,
     output logic[4:0] reg_write_addr_out
 );
-
     always_ff @(posedge clk) begin
         if(reset) begin
             ctrl_signals_out <= '0;
