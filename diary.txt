@@ -238,3 +238,23 @@ August 4th 2025:
     Let's think of the syntax together 
     Whatever, I will play roblox
 
+It is August 9th 2025:
+	Lets design this language alrdy
+	first hing first
+	we will have two datatypes for now
+	int32 and uint32 since we are going to write this language for our cpu which is 32 bit
+	1) Support assignment operations and stuff and arithmetic 
+	2) let's look at the syntax
+	good old c syntax
+	int32 x = 4;
+	int32 y = 4;
+	or 
+	int32 x;
+	int32 y;
+	x = y + 4; and stuff parse and code gen these first then figure out what to move next suppor the arithmetic stuff
+
+	
+	
+	
+	
+
