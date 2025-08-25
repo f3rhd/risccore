@@ -8,12 +8,11 @@ module hazard_unit(
     input logic[4:0] wb_reg_write_addr,
     input logic mem_reg_write_signal,
     input logic wb_reg_write_signal,
-    input logic pc_select,
+    input logic take_branch,
 
     output logic[1:0] forward_alu_a,
     output logic[1:0] forward_alu_b,
-    output logic     flush_dec_ex_pipeline,
-    output logic     flush_fetch_decode_pipeline
+    output logic     flush_dec_ex_pipeline
 );
 
     logic stall_signal;
@@ -41,8 +40,6 @@ module hazard_unit(
         else 
             forward_alu_b = 2'b00; // no forwarding
 
-        // Load is in execution stage
-        flush_dec_ex_pipeline = pc_select;
-        flush_fetch_decode_pipeline = pc_select;
+        flush_dec_ex_pipeline = take_branch;
     end
 endmodule
