@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36327.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "assembler", "assembler\assembler.vcxproj", "{6D655D9C-A67B-4861-A91A-C5FDB25659C9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "compiler", "compiler\compiler.vcxproj", "{D106B786-C9DF-4AD9-91C9-3A302C498DE9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		assembler_debug|x64 = assembler_debug|x64
+		assembler_debug|x86 = assembler_debug|x86
+		assembler_release|x64 = assembler_release|x64
+		assembler_release|x86 = assembler_release|x86
+		compiler_debug|x64 = compiler_debug|x64
+		compiler_debug|x86 = compiler_debug|x86
+		compiler_release|x64 = compiler_release|x64
+		compiler_release|x86 = compiler_release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.assembler_debug|x64.ActiveCfg = Debug|x64
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.assembler_debug|x64.Build.0 = Debug|x64
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.assembler_debug|x86.ActiveCfg = assembler_debug|Win32
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.assembler_debug|x86.Build.0 = assembler_debug|Win32
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.assembler_release|x64.ActiveCfg = Release|x64
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.assembler_release|x64.Build.0 = Release|x64
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.assembler_release|x86.ActiveCfg = assembler_release|Win32
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.assembler_release|x86.Build.0 = assembler_release|Win32
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.compiler_debug|x64.ActiveCfg = Static|x64
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.compiler_debug|x64.Build.0 = Static|x64
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.compiler_debug|x86.ActiveCfg = compiler_debug|Win32
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.compiler_debug|x86.Build.0 = compiler_debug|Win32
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.compiler_release|x64.ActiveCfg = Static|x64
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.compiler_release|x64.Build.0 = Static|x64
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.compiler_release|x86.ActiveCfg = compiler_release|Win32
+		{6D655D9C-A67B-4861-A91A-C5FDB25659C9}.compiler_release|x86.Build.0 = compiler_release|Win32
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.assembler_debug|x64.ActiveCfg = assembler_debug|x64
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.assembler_debug|x86.ActiveCfg = assembler_debug|Win32
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.assembler_debug|x86.Build.0 = assembler_debug|Win32
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.assembler_release|x64.ActiveCfg = assembler_release|x64
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.assembler_release|x86.ActiveCfg = assembler_release|Win32
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.assembler_release|x86.Build.0 = assembler_release|Win32
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.compiler_debug|x64.ActiveCfg = Debug|x64
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.compiler_debug|x64.Build.0 = Debug|x64
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.compiler_debug|x86.ActiveCfg = compiler_debug|Win32
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.compiler_debug|x86.Build.0 = compiler_debug|Win32
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.compiler_release|x64.ActiveCfg = Release|x64
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.compiler_release|x64.Build.0 = Release|x64
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.compiler_release|x86.ActiveCfg = compiler_release|Win32
+		{D106B786-C9DF-4AD9-91C9-3A302C498DE9}.compiler_release|x86.Build.0 = compiler_release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F20CFD2C-5C00-4E46-991A-928240988AE2}
+	EndGlobalSection
+EndGlobal
