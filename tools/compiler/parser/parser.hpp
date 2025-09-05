@@ -6,11 +6,12 @@ namespace f3_compiler {
 	class Parser {
 	public:
 		Parser(std::vector<token_t>&& tokens) : _tokens(std::move(tokens)), _current_token(&_tokens[0]) {}
-		std::unique_ptr<ast_node::func_decl_t> parse_function();
+		std::unique_ptr<ast_node::func_decl_t>							parse_function();
+		bool															no_error();
 	private:
 		void															advance();
 		void															make_error(const token_t& cause,const std::string& message);
-		bool															is_current_token(TOKEN_TYPE expected_type);
+		bool															current_token_is(TOKEN_TYPE expected_type);
 		void															expect(TOKEN_TYPE type,const std::string& error_msg);
 		const token_t&													peek_next();
 		const token_t&													peek_before();

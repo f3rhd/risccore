@@ -1,12 +1,6 @@
 func main(int x, int y) -> void {
-	for(x...=1000){
-		if ( (x + y % 2) %2 == 0) {
-			x += y;
-		}
-		else {
-			++x;
-		}
+	int sum  = 4;
+	while(sum > 0) {
 	}
-	}
-	return x+y;
 }
+	
