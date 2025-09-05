@@ -33,10 +33,14 @@ void Parser::make_error(const token_t& cause,const std::string& message){
 	_errors.emplace_back(ERROR_CODE::SYNTAX_ERROR, cause,message);
 }
 void Parser::advance() {
-	if (_curr_index >= _tokens.size() - 1)
-		return;
-	_curr_index++;
-	_current_token = &_tokens[_curr_index];
+	if (_current_token->type != TOKEN_TYPE::END_OF_FILE) {
+		_curr_index++;
+		_current_token = &_tokens[_curr_index];
+	}
+	if(_current_token->type == TOKEN_TYPE::END_OF_FILE){
+		_current_token = &_tokens[_curr_index-1];
+		_curr_index--;
+	}
 }
 
 const token_t& Parser::peek_next() {
@@ -58,19 +62,19 @@ std::vector<func_decl_param_t> Parser::parse_func_decl_params() {
 		type_t arg_type = parse_type();
 		std::string arg_id = parse_identifier();
 		func_parameters.emplace_back(arg_type, std::move(arg_id));
-		if (_current_token->type == TOKEN_TYPE::END_OF_FILE) {
+		if (_current_token->type == TOKEN_TYPE::ARROW || _current_token->type == TOKEN_TYPE::LCURLY) {
 			make_error(*_current_token, "Missing ')' . Function parameters must be closed by ')'");
 			break;
 		}
 		if (_current_token->type != TOKEN_TYPE::RPAREN) {
-			expect(TOKEN_TYPE::COMMA, "Missing ',' . Function argument must be seperated with ','");
+			expect(TOKEN_TYPE::COMMA, "Missing ',' . Function arguments must be seperated by ','");
 		}
 		else {
+			advance();
 			break;
 		}
 		advance();
 	}
-	advance();
 	return func_parameters;
 }
 std::string Parser::parse_identifier() {
@@ -99,11 +103,11 @@ type_t Parser::parse_type()
 }
 void Parser::expect(TOKEN_TYPE type, const std::string& error_msg)
 {
-	if (is_current_token(type))
+	if (current_token_is(type))
 		return;
 	make_error(*_current_token, error_msg);
 }
-bool Parser::is_current_token(TOKEN_TYPE expected_type)
+bool Parser::current_token_is(TOKEN_TYPE expected_type)
 {
 	if (_current_token->type == expected_type)
 		return true;
@@ -114,13 +118,17 @@ std::unique_ptr<block_statement_t> Parser::parse_func_body()
 {
 	return parse_block_statement();
 }
+// @call : current token is left curly
 std::unique_ptr<block_statement_t> Parser::parse_block_statement() {
 
-	// We are left curly brace at this point 
 	std::vector<std::unique_ptr<statement_t>> statements;
+	while (_current_token->type != TOKEN_TYPE::LCURLY) {
+		make_error(*_current_token, "Unexpected ");
+		advance();
+	}
 	// skip the left curly 
 	advance();
-	while(!is_current_token(TOKEN_TYPE::END_OF_FILE) && !is_current_token(TOKEN_TYPE::RCURLY)) {
+	while(!current_token_is(TOKEN_TYPE::END_OF_FILE) && !current_token_is(TOKEN_TYPE::RCURLY)) {
 
 		statements.push_back(std::move(parse_statement()));
 	}
@@ -129,8 +137,6 @@ std::unique_ptr<block_statement_t> Parser::parse_block_statement() {
 	return std::make_unique<block_statement_t>(std::move(statements));
 }
 
-// c = call() + 2*3 + !(4 > 5 && 5<3 || 23)==2;
-// c = 4>3;
 std::unique_ptr<expression_t> Parser::parse_expr() {
 
 	return parse_for_range_expr();
@@ -138,11 +144,11 @@ std::unique_ptr<expression_t> Parser::parse_expr() {
 std::unique_ptr<expression_t> Parser::parse_for_range_expr() {
 	auto e = parse_assignment_expr();
 	// (i=0...=10)
-	if (is_current_token(TOKEN_TYPE::TRIPLE_DOT)) {
+	if (current_token_is(TOKEN_TYPE::TRIPLE_DOT)) {
 		bool is_exclusive = false;
 		// skip the tripple dot
 		advance();
-		if (!is_current_token(TOKEN_TYPE::ASSIGNMENT)) {
+		if (!current_token_is(TOKEN_TYPE::ASSIGNMENT)) {
 			is_exclusive = true;
 		}
 		else {
@@ -156,12 +162,12 @@ std::unique_ptr<expression_t> Parser::parse_for_range_expr() {
 }
 std::unique_ptr<expression_t> Parser::parse_assignment_expr() {
 	auto left = parse_equality_expr();
-	if (is_current_token(TOKEN_TYPE::ASSIGNMENT) ||
-		is_current_token(TOKEN_TYPE::P_ASSIGNMENT) ||
-		is_current_token(TOKEN_TYPE::M_ASSIGNMENT)
+	if (current_token_is(TOKEN_TYPE::ASSIGNMENT) ||
+		current_token_is(TOKEN_TYPE::P_ASSIGNMENT) ||
+		current_token_is(TOKEN_TYPE::M_ASSIGNMENT)
 		) {
 		ASSIGNMENT_TYPE type = ASSIGNMENT_TYPE::UNKNOWN;
-		if (!left->is_lvalue()) {
+		if ( left != nullptr && !left->is_lvalue()) {
 			make_error(peek_before(), "Left side of an assignment should be lvalue.");
 		}
 		switch (_current_token->type) {
@@ -176,11 +182,10 @@ std::unique_ptr<expression_t> Parser::parse_assignment_expr() {
 	return left;
 }
 
-// a == b == c
 std::unique_ptr<expression_t> Parser::parse_equality_expr() {
 	auto e = parse_logical_or_expr();
-	while (is_current_token(TOKEN_TYPE::EQUAL) || is_current_token(TOKEN_TYPE::NOT_EQUAL)) {
-		BIN_OP op = is_current_token(TOKEN_TYPE::EQUAL) ? BIN_OP::EQUALITY : BIN_OP::NOT_EQUAL;
+	while (current_token_is(TOKEN_TYPE::EQUAL) || current_token_is(TOKEN_TYPE::NOT_EQUAL)) {
+		BIN_OP op = current_token_is(TOKEN_TYPE::EQUAL) ? BIN_OP::EQUALITY : BIN_OP::NOT_EQUAL;
 		advance();
 		auto right = parse_logical_or_expr();
 		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
@@ -190,7 +195,7 @@ std::unique_ptr<expression_t> Parser::parse_equality_expr() {
 
 std::unique_ptr<expression_t> Parser::parse_logical_or_expr() {
 	auto e = parse_logical_and_expr();
-	while (is_current_token(TOKEN_TYPE::DOUBLE_COLUMN) || is_current_token(TOKEN_TYPE::KW_OR)) {
+	while (current_token_is(TOKEN_TYPE::DOUBLE_COLUMN) || current_token_is(TOKEN_TYPE::KW_OR)) {
 		BIN_OP op = BIN_OP::OR;
 		advance();
 		auto right = parse_logical_and_expr();
@@ -201,7 +206,7 @@ std::unique_ptr<expression_t> Parser::parse_logical_or_expr() {
 
 std::unique_ptr<expression_t> Parser::parse_logical_and_expr() {
 	auto e = parse_relational_expr();
-	if (is_current_token(TOKEN_TYPE::DOUBLE_AMPERSAND) || is_current_token(TOKEN_TYPE::KW_AND)) {
+	if (current_token_is(TOKEN_TYPE::DOUBLE_AMPERSAND) || current_token_is(TOKEN_TYPE::KW_AND)) {
 		BIN_OP op = BIN_OP::AND;
 		advance();
 		auto right = parse_relational_expr();
@@ -209,14 +214,13 @@ std::unique_ptr<expression_t> Parser::parse_logical_and_expr() {
 	}
 	return e;
 }
-// 4 < x < 5
 std::unique_ptr<expression_t> Parser::parse_relational_expr() {
 	auto e = parse_addition_subtraction();
 	while (
-		is_current_token(TOKEN_TYPE::GREATER) ||
-		is_current_token(TOKEN_TYPE::GRATER_EQUAL) ||
-		is_current_token(TOKEN_TYPE::LESS) ||
-		is_current_token(TOKEN_TYPE::LESS_EQUAL)
+		current_token_is(TOKEN_TYPE::GREATER) ||
+		current_token_is(TOKEN_TYPE::GRATER_EQUAL) ||
+		current_token_is(TOKEN_TYPE::LESS) ||
+		current_token_is(TOKEN_TYPE::LESS_EQUAL)
 	) {
 
 		BIN_OP op;
@@ -233,14 +237,11 @@ std::unique_ptr<expression_t> Parser::parse_relational_expr() {
 	}
 	return e;
 }
-// x && y || =  3 || 4
-// !x*2
-// !x * 2+3 && 4
 std::unique_ptr<expression_t> Parser::parse_addition_subtraction() {
 
 	auto e = parse_multiplication_division();
-	while (is_current_token(TOKEN_TYPE::MINUS) || is_current_token(TOKEN_TYPE::PLUS)) {
-		BIN_OP op = is_current_token(TOKEN_TYPE::MINUS) ? BIN_OP::SUB : BIN_OP::ADD;
+	while (current_token_is(TOKEN_TYPE::MINUS) || current_token_is(TOKEN_TYPE::PLUS)) {
+		BIN_OP op = current_token_is(TOKEN_TYPE::MINUS) ? BIN_OP::SUB : BIN_OP::ADD;
 		advance();
 		auto right = parse_multiplication_division();
 		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
@@ -249,9 +250,9 @@ std::unique_ptr<expression_t> Parser::parse_addition_subtraction() {
 }
 std::unique_ptr<expression_t> Parser::parse_multiplication_division() {
 	auto e = parse_mod();
-	while (is_current_token(TOKEN_TYPE::STAR) || is_current_token(TOKEN_TYPE::SLASH)) {
+	while (current_token_is(TOKEN_TYPE::STAR) || current_token_is(TOKEN_TYPE::SLASH)) {
 
-		BIN_OP op = is_current_token(TOKEN_TYPE::STAR) ? BIN_OP::MUL : BIN_OP::DIV;
+		BIN_OP op = current_token_is(TOKEN_TYPE::STAR) ? BIN_OP::MUL : BIN_OP::DIV;
 		advance();
 		auto right = parse_mod();
 		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
@@ -260,7 +261,7 @@ std::unique_ptr<expression_t> Parser::parse_multiplication_division() {
 }
 std::unique_ptr<expression_t> Parser::parse_mod() {
 	auto  e = parse_unary_op();
-	while (is_current_token(TOKEN_TYPE::PERCENTAGE)) {
+	while (current_token_is(TOKEN_TYPE::PERCENTAGE)) {
 
 		BIN_OP op = BIN_OP::MOD;
 		advance();
@@ -273,12 +274,12 @@ std::unique_ptr<expression_t> Parser::parse_unary_op() {
 	// -4 + 3 - 2
 	// !(4+3*2)
 	while (
-		is_current_token(TOKEN_TYPE::INCR) ||
-		is_current_token(TOKEN_TYPE::MINUS) ||
-		is_current_token(TOKEN_TYPE::DECR) ||
-		is_current_token(TOKEN_TYPE::EXCLAMATION) ||
-		is_current_token(TOKEN_TYPE::AMPERSAND) || 
-		is_current_token(TOKEN_TYPE::STAR)
+		current_token_is(TOKEN_TYPE::INCR) ||
+		current_token_is(TOKEN_TYPE::MINUS) ||
+		current_token_is(TOKEN_TYPE::DECR) ||
+		current_token_is(TOKEN_TYPE::EXCLAMATION) ||
+		current_token_is(TOKEN_TYPE::AMPERSAND) || 
+		current_token_is(TOKEN_TYPE::STAR)
 	) {
 
 		UNARY_OP op;
@@ -298,7 +299,7 @@ std::unique_ptr<expression_t> Parser::parse_unary_op() {
 	}
 	return parse_primary_expr();
 }
-std::vector<std::unique_ptr<expression_t>> Parser::parse_function_call_params() { // This function is also used in parsing of if statement's condition
+std::vector<std::unique_ptr<expression_t>> Parser::parse_function_call_params() { // This function is also used in parsing of if,while statement's condition
 
 	// This function is getting invoked when the curr_token is ( and there is function declaration
 	advance();
@@ -311,30 +312,29 @@ std::vector<std::unique_ptr<expression_t>> Parser::parse_function_call_params() 
 	}
 	while (true) {
 		func_parameters.push_back(std::move(parse_expr()));
-		if (_current_token->type == TOKEN_TYPE::END_OF_FILE) {
-			make_error(*_current_token, "Function parameters must be closed by ')'.");
+		if (_current_token->type == TOKEN_TYPE::LCURLY) {
+			make_error(*_current_token, " Expected closing ')'.");
 			break;
 		}
 		if (_current_token->type != TOKEN_TYPE::RPAREN) {
-			expect(TOKEN_TYPE::COMMA, "Function parameters must be seperated by ','.");
+			expect(TOKEN_TYPE::COMMA, "Expressions must be seperated by ','.");
 		}
 		else {
+			advance();
 			break;
 		}
-		advance();
 	}
-	advance();
 	return func_parameters;
 }
 std::unique_ptr<expression_t> Parser::parse_primary_expr() {
-	if (is_current_token(TOKEN_TYPE::INT_LITERAL)) {
+	if (current_token_is(TOKEN_TYPE::INT_LITERAL)) {
 		auto int_literal_expr = std::make_unique<integer_literal_t>(stol(_current_token->value));
 		advance();
 		return int_literal_expr;
 	}
-	if (is_current_token(TOKEN_TYPE::IDENTIFIER)) {
+	if (current_token_is(TOKEN_TYPE::IDENTIFIER)) {
 		std::string name = parse_identifier();
-		if (!is_current_token(TOKEN_TYPE::END_OF_FILE) && is_current_token(TOKEN_TYPE::LPAREN)) { // function call 
+		if (!current_token_is(TOKEN_TYPE::END_OF_FILE) && current_token_is(TOKEN_TYPE::LPAREN)) { // function call 
 			std::vector<std::unique_ptr<expression_t>> arguments = parse_function_call_params();
 			auto func_call_expr = std::make_unique<func_call_expr_t>(std::move(name), std::move(arguments));
 			return func_call_expr;
@@ -343,7 +343,7 @@ std::unique_ptr<expression_t> Parser::parse_primary_expr() {
 		return var_expr;
 	}
 	// We are lp
-	if (is_current_token(TOKEN_TYPE::LPAREN)) {
+	if (current_token_is(TOKEN_TYPE::LPAREN)) {
 		advance();
 		auto e = parse_expr();
 		expect(TOKEN_TYPE::RPAREN, "Missing matching ')' in expression .");
@@ -359,7 +359,7 @@ std::unique_ptr<statement_t> Parser::parse_var_decl_statement() {
 	std::string identifier = parse_identifier();
 	std::unique_ptr<expression_t> right;
 	// check whether there is an expression in the declaration such as int x = 4;
-	if (is_current_token(TOKEN_TYPE::ASSIGNMENT)) {
+	if (current_token_is(TOKEN_TYPE::ASSIGNMENT)) {
 		advance();
 		right = std::move(parse_expr());
 	}
@@ -373,18 +373,18 @@ std::unique_ptr<statement_t> Parser::parse_if_statement(bool parsing_while) {
 	auto body = parse_block_statement();
 	// Check whether there is else
 	std::unique_ptr<block_statement_t> else_body;
-	if (is_current_token(TOKEN_TYPE::KW_ELSE)) {
+	if (current_token_is(TOKEN_TYPE::KW_ELSE)) {
 		advance(); // skip to the left curly
-		if(is_current_token(TOKEN_TYPE::LCURLY))
+		if(current_token_is(TOKEN_TYPE::LCURLY))
 			 else_body = parse_block_statement();
 	}
 	if(parsing_while)
 		return std::make_unique<while_statement_t>(std::move(condition), std::move(body));
 	return std::make_unique<if_statement_t>(std::move(condition), std::move(body), std::move(else_body));
 }
+// @call : current token is "if"
 std::vector<std::unique_ptr<expression_t>> Parser::parse_conditional_expr()
 {
-	// This is called when the current token is "if"
 	advance();
 
 	expect(TOKEN_TYPE::LPAREN, "Missing '('");
@@ -394,6 +394,7 @@ std::vector<std::unique_ptr<expression_t>> Parser::parse_conditional_expr()
 
 	return conditions;
 }
+// @call : current token is while
 std::unique_ptr<statement_t> Parser::parse_while_statement() {
 	return parse_if_statement(true);
 }
@@ -403,8 +404,9 @@ std::unique_ptr<statement_t> Parser::parse_expr_statement() {
 	advance();
 	return std::make_unique<expr_statement_t>(std::move(expr));
 }
+
+// @call :  called when the current token is "for"
 std::unique_ptr<statement_t> Parser::parse_for_statement() {
-	// is called when the current token is "for"
 	advance();
 	expect(TOKEN_TYPE::LPAREN, "Expected '(' after 'for' statement");
 	advance(); // skip the lparen
@@ -412,7 +414,7 @@ std::unique_ptr<statement_t> Parser::parse_for_statement() {
 	auto range = parse_expr();
 	std::unique_ptr<block_statement_t> body;
 
-	if (is_current_token(TOKEN_TYPE::RPAREN)) {
+	if (current_token_is(TOKEN_TYPE::RPAREN)) {
 		advance();
 		body = parse_block_statement();
 		return std::make_unique<for_statement_t>(std::move(range), std::move(body));
@@ -426,8 +428,9 @@ std::unique_ptr<statement_t> Parser::parse_for_statement() {
 
 	return std::make_unique<for_statement_t>(std::move(range),std::move(step), std::move(body));
 }
+
+// @call : current token is return
 std::unique_ptr<statement_t> Parser::parse_return_statement() {
-	// is called when the current token is 'return'
 	advance();
 
 	auto return_expr = parse_expr();
@@ -435,11 +438,13 @@ std::unique_ptr<statement_t> Parser::parse_return_statement() {
 	advance();
 	return std::make_unique<return_statement_t>(std::move(return_expr));
 }
+// @call : current token is skip
 std::unique_ptr<statement_t> Parser::parse_skip_statement() {
 	advance();
 	expect(TOKEN_TYPE::SEMICOLON,"Statement must end with ';'");
 	return std::make_unique<skip_statement_t>();
 }
+// @call : current token is break
 std::unique_ptr<statement_t> Parser::parse_break_statement() {
 	advance();
 	expect(TOKEN_TYPE::SEMICOLON,"Statement must end with ';'");
@@ -447,38 +452,38 @@ std::unique_ptr<statement_t> Parser::parse_break_statement() {
 }
 std::unique_ptr<statement_t> Parser::parse_statement() {
 
-	if (is_current_token(TOKEN_TYPE::END_OF_FILE))
+	if (current_token_is(TOKEN_TYPE::END_OF_FILE))
 		return nullptr;
 	// var decl?
-	if (is_current_token(TOKEN_TYPE::KW_INT) ||  is_current_token(TOKEN_TYPE::KW_UINT)) {
+	if (current_token_is(TOKEN_TYPE::KW_INT) || current_token_is(TOKEN_TYPE::KW_UINT)) {
 		return parse_var_decl_statement();
 	}
 	// if statement?
-	if (is_current_token(TOKEN_TYPE::KW_IF)) {
+	if (current_token_is(TOKEN_TYPE::KW_IF)) {
 		return parse_if_statement();
 	}
 	// while statement?
-	if (is_current_token(TOKEN_TYPE::KW_WHILE)) {
+	if (current_token_is(TOKEN_TYPE::KW_WHILE)) {
 		return parse_while_statement();
 	}
 	// for stmt?
-	if (is_current_token(TOKEN_TYPE::KW_FOR)) {
+	if (current_token_is(TOKEN_TYPE::KW_FOR)) {
 		return parse_for_statement();
 	}
 	// ret
-	if (is_current_token(TOKEN_TYPE::KW_RETURN)) {
+	if (current_token_is(TOKEN_TYPE::KW_RETURN)) {
 		return parse_return_statement();
 	}
 	// break
-	if (is_current_token(TOKEN_TYPE::KW_BREAK)) {
+	if (current_token_is(TOKEN_TYPE::KW_BREAK)) {
 		return parse_break_statement();
 	}
 	// skip
-	if (is_current_token(TOKEN_TYPE::KW_SKIP)) {
+	if (current_token_is(TOKEN_TYPE::KW_SKIP)) {
 		return parse_skip_statement();
 	}
 	// new block of code
-	if (is_current_token(TOKEN_TYPE::LCURLY)) {
+	if (current_token_is(TOKEN_TYPE::LCURLY)) {
 		return parse_block_statement();
 	}
 	return parse_expr_statement();
@@ -487,5 +492,10 @@ const token_t& Parser::peek_before(){
 	if(_curr_index > 0)
 		return _tokens[_curr_index - 1];
 	return _tokens[0];
+}
+
+bool Parser::no_error()
+{
+	return _errors.empty();
 }
 
