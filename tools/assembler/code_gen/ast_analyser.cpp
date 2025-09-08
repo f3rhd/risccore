@@ -85,7 +85,7 @@ namespace f3_riscv_assembler {
 					else
 						val = head->right->str_ptr_value;
 					utils::throw_error_message({"Operation should have a immediate as third operand.", val, head->line_info});
-					success = 0;
+					success = false;
 				}
 			}
 			else { //opposite applies for addi,xori and etc.
@@ -95,8 +95,8 @@ namespace f3_riscv_assembler {
 						val = nullptr;
 					else
 						val = head->right->str_ptr_value;
-					utils::throw_error_message({"Operation should have an immediate value as third operand.", head->right->str_ptr_value, head->line_info});
-					success = 0;
+					utils::throw_error_message({"Operation should have an immediate value as third operand.", val, head->line_info});
+					success = false;
 				}
 				if(head->middle == nullptr || head->middle->node_type != AST_NODE_TYPE::REGISTER){
 					if(head->middle == nullptr)
@@ -104,7 +104,7 @@ namespace f3_riscv_assembler {
 					else
 						val = head->middle->str_ptr_value;
 					utils::throw_error_message({"Operation should have a register as second operand.", val, head->line_info});
-					success = 0;
+					success = false;
 				}
 			}
 		}

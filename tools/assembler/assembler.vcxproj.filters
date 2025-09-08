@@ -30,10 +30,10 @@
     <ClCompile Include="common\utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="preprocessor\preprocessor.cpp">
+    <ClCompile Include="parser\parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="parser\parser.cpp">
+    <ClCompile Include="preprocessor\preprocessor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tokenizer\tokenizer.cpp">
@@ -77,10 +77,10 @@
     <ClInclude Include="common\utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="preprocessor\preprocessor.hpp">
+    <ClInclude Include="parser\parser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="parser\parser.hpp">
+    <ClInclude Include="preprocessor\preprocessor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tokenizer\tokenizer.hpp">

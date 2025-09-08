@@ -33,8 +33,8 @@ namespace f3_compiler {
 		SEMICOLON, // ;
 		INT_LITERAL,
 		EXCLAMATION, // !
-		INCR, // ++
-		DECR, // --
+		DOUBLE_PLUS, // ++
+		DOUBLE_MINUS, // --
 		NOT_EQUAL, // !=
 		AMPERSAND, // &
 		DOUBLE_AMPERSAND, // &&

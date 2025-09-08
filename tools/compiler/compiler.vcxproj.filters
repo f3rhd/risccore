@@ -13,12 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="NewFilter1">
-      <UniqueIdentifier>{675965c5-1599-4872-9e2e-573165198e3b}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="codegen\code_gen_context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="common\nodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="lexer\lexer.cpp">
@@ -27,15 +27,12 @@
     <ClCompile Include="parser\parser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="common\nodes.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\token.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="lexer\lexer.hpp">
+    <ClInclude Include="codegen\code_gen_context.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common\error.hpp">
@@ -44,21 +41,14 @@
     <ClInclude Include="common\nodes.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="common\token.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lexer\lexer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="parser\parser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\code_gen_context.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="tests\var_decl.f3" />
-    <None Include="tests\func_decl.f3" />
-    <None Include="tests\if_stmt.f3" />
-    <None Include="tests\while_stmt.f3" />
-    <None Include="tests\for_stmt.f3" />
-    <None Include="tests\blk_stmt.f3" />
-    <None Include="tests\return_stmt.f3" />
-    <None Include="tests\general_test.f3" />
   </ItemGroup>
 </Project>

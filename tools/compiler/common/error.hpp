@@ -11,6 +11,7 @@ namespace f3_compiler {
 		INVALID_CHAR,
 		INVALID_NUMBER_FORMAT,
 		UNTERMINATED_COMMENT,
+		UNDEFINED_REFERENCE
 	};
 	struct error_t {
 
@@ -28,6 +29,17 @@ namespace f3_compiler {
 					<< "(" << cause.location.row_number 
 					<< "," << cause.location.column_number 
 					<< ") : " << cause_token.value << " : " << message << '\n';
+		};
+		error_t(ERROR_CODE err_code,const std::string &cause,const std::string& msg) : error_code(err_code),message(msg) {
+			if (cause_token.value.empty())
+				std::cout << "error f" << static_cast<uint32_t>(error_code)
+				<< "(" << "*"
+				<< "," << "*" << ") : " << message << '\n';
+			else
+				std::cout << "error f" << static_cast<uint32_t>(error_code) 
+					<< "(" << "???"
+					<< "," << 	"???"<<
+					") : " << cause << " : " << message << '\n';
 		};
 	};
 

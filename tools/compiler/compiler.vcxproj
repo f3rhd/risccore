@@ -1,38 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="assembler_debug|Win32">
-      <Configuration>assembler_debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="assembler_debug|x64">
-      <Configuration>assembler_debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="assembler_release|Win32">
-      <Configuration>assembler_release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="assembler_release|x64">
-      <Configuration>assembler_release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="compiler_debug|Win32">
-      <Configuration>compiler_debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="compiler_debug|x64">
-      <Configuration>compiler_debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="compiler_release|Win32">
-      <Configuration>compiler_release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="compiler_release|x64">
-      <Configuration>compiler_release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -49,19 +17,11 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Static|Win32">
-      <Configuration>Static</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Static|x64">
-      <Configuration>Static</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{d106b786-c9df-4ad9-91c9-3a302c498de9}</ProjectGuid>
+    <ProjectGuid>{ef83c29a-8725-4528-9c7f-678dfe89106c}</ProjectGuid>
     <RootNamespace>compiler</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -91,36 +51,6 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Static|Win32'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Static|x64'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='compiler_release|x64'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='compiler_release|Win32'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='compiler_debug|x64'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='compiler_debug|Win32'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='assembler_release|x64'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='assembler_release|Win32'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='assembler_debug|x64'">
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='assembler_debug|Win32'">
-    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -170,7 +100,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>STATIC_BUILD;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
     </ClCompile>
@@ -187,45 +117,30 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp23</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Static|x64'">
-    <ClCompile>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="codegen\code_gen_context.cpp" />
     <ClCompile Include="common\nodes.cpp" />
     <ClCompile Include="lexer\lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parser\parser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\code_gen_context.hpp" />
+    <ClInclude Include="codegen\code_gen_context.hpp" />
     <ClInclude Include="common\error.hpp" />
-    <ClInclude Include="lexer\lexer.hpp" />
-    <ClInclude Include="common\token.hpp" />
     <ClInclude Include="common\nodes.hpp" />
+    <ClInclude Include="common\token.hpp" />
+    <ClInclude Include="lexer\lexer.hpp" />
     <ClInclude Include="parser\parser.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="tests\blk_stmt.f3" />
-    <None Include="tests\for_stmt.f3" />
-    <None Include="tests\func_decl.f3" />
-    <None Include="tests\general_test.f3" />
-    <None Include="tests\var_decl.f3" />
-    <None Include="tests\if_stmt.f3" />
-    <None Include="tests\return_stmt.f3" />
-    <None Include="tests\while_stmt.f3" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\assembler\assembler.vcxproj">
-      <Project>{6d655d9c-a67b-4861-a91a-c5fdb25659c9}</Project>
+      <Project>{c7923e34-9243-4b03-992b-88feae1f0e90}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

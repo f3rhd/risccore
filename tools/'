@@ -102,6 +102,7 @@ std::string func_decl_t::generate_code(std::ostream& os, code_gen::CodeGen_Conte
 	auto func_info = ctx.get_func_decl_info(id);
 	for (uint32_t i = 0; i < func_info.parameters.size();i++) {
 		os << "\tsw " << "a" << std::to_string(i) <<',' << actual_offset(ctx.frame_size, func_info.parameters[i].offset) << "(s0)\n";
+		ctx.add_var(arguments[i].name, { func_info.parameters[i].offset,arguments[i].type });
 	}
 	// generate body instructions
 	body->generate_code(os, ctx);
@@ -135,13 +136,14 @@ std::string integer_literal_t::generate_code(std::ostream& os, code_gen::CodeGen
 
 std::string func_call_expr_t::generate_code(std::ostream& os, code_gen::CodeGen_Context& ctx, int32_t flags) const //@Incomplete : No semantic analysis
 {
-	for (int32_t i = 0; i < arguments.size(); i++) {
+	for (int32_t i = arguments.size() - 1; i >= 0; i--) {
+
 		std::string reg = arguments[i]->generate_code(os, ctx, code_gen::flags::ALLOCATE_VAR_IN_REG);
-		os << "\tmv a" << i << ", " << reg << "\n";
+		os << "\tmv" << "a" << (arguments.size() - 1) - i << reg << "\n";
 		ctx.free_register(reg);
 	}
-	os << "\tcall " << id << "\n";
-	return "a0";
+	os << "\tcall " << 
+	return "";
 }
 
 //@call : general expressions
@@ -164,8 +166,6 @@ std::string binary_expression_t::generate_code(std::ostream& os, code_gen::CodeG
 			os << "blt";
 		}
 		os << " " << operand_1 << "," << operand_2;
-		ctx.free_register(operand_1);
-		ctx.free_register(operand_2);
 		return "";
 	case BIN_OP::LT:
 		if (HAS_FLAG(flags,code_gen::flags::WHILE_CONTROL_KEYWORD)) {
@@ -176,8 +176,6 @@ std::string binary_expression_t::generate_code(std::ostream& os, code_gen::CodeG
 			os << "bge";
 		}
 		os << " " << operand_1 << "," << operand_2;
-		ctx.free_register(operand_1);
-		ctx.free_register(operand_2);
 		return "";
 	case BIN_OP::GTE:
 		if (HAS_FLAG(flags,code_gen::flags::WHILE_CONTROL_KEYWORD)) {
@@ -188,8 +186,6 @@ std::string binary_expression_t::generate_code(std::ostream& os, code_gen::CodeG
 			os << "ble";
 		}
 		os << " " << operand_1 << "," << operand_2;
-		ctx.free_register(operand_1);
-		ctx.free_register(operand_2);
 		return "";
 	case BIN_OP::LTE:
 		if (HAS_FLAG(flags,code_gen::flags::WHILE_CONTROL_KEYWORD)) {
@@ -200,8 +196,6 @@ std::string binary_expression_t::generate_code(std::ostream& os, code_gen::CodeG
 			os << "bge";
 		}
 		os << " " << operand_1 << "," << operand_2;
-		ctx.free_register(operand_1);
-		ctx.free_register(operand_2);
 		return "";
 	case BIN_OP::EQUALITY:
 		if (HAS_FLAG(flags,code_gen::flags::WHILE_CONTROL_KEYWORD)) {
@@ -212,8 +206,6 @@ std::string binary_expression_t::generate_code(std::ostream& os, code_gen::CodeG
 			os << "bneq";
 		}
 		os << " " << operand_1 << "," << operand_2;
-		ctx.free_register(operand_1);
-		ctx.free_register(operand_2);
 		return "";
 	case BIN_OP::NOT_EQUAL:
 		if (HAS_FLAG(flags,code_gen::flags::WHILE_CONTROL_KEYWORD)) {
@@ -224,8 +216,6 @@ std::string binary_expression_t::generate_code(std::ostream& os, code_gen::CodeG
 			os << "beq";
 		}
 		os << " " << operand_1 << "," << operand_2;
-		ctx.free_register(operand_1);
-		ctx.free_register(operand_2);
 		return "";
 	case BIN_OP::ADD:
 		destination_register = ctx.allocate_register();
@@ -354,7 +344,7 @@ std::string for_statement_t::generate_code(std::ostream& os, code_gen::CodeGen_C
 	os << label1 << ":\n";
 	std::string iterator = range->generate_code(os, ctx, code_gen::flags::FOR_RANGE_PHASE_2);
 	std::string destination = range->generate_code(os, ctx, code_gen::flags::FOR_RANGE_PHASE_3);
-	os << "\tble " << iterator << "," << destination << "," << label2 << "\n";
+	os << "\tbneq " << iterator << "," << destination << "," << label2 << "\n";
 	if (!ctx.break_jump_labels.empty()) {
 		os << ctx.break_jump_labels.back() << ":\n";
 		ctx.break_jump_labels.pop_back();
@@ -457,7 +447,7 @@ std::string if_statement_t::generate_code(std::ostream& os, code_gen::CodeGen_Co
 	if(body){
 		std::string label1 = ctx.create_label();
 		condition.back()->generate_code(os, ctx, code_gen::flags::IF_CONDITIONAL_EXPR);
-		os <<',' << label1 << "\n";
+		os << label1 << "\n";
 		if (body->statements.empty()) {
 			os << "\tnop\n";
 		}
@@ -539,10 +529,9 @@ void func_decl_t::layout(code_gen::CodeGen_Context& ctx) const
 
 	std::vector<code_gen::var_info_t> arg_params;
 	ctx.offset_counter += 8;
-	for (uint32_t i = 0; i <arguments.size();i++) {
+	for (auto& argument : arguments) {
 		ctx.offset_counter += 4;
-		arg_params.push_back({-ctx.offset_counter, arguments[i].type.base});
-		ctx.add_var(arguments[i].name, { -ctx.offset_counter,arguments[i].type });
+		arg_params.push_back({-ctx.offset_counter, argument.type.base});
 	}
 	ctx.add_func_decl(id, { arg_params, return_type });
 	body->layout(ctx);
@@ -574,7 +563,7 @@ void return_statement_t::layout(code_gen::CodeGen_Context& ctx) const
 
 std::string return_statement_t::generate_code(std::ostream& os, code_gen::CodeGen_Context& ctx, int32_t flags) const
 {
-	std::string reg = return_expr->generate_code(os,ctx,code_gen::flags::ALLOCATE_VAR_IN_REG);
+	std::string reg = return_expr->generate_code(os,ctx);
 	os << "\tmv a0," << reg << "\n";
 	std::string label = ctx.create_label();
 	os << "\tj " << label << '\n';
