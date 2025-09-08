@@ -271,34 +271,56 @@ std::unique_ptr<expression_t> Parser::parse_mod() {
 	return e;
 }
 std::unique_ptr<expression_t> Parser::parse_unary_op() {
-	// -4 + 3 - 2
-	// !(4+3*2)
-	while (
-		current_token_is(TOKEN_TYPE::INCR) ||
+	// Handle prefix unary operators
+	if (
+		current_token_is(TOKEN_TYPE::DOUBLE_PLUS) ||
 		current_token_is(TOKEN_TYPE::MINUS) ||
-		current_token_is(TOKEN_TYPE::DECR) ||
+		current_token_is(TOKEN_TYPE::DOUBLE_MINUS) ||
 		current_token_is(TOKEN_TYPE::EXCLAMATION) ||
-		current_token_is(TOKEN_TYPE::AMPERSAND) || 
+		current_token_is(TOKEN_TYPE::AMPERSAND) ||
 		current_token_is(TOKEN_TYPE::STAR)
-	) {
-
-		UNARY_OP op;
+		) {
+		UNARY_OP op = UNARY_OP::UNKNOWN;
 		switch (_current_token->type) {
-
-		//@Incomplete: There are other operations left
-		case TOKEN_TYPE::INCR: op = UNARY_OP::INCR; break;
+		case TOKEN_TYPE::DOUBLE_PLUS: op = UNARY_OP::INCR; break;
 		case TOKEN_TYPE::MINUS: op = UNARY_OP::NEG; break;
-		case TOKEN_TYPE::DECR: op = UNARY_OP::DECR; break;
+		case TOKEN_TYPE::DOUBLE_MINUS: op = UNARY_OP::DECR; break;
 		case TOKEN_TYPE::EXCLAMATION: op = UNARY_OP::NOT; break;
 		case TOKEN_TYPE::AMPERSAND: op = UNARY_OP::ADDR; break;
-		case TOKEN_TYPE::STAR: op = UNARY_OP::DEREF;
+		case TOKEN_TYPE::STAR: op = UNARY_OP::DEREF; break;
+		default:
+			make_error(*_current_token, "Unknown unary operator.");
+			break;
 		}
 		advance();
 		auto operand = parse_unary_op();
 		return std::make_unique<unary_expression_t>(op, std::move(operand));
 	}
-	return parse_primary_expr();
+
+	// Parse the primary expression
+	auto expr = parse_primary_expr();
+
+	// Handle postfix unary operators (e.g., x++, x--)
+	while (
+		current_token_is(TOKEN_TYPE::DOUBLE_PLUS) ||
+		current_token_is(TOKEN_TYPE::DOUBLE_MINUS)
+		) {
+		UNARY_OP op = UNARY_OP::UNKNOWN;
+		switch (_current_token->type) {
+		case TOKEN_TYPE::DOUBLE_PLUS: op = UNARY_OP::INCR; break;
+		case TOKEN_TYPE::DOUBLE_MINUS: op = UNARY_OP::DECR; break;
+		default:
+			make_error(*_current_token, "Unknown postfix unary operator.");
+			break;
+		}
+		advance();
+		// For postfix, wrap the current expr
+		expr = std::make_unique<unary_expression_t>(op, std::move(expr));
+	}
+
+	return expr;
 }
+
 std::vector<std::unique_ptr<expression_t>> Parser::parse_function_call_params() { // This function is also used in parsing of if,while statement's condition
 
 	// This function is getting invoked when the curr_token is ( and there is function declaration
@@ -323,6 +345,7 @@ std::vector<std::unique_ptr<expression_t>> Parser::parse_function_call_params() 
 			advance();
 			break;
 		}
+		advance();
 	}
 	return func_parameters;
 }
@@ -421,12 +444,12 @@ std::unique_ptr<statement_t> Parser::parse_for_statement() {
 	}
 	expect(TOKEN_TYPE::SEMICOLON, "Missing ','");
 	advance();
-	auto step = parse_expr();
-	expect(TOKEN_TYPE::LPAREN, "Expected ')' range statement");
+	auto step_expr = parse_expr();
+	expect(TOKEN_TYPE::RPAREN, "Expected ')' range statement");
 	advance();
 	body = parse_block_statement();
 
-	return std::make_unique<for_statement_t>(std::move(range),std::move(step), std::move(body));
+	return std::make_unique<for_statement_t>(std::move(range),std::move(step_expr), std::move(body));
 }
 
 // @call : current token is return
@@ -497,5 +520,40 @@ const token_t& Parser::peek_before(){
 bool Parser::no_error()
 {
 	return _errors.empty();
+}
+
+Program Parser::parse_program()
+{
+	std::vector<std::unique_ptr<func_decl_t>> funcs;
+	while (current_token_is(TOKEN_TYPE::KW_FUNC)) {
+		auto func = parse_function();
+		funcs.push_back(std::move(func));
+	}
+	return {std::move(funcs), };
+}
+
+void Program::generate(std::ostream& os) {
+
+	code_gen::CodeGen_Context ctx;
+	for (auto& func : _functions) {
+		func->layout(ctx);
+		func->generate_code(os,ctx);
+		if (ctx.had_errors()) {
+			had_error = false;
+		}
+		ctx = code_gen::CodeGen_Context();
+	}
+}
+
+bool Program::has_error() const
+{
+	return had_error;
+}
+
+void Program::print_ast()
+{
+	for (auto& func : _functions) {
+		func->print_ast(std::cout);
+	}
 }
 

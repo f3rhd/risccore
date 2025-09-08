@@ -1,6 +1,10 @@
-func main(int x, int y) -> void {
-	int sum  = 4;
-	while(sum > 0) {
-	}
+func fact(int n) -> int {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * fact(n - 1);
 }
-	
+
+func main() -> void {
+    int result = fact(5);
+}

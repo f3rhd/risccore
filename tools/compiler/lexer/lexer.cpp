@@ -131,7 +131,7 @@ void Lexer::tokenize() {
 		if (ch == '+') {
 
 			if (source_string[_i+1] == '+') {
-				make_token(TOKEN_TYPE::INCR, std::string("++"), _row, _col);
+				make_token(TOKEN_TYPE::DOUBLE_PLUS, std::string("++"), _row, _col);
 				_i += 2;
 			}
 			else if (source_string[_i + 1] == '=') {
@@ -152,7 +152,7 @@ void Lexer::tokenize() {
 				_i += 2; // Skip the <
 			}
 			else if (source_string[_i + 1] == '-') {
-				make_token(TOKEN_TYPE::DECR, std::string("--"), _row, _col);
+				make_token(TOKEN_TYPE::DOUBLE_MINUS, std::string("--"), _row, _col);
 				_i += 2;
 			}
 			else if (source_string[_i + 1] == '=') {
