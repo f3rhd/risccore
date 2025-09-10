@@ -1,7 +1,0 @@
-func main() -> void {
-	if(x > 0  and y <23) {
-		int y = x;
-	}else{
-		int y = 5;
-	}
-}

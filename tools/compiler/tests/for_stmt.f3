@@ -1,8 +1,0 @@
-func main() -> void {
-	for(i=0...=10){
-		int x;
-		int y;
-		x += 1;
-		y += 1;
-	} 
-}
