@@ -14,7 +14,7 @@ namespace f3_riscv_assembler {
 		}
 		_source_file = source_file;
 	}
-	std::vector<Line>& Preprocessor::process()
+	std::vector<Line>& Preprocessor::process(bool debug_output)
 	{
 		char _line[100];
 		bool macro_start = false;
@@ -76,10 +76,10 @@ namespace f3_riscv_assembler {
 			}
 		}
 		fclose(_source_file);
-		#ifdef DEBUG
-		print_macros();
-		print_lines();
-		#endif
+		if (debug_output) {
+			print_macros();
+			print_lines();
+		}
 		return _lines;
 	}
 	void Preprocessor::handle_line(std::vector<Token>&& line_tokens){

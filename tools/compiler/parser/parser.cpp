@@ -534,6 +534,9 @@ Program Parser::parse_program()
 
 void Program::generate(std::ostream& os) {
 
+	os << ".ResetVec:\n";
+	os << "\tli sp,0x1000\n";
+	os << "\tj main\n";
 	code_gen::CodeGen_Context ctx;
 	for (auto& func : _functions) {
 		func->layout(ctx);

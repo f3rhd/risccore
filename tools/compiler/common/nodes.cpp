@@ -110,7 +110,6 @@ std::string func_decl_t::generate_code(std::ostream& os, code_gen::CodeGen_Conte
 	std::ostringstream epilogue;
 	if (!ctx.return_jump_labels.empty()) {
 		os << ctx.return_jump_labels.back() << ":\n";
-		ctx.return_jump_labels.pop_back();
 	}
 	epilogue << "\tlw ra," << frame_size - 4 << "(sp)\n";
 	epilogue << "\tlw s0," << frame_size - 8 << "(sp)\n";
@@ -135,9 +134,13 @@ std::string integer_literal_t::generate_code(std::ostream& os, code_gen::CodeGen
 
 std::string func_call_expr_t::generate_code(std::ostream& os, code_gen::CodeGen_Context& ctx, int32_t flags) const //@Incomplete : No semantic analysis
 {
+	std::vector<std::string> regs;
 	for (int32_t i = 0; i < arguments.size(); i++) {
 		std::string reg = arguments[i]->generate_code(os, ctx, code_gen::flags::ALLOCATE_VAR_IN_REG);
 		os << "\tmv a" << i << ", " << reg << "\n";
+		regs.push_back(std::move(reg));
+	}
+	for (auto& reg : regs) {
 		ctx.free_register(reg);
 	}
 	os << "\tcall " << id << "\n";
@@ -173,7 +176,7 @@ std::string binary_expression_t::generate_code(std::ostream& os, code_gen::CodeG
 
 		}
 		else if (HAS_FLAG(flags, code_gen::flags::IF_CONDITIONAL_EXPR)) {
-			os << "bge";
+			os << "bgt";
 		}
 		os << " " << operand_1 << "," << operand_2;
 		ctx.free_register(operand_1);
@@ -197,7 +200,7 @@ std::string binary_expression_t::generate_code(std::ostream& os, code_gen::CodeG
 
 		}
 		else if (HAS_FLAG(flags, code_gen::flags::IF_CONDITIONAL_EXPR)) {
-			os << "bge";
+			os << "bgt";
 		}
 		os << " " << operand_1 << "," << operand_2;
 		ctx.free_register(operand_1);
@@ -558,7 +561,7 @@ std::string while_statement_t::generate_code(std::ostream& os, code_gen::CodeGen
 	body->generate_code(os, ctx,code_gen::flags::WHILE_CONTROL_KEYWORD);
 	os << label1 << ":\n";
 	condition.back()->generate_code(os, ctx, code_gen::flags::WHILE_CONTROL_KEYWORD);
-	os << label2 << "\n"; // completes condition->generate_code()
+	os << "," << label2 << "\n"; // completes condition->generate_code()
 
 	if (!ctx.break_jump_labels.empty()) {
 		os << ctx.break_jump_labels.back() << ":\n";
@@ -576,7 +579,14 @@ std::string return_statement_t::generate_code(std::ostream& os, code_gen::CodeGe
 {
 	std::string reg = return_expr->generate_code(os,ctx,code_gen::flags::ALLOCATE_VAR_IN_REG);
 	os << "\tmv a0," << reg << "\n";
-	std::string label = ctx.create_label();
+	std::string label;
+	if (ctx.return_jump_labels.empty()) {
+
+		label = ctx.create_label();
+	}
+	else {
+		label = ctx.return_jump_labels.back();
+	}
 	os << "\tj " << label << '\n';
 	ctx.return_jump_labels.push_back(std::move(label));
 	ctx.free_register(reg);

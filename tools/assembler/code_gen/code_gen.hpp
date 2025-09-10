@@ -7,6 +7,6 @@
 namespace f3_riscv_assembler {
 	namespace code_gen {
 
-		void generate_bin_file(const std::string &output_file_name, const std::vector<Instruction> &instructions);
+		void generate_bin_file(const std::string &output_file_name, const std::vector<Instruction> &instructions,bool debug_mode = false);
 	};
 }
