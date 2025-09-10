@@ -2,9 +2,8 @@ module control_unit(
     input logic[31:0] instr,
     output logic[25:0] ctrl_signals
 );
-    // # INPUT = OP(7)+FUNC(3)+FUNC(7)mm_type_select(3) + r
-    //output = j(1) + beq(1) + bne(1) + blt(1) + bge(1) + bltu(1) + bgeu(1) + + imm_type(3) + REG_WRITE(1) + ALU_B_OPERAND_SELECT(1) + ALU_CMP_TYPE(1) + ALU_OP_TYPE(4) + RAM_READ_TYPE(3) + RAM_WRITE_TYPE(2) + WRITE_DATA_SELECT(3) + PC_SELECT_B_OPERAND_SELECT(1)
-    // 1_0_0_0_0_0_0_000_1_1_0_0010_000_00_110_1
+    // #IN = OP(7)+FUNC(3)+FUNC(7)
+    // #OUT = j(1) + beq(1) + bne(1) + blt(1) + bge(1) + bltu(1) + bgeu(1) + imm_type(3) + REG_WRITE(1) + ALU_B_OPERAND_SELECT(1) + ALU_CMP_TYPE(1) + ALU_OP_TYPE(4) + RAM_READ_TYPE(3) + RAM_WRITE_TYPE(2) + WRITE_DATA_SELECT(3) + PC_SELECT_B_OPERAND_SELECT(1)
     always_comb begin
         logic[16:0] pla_input;
         pla_input[16:10] = instr[6:0];

@@ -1,0 +1,249 @@
+﻿#pragma  once
+#include <memory>
+#include <string>
+#include <vector>
+#include <print>
+#include <ostream>
+#include <istream>
+#include <fstream>
+
+#include "ir_gen_context.hpp"
+
+namespace f3_compiler {
+	struct type_t {
+		enum class BASE { INT, UINT, VOID, UNKNOWN } base = BASE::INT;
+		int32_t pointer_depth = 0;
+
+		std::string str() const {
+			auto _pointer_depth = [&]() -> std::string {
+				std::string str;
+				for (int i = 0; i < pointer_depth; i++)
+					str += '*';
+				return str;
+			};
+			switch (base) {
+			case BASE::INT: return "int" + _pointer_depth();
+			case BASE::UINT: return "uint" + _pointer_depth() ;
+			case BASE::VOID: return "void" + _pointer_depth() ;
+			default: return "int" + _pointer_depth();
+			}
+		}
+
+	};
+	namespace ast_node {
+
+		struct node_t {
+			virtual ~node_t() = default;
+			virtual void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const = 0;
+			virtual std::string generate_ir(IR_Gen_Context& ctx) const = 0;
+		};
+
+		struct func_decl_param_t {
+			std::string name;
+			type_t type;
+
+			func_decl_param_t(type_t typ, std::string&& id) : name(std::move(id)), type(typ) {}
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const;
+		};
+		struct expression_t : node_t {
+			virtual bool is_lvalue() const { return false; }
+			virtual bool has_call() const { return false; }
+		};
+
+		struct var_expression_t : expression_t {
+			std::string name;
+			bool is_lvalue() const override { return true; }
+			var_expression_t(std::string&& id) : name(std::move(id)) {}
+
+			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+
+		struct integer_literal_t : expression_t {
+			int32_t value;
+			explicit integer_literal_t(int32_t val) : value(val) {}
+
+			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+		struct func_call_expr_t : expression_t {
+
+			std::string id;
+			std::vector<std::unique_ptr<expression_t>> arguments;
+			func_call_expr_t(std::string&& id_, std::vector<std::unique_ptr<expression_t>>&& args) : id(std::move(id_)), arguments(std::move(args)) {}
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			bool has_call() const override { return true; }
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+		enum class BIN_OP {
+			ADD, SUB, DIV, MUL, MOD, GT, LT, GTE, LTE, EQUALITY, NOT_EQUAL, AND, OR
+		};
+		enum class UNARY_OP {
+			UNKNOWN, NEG, INCR, DECR, NOT, ADDR, DEREF
+		};
+		struct binary_expression_t : expression_t {
+			BIN_OP op;
+			std::unique_ptr<expression_t> lhs;
+			std::unique_ptr<expression_t> rhs;
+			binary_expression_t(BIN_OP opr, std::unique_ptr<expression_t>&& left, std::unique_ptr<expression_t>&& right)
+				: op(opr), lhs(std::move(left)), rhs(std::move(right)) {
+			}
+
+			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+
+		};
+		struct unary_expression_t : expression_t {
+			UNARY_OP op = UNARY_OP::UNKNOWN;
+			std::unique_ptr<expression_t> expr;
+			unary_expression_t(UNARY_OP op_, std::unique_ptr<expression_t>&& expr_) : expr(std::move(expr_)), op(op_) {}
+			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
+			bool is_lvalue() const override {
+				if (op == UNARY_OP::DEREF) {
+					return true;
+				}
+				return false;
+			}
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+
+		};
+
+		struct for_range_expression_t : expression_t {
+			std::unique_ptr<expression_t> start;
+			std::unique_ptr<expression_t> destination;
+			bool is_exclusive;
+			for_range_expression_t(std::unique_ptr<expression_t>&& start, std::unique_ptr<expression_t>&& destination_, bool is_exclusive_ = false) :
+				start(std::move(start)),
+				destination(std::move(destination_)),
+				is_exclusive(is_exclusive_)
+			{
+			}
+			void print_ast(std::ostream& os, uint32_t indent_level /* = 0 */, bool is_last/* = true */) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+
+		enum class ASSIGNMENT_TYPE {
+			UNKNOWN,
+			NORMAL,
+			P, // +=
+			M, // =
+		};
+		struct assignment_expression_t : expression_t {
+			ASSIGNMENT_TYPE type = ASSIGNMENT_TYPE::UNKNOWN;
+			std::unique_ptr<expression_t> lhs;
+			std::unique_ptr<expression_t> rhs;
+			assignment_expression_t(ASSIGNMENT_TYPE type_, std::unique_ptr<expression_t>&& left, std::unique_ptr<expression_t>&& right)
+				: lhs(std::move(left)), rhs(std::move(right)), type(type_) {
+			}
+
+			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+
+		struct statement_t : node_t {
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override = 0;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+
+		struct var_decl_statement_t : statement_t {
+			std::string name;
+			type_t type;
+			std::unique_ptr<expression_t> rhs;
+			var_decl_statement_t(type_t typ, std::string&& id, std::unique_ptr<expression_t>&& right) : name(std::move(id)), type(typ), rhs(std::move(right)) {}
+
+			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+
+		struct block_statement_t : statement_t {
+			std::vector<std::unique_ptr<statement_t>> statements;
+			block_statement_t(std::vector<std::unique_ptr<statement_t>>&& statements_) : statements(std::move(statements_)) {}
+			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+
+		};
+		struct if_statement_t : statement_t {
+			std::vector<std::unique_ptr<expression_t>> condition;
+			std::unique_ptr<block_statement_t> body;
+			std::unique_ptr<block_statement_t> else_body;
+			if_statement_t(std::vector<std::unique_ptr<expression_t>>&& condition_, std::unique_ptr<block_statement_t>&& body_) :
+				condition(std::move(condition_)), body(std::move(body_))
+			{
+			}
+			if_statement_t(std::vector<std::unique_ptr<expression_t>>&& condition_, std::unique_ptr<block_statement_t>&& body_, std::unique_ptr<block_statement_t>&& else_body_) :
+				condition(std::move(condition_)), body(std::move(body_)), else_body(std::move(else_body_))
+			{
+			}
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+		struct while_statement_t : if_statement_t {
+			while_statement_t(std::vector<std::unique_ptr<expression_t>>&& condition_,
+				std::unique_ptr<block_statement_t>&& body_)
+				: if_statement_t(std::move(condition_), std::move(body_)) {
+			}
+
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+		struct for_statement_t : statement_t {
+			std::unique_ptr<expression_t> range;
+			std::unique_ptr<expression_t> step;
+			std::unique_ptr<block_statement_t> body;
+			for_statement_t(
+				std::unique_ptr<expression_t>&& range_,
+				std::unique_ptr<expression_t>&& step_,
+				std::unique_ptr<block_statement_t>&& body_
+			) : range(std::move(range_)), step(std::move(step_)), body(std::move(body_)) {
+			}
+			for_statement_t(
+				std::unique_ptr<expression_t>&& range_,
+				std::unique_ptr<block_statement_t>&& body_
+			) : range(std::move(range_)), body(std::move(body_)) {
+			}
+
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		
+		};
+		struct return_statement_t : statement_t {
+			std::unique_ptr<expression_t> return_expr;
+			return_statement_t(std::unique_ptr<expression_t>&& return_expr_) : return_expr(std::move(return_expr_)) {}
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+		struct break_statement_t : statement_t {
+			break_statement_t() = default;
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+
+		struct skip_statement_t : statement_t {
+			skip_statement_t() = default;
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+
+		struct expr_statement_t : statement_t {
+			std::unique_ptr<expression_t> expr;
+			expr_statement_t(std::unique_ptr<expression_t>&& expr_) : expr(std::move(expr_)) {}
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+
+		struct func_decl_t : node_t {
+			std::string id;
+			type_t return_type;
+			std::vector<func_decl_param_t> arguments;
+			std::unique_ptr<block_statement_t> body;
+
+			func_decl_t(std::string&& func_name, std::vector<func_decl_param_t>&& args, type_t ret, std::unique_ptr<block_statement_t> body_) :
+				id(std::move(func_name)), return_type(ret), body(std::move(body_)), arguments(std::move(args)) {
+			}
+
+			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+		};
+	}
+}
+

@@ -1,0 +1,6 @@
+func main() -> void {
+	int a = 12;
+	int b = 23;
+	a = a + b;
+	b += 123;
+}
