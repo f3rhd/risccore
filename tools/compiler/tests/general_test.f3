@@ -7,4 +7,7 @@ func fact(int n) -> int {
 
 func main() -> void {
     int result = fact(5);
+    while(result > 0){
+        result += 0;
+    }
 }

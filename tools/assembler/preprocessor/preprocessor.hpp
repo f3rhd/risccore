@@ -13,7 +13,7 @@ namespace f3_riscv_assembler {
 		
 	public:
 		Preprocessor(const std::string& source_file_path);
-		std::vector<Line>& process();
+		std::vector<Line>& process(bool debug_output = false);
 		std::unordered_map<std::string,uint32_t>& get_labels();
 	private:
 		const Macro* get_macro_by_name(const std::string &macro_name);

@@ -34,6 +34,7 @@ namespace f3_compiler {
 			auto constexpr FOR_RANGE_PHASE_3 = 1 << 4; 
 			auto constexpr FOR_CONTROL_KEYWORD = 1 << 5;
 			auto constexpr WHILE_CONTROL_KEYWORD = 1 << 6;
+			auto constexpr DO_NOT_EMIT_ASM = 1 << 7;
 		}
 		#define HAS_FLAG(f, flag) (((f) & (flag)) != 0)
 		struct var_info_t {

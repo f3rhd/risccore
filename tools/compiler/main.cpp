@@ -15,6 +15,7 @@ int main(int argc, char** argv) {
 		}
 		const char* input_file = argv[1];
 		bool print_ast = false;
+		bool asm_debug_output = false;
 		const char* asm_file = nullptr;
 		const char* bin_file = nullptr;
 		for (int i = 2; i < argc; i++) {
@@ -22,6 +23,9 @@ int main(int argc, char** argv) {
 				print_ast = true;
 			} else if (strcmp(argv[i], "--emit-asm") == 0 && i + 1 < argc) {
 				asm_file = argv[++i];
+			} else if (strcmp(argv[i], "--emit-asm-debug") == 0 && i + 1 < argc) {
+				asm_file = argv[++i];
+				asm_debug_output = true;
 			} else if (strcmp(argv[i], "--emit-bin") == 0 && i + 1 < argc) {
 				bin_file = argv[++i];
 			}
@@ -37,7 +41,7 @@ int main(int argc, char** argv) {
 	}
 
 	std::ostringstream asm_stream;
-	program.generate(asm_stream);
+	program.generate(std::cout);
 	if (program.has_error()) {
 		exit(EXIT_FAILURE);
 	}
@@ -55,10 +59,10 @@ int main(int argc, char** argv) {
 		ofs.close();
 		f3_riscv_assembler::Preprocessor asm_prc("program.s");
 		f3_riscv_assembler::Parser asm_parser;
-		asm_parser.parse_lines(asm_prc.process(), asm_prc.get_labels());
+		asm_parser.parse_lines(asm_prc.process(asm_debug_output), asm_prc.get_labels());
 		f3_riscv_assembler::instr_gen::generator gen;
 		gen.generate_instructions(asm_parser.get_ast_nodes());
-		f3_riscv_assembler::code_gen::generate_bin_file(bin_file, gen.get_instructions());
+		f3_riscv_assembler::code_gen::generate_bin_file(bin_file, gen.get_instructions(),asm_debug_output);
 		std::remove("program.s");
 	}
 	return 0;

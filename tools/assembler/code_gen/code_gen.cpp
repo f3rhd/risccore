@@ -114,7 +114,7 @@ namespace f3_riscv_assembler {
 					return 0;
 			}
 		}
-		void generate_bin_file(const std::string& output_file_path ,const std::vector<Instruction>& instructions){
+		void generate_bin_file(const std::string& output_file_path ,const std::vector<Instruction>& instructions,bool debug_mode){
 
 			FILE *output_file = fopen(output_file_path.c_str(), "wb");
 
@@ -122,19 +122,19 @@ namespace f3_riscv_assembler {
 			buffer.reserve(instructions.size());
 			for(const Instruction& instr : instructions){
 				uint32_t raw = encode_instr(instr);
-				#ifdef DEBUG 
-				printf("opcode: %u, funct3: %u, funct7: %u, rd: %u, rs1: %u, rs2: %u, imm: %d\n",
-					instr.opcode,
-					instr.func3,
-					instr.func7,
-					instr.rd,
-					instr.rs1,
-					instr.rs2,
-					instr.imm);
-				std::cout << "\tHex: " << std::hex << std::setw(8) << std::setfill('0') << raw << std::dec << '\n';
-				std::cout << "\tBin:" << std::bitset<32>(raw) << '\n';
-				std::cout << "\tDec:" << raw << '\n';
-				#endif
+				if (debug_mode) {
+					printf("opcode: %u, funct3: %u, funct7: %u, rd: %u, rs1: %u, rs2: %u, imm: %d\n",
+						instr.opcode,
+						instr.func3,
+						instr.func7,
+						instr.rd,
+						instr.rs1,
+						instr.rs2,
+						instr.imm);
+					std::cout << "\tHex: " << std::hex << std::setw(8) << std::setfill('0') << raw << std::dec << '\n';
+					std::cout << "\tBin:" << std::bitset<32>(raw) << '\n';
+					std::cout << "\tDec:" << raw << '\n';
+				}
 				buffer.push_back(raw);
 			}
 			fwrite(buffer.data(), buffer.size() * sizeof(uint32_t),1,output_file);
