@@ -1,3 +1,4 @@
+#pragma  once
 #include <vector>
 #include <cstdint>
 #include <string>
@@ -7,14 +8,15 @@
 struct ir_instruction_t {
     enum class operation { 
         UNKNOWN,
-        LOAD_CONST, 
+        LOAD_CONST, STORE,LOAD,GOTO,NOP,
         ADD, SUB, MUL, DIV, REM,
         CMP_LT, CMP_GT, CMP_GTE, CMP_LTE, CMP_EQ, CMP_NEQ,
         AND, OR, NOT, NEG,
         ADDR, DEREF,
-        PARAM,
+        PARAM,ARG,
         CALL, RETURN, 
         BRANCH_IF, LABEL, 
+        BRANCH_IF_NOT,
         MOV 
     } operation = operation::UNKNOWN;
 
@@ -25,6 +27,9 @@ struct ir_instruction_t {
 
     std::string to_string() const {
         std::ostringstream out;
+        if (operation != operation::LABEL) {
+            out << "\t";
+        }
         switch (operation) {
         case operation::LOAD_CONST:
             out << dest << " = " << src1; // e.g. t1 = 123
@@ -49,6 +54,9 @@ struct ir_instruction_t {
         case operation::PARAM:
             out << "PARAM " << src1;
             break;
+        case operation::ARG:
+            out << "ARG " <<src1;
+            break;
         case operation::CALL:
             if (!dest.empty())
                 out << dest << " = ";
@@ -56,6 +64,9 @@ struct ir_instruction_t {
             break;
         case operation::RETURN:
             out << "RETURN " << src1;
+            break;
+        case operation::BRANCH_IF_NOT:
+            out << "BRANCH_IF_NOT " << src1 << ", " << label;
             break;
         case operation::BRANCH_IF:
             out << "BRANCH_IF " << src1 << ", " << label;
@@ -68,6 +79,18 @@ struct ir_instruction_t {
             break;
         case operation::UNKNOWN:
             out << "UNKNOWN";
+            break;
+        case operation::STORE : 
+            out << "STORE" << " " << src1 <<  "," << dest;
+            break;
+        case operation::LOAD : 
+            out << "LOAD" << " " <<dest << "," << src1;
+            break;
+        case operation::GOTO:
+            out << "GOTO" << " " << label;
+            break;
+        case operation::NOP:
+            out << "NOP";
             break;
         }
         return out.str();
@@ -100,8 +123,9 @@ struct IR_Gen_Context {
 
 	std::vector<ir_instruction_t> instructions;
 	std::vector<std::string> skip_jump_labels;
-	std::vector<std::string> break_jump_labels;
+    std::vector<std::string> break_jump_labels;
 	std::vector<std::string> return_jump_labels;
+    bool left_is_deref = false;
 
 	std::string generate_label() { return ".L" + std::to_string(label_id++); }
 	std::string generate_temp() { return "t" + std::to_string(temp_id++); }

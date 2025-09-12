@@ -1,17 +1,28 @@
 #include "nodes.hpp"
 #include <algorithm>
-
-
 using namespace f3_compiler::ast_node;
-
-
-
+namespace {
+	void add_nop_on_label_clash(IR_Gen_Context& ctx) 
+	{
+		if (ctx.instructions.back().operation == ir_instruction_t::operation::LABEL) {
+			ir_instruction_t nop_instr;
+			nop_instr.operation = ir_instruction_t::operation::NOP;
+			ctx.instructions.push_back(nop_instr);
+		}
+	}
+}
 std::string func_decl_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
 	// fucntion entry label
 	instr.operation = ir_instruction_t::operation::LABEL;
 	instr.label = id;
 	ctx.instructions.push_back(std::move(instr));
+	for (auto& argument : arguments) {
+		ir_instruction_t instr;
+		instr.operation = ir_instruction_t::operation::PARAM;
+		instr.src1 = argument.name;
+		ctx.instructions.push_back(std::move(instr));
+	}
 	body->generate_ir(ctx);
 	// function return label
 	if(!ctx.return_jump_labels.empty()){
@@ -36,65 +47,255 @@ std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 		instr.operation = ir_instruction_t::operation::MOV;
 		instr.dest = name;
 		instr.src1 = source;
+		ctx.instructions.push_back(std::move(instr));
 	}
 	return "";
 }
 std::string if_statement_t::generate_ir(IR_Gen_Context& ctx) const {
+	std::string label_1 = ctx.generate_label();
+	std::string label_2 = ctx.generate_label();
+
+	ir_instruction_t if_not;
+	if_not.operation = ir_instruction_t::operation::BRANCH_IF_NOT;
+	if_not.label = label_1;
+	if_not.src1 = condition.back()->generate_ir(ctx);
+	ctx.instructions.push_back(std::move(if_not));
+
+	body->generate_ir(ctx);
+
+	if (else_body && !else_body->statements.empty()) {
+
+		ir_instruction_t goto_instr;
+		goto_instr.operation = ir_instruction_t::operation::GOTO;
+		goto_instr.label = label_2;
+		ctx.instructions.push_back(std::move(goto_instr));
+
+		ir_instruction_t else_label;
+		else_label.operation = ir_instruction_t::operation::LABEL;
+		else_label.label = label_1;
+		add_nop_on_label_clash(ctx);
+		ctx.instructions.push_back(std::move(else_label));
+
+		else_body->generate_ir(ctx);
+
+		ir_instruction_t label_instr;
+		label_instr.operation = ir_instruction_t::operation::LABEL;
+		label_instr.label = label_2;
+		add_nop_on_label_clash(ctx);
+		ctx.instructions.push_back(std::move(label_instr));
+		return "";
+	}
+	ir_instruction_t label_instr;
+	label_instr.operation = ir_instruction_t::operation::LABEL;
+	label_instr.label = label_1;
+	add_nop_on_label_clash(ctx);
+	ctx.instructions.push_back(std::move(label_instr));
 
 	return "";
 }
 std::string while_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
+	//  entry
+	ir_instruction_t goto_instr;
+	goto_instr.operation = ir_instruction_t::operation::GOTO;
+	std::string condition_label = ctx.generate_label();
+	goto_instr.label = condition_label;
+
+	ctx.skip_jump_labels.push_back(condition_label);
+	ctx.instructions.push_back(std::move(goto_instr));
+
+	// Body label
+	ir_instruction_t label_instr;
+	label_instr.operation = ir_instruction_t::operation::LABEL;
+	std::string body_label = ctx.generate_label();
+	label_instr.label = body_label;
+	add_nop_on_label_clash(ctx);
+	ctx.instructions.push_back(std::move(label_instr));
+
+	body->generate_ir(ctx);
+
+	ir_instruction_t label_instr_;
+	label_instr_.operation = ir_instruction_t::operation::LABEL;
+	label_instr_.label = condition_label;
+	add_nop_on_label_clash(ctx);
+	ctx.instructions.push_back(std::move(label_instr_));
+
+	while(!ctx.skip_jump_labels.empty() && ctx.skip_jump_labels.back() == condition_label) {
+		ctx.skip_jump_labels.pop_back();
+	}
+
+	// Condition
+	std::string condition_var = condition.back()->generate_ir(ctx);
+	ir_instruction_t if_instruction;
+	if_instruction.operation = ir_instruction_t::operation::BRANCH_IF;
+	if_instruction.src1 = condition_var;
+	if_instruction.label = body_label;
+	ctx.instructions.push_back(std::move(if_instruction));
+	ctx.skip_jump_labels.pop_back();
+	if(!ctx.break_jump_labels.empty()){
+		ir_instruction_t label_instr;
+		label_instr.operation = ir_instruction_t::operation::LABEL;
+		std::string break_label = ctx.break_jump_labels.back();
+		label_instr.label = break_label;
+		ctx.instructions.push_back(std::move(label_instr));
+		while(!ctx.break_jump_labels.empty() && ctx.break_jump_labels.back() == break_label) {
+			ctx.break_jump_labels.pop_back();
+		}
+	}
 	return "";
 }
 std::string for_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
+	//  entry
+	ir_instruction_t goto_instr;
+	goto_instr.operation = ir_instruction_t::operation::GOTO;
+	std::string condition_label = ctx.generate_label();
+	goto_instr.label = condition_label;
+
+	ctx.skip_jump_labels.push_back(condition_label);
+	ctx.instructions.push_back(std::move(goto_instr));
+
+	// body label
+	ir_instruction_t body_label_instr;
+	body_label_instr.operation = ir_instruction_t::operation::LABEL;
+	std::string body_label = ctx.generate_label();
+	body_label_instr.label = body_label;
+	add_nop_on_label_clash(ctx);
+	ctx.instructions.push_back(std::move(body_label_instr));
+	body->generate_ir(ctx);
+
+	// Increment and stuff
+	std::string skip_jump_label;
+	std::string break_jump_label;
+	if(!ctx.skip_jump_labels.empty()){
+		ir_instruction_t label_instr;
+		label_instr.operation = ir_instruction_t::operation::LABEL;
+		label_instr.label = skip_jump_label = ctx.skip_jump_labels.back();
+		add_nop_on_label_clash(ctx);
+		ctx.instructions.push_back(std::move(label_instr));
+	}
+	step->generate_ir(ctx);
+
+	ir_instruction_t label_instr;
+	label_instr.operation = ir_instruction_t::operation::LABEL;
+	std::string if_source = condition->generate_ir(ctx); // generates the conditional var
+
+	ir_instruction_t branch_if_instr;
+	branch_if_instr.operation = ir_instruction_t::operation::BRANCH_IF;
+	branch_if_instr.label = body_label;
+	branch_if_instr.src1 = if_source;
+	ctx.instructions.push_back(std::move(branch_if_instr));
+
+	if(!ctx.break_jump_labels.empty()){
+		label_instr.label = break_jump_label = ctx.break_jump_labels.back();
+		add_nop_on_label_clash(ctx);
+		ctx.instructions.push_back(std::move(label_instr));
+	}
+	while(!ctx.break_jump_labels.empty() &&  ctx.break_jump_labels.back() == break_jump_label){
+		ctx.break_jump_labels.pop_back();
+	}
+	while(!ctx.skip_jump_labels.empty() && ctx.skip_jump_labels.back() == skip_jump_label){
+		ctx.skip_jump_labels.pop_back();
+	}
 	return "";
 }
 std::string return_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
+	std::string temp = return_expr->generate_ir(ctx);
+	ir_instruction_t return_instruction;
+	return_instruction.operation = ir_instruction_t::operation::RETURN;
+	return_instruction.src1 = temp;
+	ctx.instructions.push_back(std::move(return_instruction));
 	return "";
 }
 std::string break_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
+	std::string break_jump_label = ctx.generate_label();
+	ctx.break_jump_labels.push_back(break_jump_label);
+
+	ir_instruction_t go_to_instr;
+	go_to_instr.operation = ir_instruction_t::operation::GOTO;
+	go_to_instr.label = break_jump_label;
+	ctx.instructions.push_back(std::move(go_to_instr));
 	return "";
 }
 std::string skip_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
+	ir_instruction_t goto_instr;
+	goto_instr.operation = ir_instruction_t::operation::GOTO;
+	goto_instr.label = ctx.skip_jump_labels.back();
+	ctx.instructions.push_back(std::move(goto_instr));
 	return "";
 }
 std::string statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
 	return "";
 }
-std::string for_range_expression_t::generate_ir(IR_Gen_Context& ctx) const {
-
-	return "";
-}
+//std::string nge_expression_t::generate_ir(IR_Gen_Context& ctx) const {
+//
+//	std::unique_ptr<expression_t> expr = std::make_unique<binary_expression_t>(comparator, std::move(start), std::move(destination));
+//	std::string temp = expr->generate_ir(ctx);
+//	return temp;
+//}
 std::string expr_statement_t::generate_ir(IR_Gen_Context& ctx) const {
-	expr->generate_ir(ctx);
+	if(expr)
+		expr->generate_ir(ctx);
 	return "";
 }
 std::string assignment_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
+	ctx.left_is_deref = lhs->is_deref();
 	std::string left = lhs->generate_ir(ctx);
 	std::string right = rhs->generate_ir(ctx);
 	instr.dest = left;
-	switch (type)
-	{
-	case ASSIGNMENT_TYPE::P:
-		instr.operation = ir_instruction_t::operation::ADD;
-		instr.src1 = instr.dest;
-		instr.src2 = right;
-		break;
-	case ASSIGNMENT_TYPE::M:
-		instr.operation = ir_instruction_t::operation::SUB;
-		instr.src1 = instr.dest;
-		instr.src2 = right;
-		break;
-	default:
-		instr.operation = ir_instruction_t::operation::MOV;
-		instr.src1 = right;
+	if (!lhs->is_deref()) {
+		switch (type)
+		{
+		case ASSIGNMENT_TYPE::P:
+			instr.operation = ir_instruction_t::operation::ADD;
+			instr.src1 = instr.dest;
+			instr.src2 = right;
+			break;
+		case ASSIGNMENT_TYPE::M:
+			instr.operation = ir_instruction_t::operation::SUB;
+			instr.src1 = instr.dest;
+			instr.src2 = right;
+			break;
+		default:
+			instr.operation = ir_instruction_t::operation::MOV;
+			instr.src1 = right;
+		}
+	}
+	else {
+		instr.operation = ir_instruction_t::operation::STORE;
+		instr.dest = left;
+		std::string temp;
+		std::string destination = ctx.generate_temp();
+		ir_instruction_t instr_2;
+		switch (type)
+		{
+		case ASSIGNMENT_TYPE::P:
+			temp = lhs->generate_ir(ctx);
+			instr_2.operation = ir_instruction_t::operation::ADD;
+			instr_2.dest = destination;
+			instr_2.src1 = temp;
+			instr_2.src2 = right;
+			ctx.instructions.push_back(std::move(instr_2));
+			instr.src1 = destination;
+			break;
+		case ASSIGNMENT_TYPE::M:
+			temp = lhs->generate_ir(ctx);
+			instr_2.operation = ir_instruction_t::operation::SUB;
+			instr_2.dest = destination;
+			instr_2.src1 = temp;
+			instr_2.src2 = right;
+			ctx.instructions.push_back(std::move(instr_2));
+			instr.src1 = temp;
+			break;
+		default:
+			instr.src1 = right;
+		}
+
 	}
 	ctx.instructions.push_back(std::move(instr));
 	return "";
@@ -170,10 +371,13 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 
 	ir_instruction_t instr;
-	ir_instruction_t instr2;
-	instr2.operation = ir_instruction_t::operation::LOAD_CONST;
-	std::string src = expr->generate_ir(ctx);
+	ir_instruction_t instr_2;
+	ir_instruction_t instr_3;
+	instr_2.operation = ir_instruction_t::operation::LOAD_CONST;
+	ctx.left_is_deref = expr->is_deref();
+	std::string left = expr->generate_ir(ctx);
 	std::string destination;
+	std::string temp = ctx.generate_temp();
 	switch (op) {
 	case UNARY_OP::NEG:
 		instr.operation = ir_instruction_t::operation::NEG;
@@ -181,51 +385,82 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	case UNARY_OP::NOT:
 		instr.operation = ir_instruction_t::operation::NOT;
 		break;
+	// THESE TOOO
 	case UNARY_OP::ADDR:
 		instr.operation = ir_instruction_t::operation::ADDR;
 		break;
 	case UNARY_OP::DEREF:
-		instr.operation = ir_instruction_t::operation::DEREF;
+		if (!ctx.left_is_deref) {
+			instr.operation = ir_instruction_t::operation::DEREF;
+			ctx.left_is_deref = false;
+		}
+		return left; // when we do *a = 12 and stuff
 		break;
+	//// THIS IS FUCKING STUPID FIX IT
 	case UNARY_OP::INCR:
-		instr2.src1 = std::to_string(1);
-		instr2.dest = ctx.generate_temp();
-		ctx.instructions.push_back(std::move(instr2));
-		instr.operation = ir_instruction_t::operation::ADD;
-		instr.dest = destination;
-		instr.src1 = src;
-		instr.src2 = instr2.dest;
-		ctx.instructions.push_back(std::move(instr2));
-		return destination;
-	case UNARY_OP::DECR:
-		instr2.src1 = std::to_string(1);
-		instr2.dest = ctx.generate_temp();
-		ctx.instructions.push_back(std::move(instr2));
-		instr.operation = ir_instruction_t::operation::SUB;
-		instr.dest = destination;
-		instr.src1 = src;
-		instr.src2 = instr2.dest;
+		if (!expr->is_deref()) {
+			instr.operation = ir_instruction_t::operation::ADD;
+			instr.src1 = instr.dest = left;
+			instr.src2 = std::to_string(1);
+			ctx.instructions.push_back(std::move(instr));
+			return left;
+		}
+		instr_2.operation = ir_instruction_t::operation::LOAD;
+		instr_2.dest = temp;
+		instr_2.src1 = left;
+		ctx.instructions.push_back(std::move(instr_2));
+
+		instr_3.operation = ir_instruction_t::operation::ADD;
+		instr_3.dest = instr_3.src1 = temp;
+		instr_3.src2 = std::to_string(1);
+		ctx.instructions.push_back(std::move(instr_3));
+		instr.operation = ir_instruction_t::operation::STORE;
+		instr.src1 = temp;
+		instr.dest = left;
 		ctx.instructions.push_back(std::move(instr));
-		return destination;
+		return temp;
+	case UNARY_OP::DECR:
+		if (!expr->is_deref()) {
+			instr.operation = ir_instruction_t::operation::SUB;
+			instr.src1 = instr.dest = left;
+			instr.src2 = std::to_string(1);
+			ctx.instructions.push_back(std::move(instr));
+			return left;
+		}
+		instr_2.operation = ir_instruction_t::operation::LOAD;
+		instr_2.dest = temp;
+		instr_2.src1 = left;
+		ctx.instructions.push_back(std::move(instr_2));
+
+		instr_3.operation = ir_instruction_t::operation::SUB;
+		instr_3.dest = instr_3.src1 = temp;
+		instr_3.src2 = std::to_string(1);
+		ctx.instructions.push_back(std::move(instr_3));
+		instr.operation = ir_instruction_t::operation::STORE;
+		instr.src1 = temp;
+		instr.dest = left;
+		ctx.instructions.push_back(std::move(instr));
+		return temp;
 	default:
 		break;
 
 	}
+	destination = ctx.generate_temp();
 	instr.dest = destination;
-	instr.src1 = src;
+	instr.src1 = left;
 	ctx.instructions.push_back(std::move(instr));
 	return destination;
 }
 std::string func_call_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 	for(auto& argument : arguments){
 		ir_instruction_t instr;
-		instr.operation = ir_instruction_t::operation::PARAM;
+		instr.operation = ir_instruction_t::operation::ARG;
 		instr.src1 = argument->generate_ir(ctx);
 		ctx.instructions.push_back(std::move(instr));
 	}
 	ir_instruction_t call_instr;
 	call_instr.operation = ir_instruction_t::operation::CALL;
-	std::string destination = ctx.generate_label();
+	std::string destination = ctx.generate_temp();
 	call_instr.dest = destination;
 	call_instr.src1 = id;
 	call_instr.func_argument_count = static_cast<uint32_t>(arguments.size());
@@ -393,28 +628,25 @@ void unary_expression_t::print_ast(std::ostream& os, uint32_t indent_level, bool
 	os << COLOR_LABEL << "unary_op : " << COLOR_OP << unary_op_to_string(op) << COLOR_RESET << "\n";
 	if (expr) expr->print_ast(os, indent_level + 1, false);
 }
-void for_range_expression_t::print_ast(std::ostream& os, uint32_t indent_level /* = 0 */, bool is_last /* = true */) const
-{
-	draw_branch(os, indent_level, is_last);
-	os << COLOR_LABEL << "for_range_expression" << COLOR_RESET;
-
-	// Exclusive / inclusive info
-	os << " (" << (is_exclusive ? "exclusive" : "inclusive") << ")";
-	os << "\n";
-
-	// Start expression
-	draw_branch(os, indent_level + 1, false);
-	os << COLOR_LABEL << "start" << COLOR_RESET << "\n";
-	if (start)
-		start->print_ast(os, indent_level + 2, true);
-
-	// Destination expression
-	draw_branch(os, indent_level + 1, true);
-	os << COLOR_LABEL << "destination" << COLOR_RESET << "\n";
-	if (destination)
-		destination->print_ast(os, indent_level + 2, true);
-}
-
+//void for_range_expression_t::print_ast(std::ostream& os, uint32_t indent_level /* = 0 */, bool is_last /* = true */) const
+//{
+//	draw_branch(os, indent_level, is_last);
+//	os << COLOR_LABEL << "for_range_expression" << COLOR_RESET;
+//
+//
+//	// Start expression
+//	draw_branch(os, indent_level + 1, false);
+//	os << COLOR_LABEL << "start" << COLOR_RESET << "\n";
+//	if (start)
+//		start->print_ast(os, indent_level + 2, true);
+//
+//	// Destination expression
+//	draw_branch(os, indent_level + 1, true);
+//	os << COLOR_LABEL << "destination(" << bin_op_to_string(comparator) << ")" << COLOR_RESET << "\n";
+//	if (destination)
+//		destination->print_ast(os, indent_level + 2, true);
+//}
+//
 void assignment_expression_t::print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const
 {
 	draw_branch(os, indent_level, is_last);
@@ -484,8 +716,8 @@ void for_statement_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/,
 	// Range expression
 	draw_branch(os, indent_level + 1, false);
 	os << COLOR_LABEL << "range" << COLOR_RESET << "\n";
-	if (range)
-		range->print_ast(os, indent_level + 2, true);
+	if (condition)
+		condition->print_ast(os, indent_level + 2, true);
 
 	// Step expression
 	draw_branch(os, indent_level + 1, false);

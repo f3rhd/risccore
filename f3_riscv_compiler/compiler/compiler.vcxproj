@@ -131,6 +131,7 @@
     <ClCompile Include="lexer\lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parser\parser.cpp" />
+    <ClCompile Include="program\program.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\error.hpp" />
@@ -139,6 +140,7 @@
     <ClInclude Include="common\token.hpp" />
     <ClInclude Include="lexer\lexer.hpp" />
     <ClInclude Include="parser\parser.hpp" />
+    <ClInclude Include="program\program.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\assembler\assembler.vcxproj">

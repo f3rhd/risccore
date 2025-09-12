@@ -48,6 +48,7 @@ namespace f3_compiler {
 		struct expression_t : node_t {
 			virtual bool is_lvalue() const { return false; }
 			virtual bool has_call() const { return false; }
+			virtual bool is_deref() const { return false; }
 		};
 
 		struct var_expression_t : expression_t {
@@ -98,29 +99,27 @@ namespace f3_compiler {
 			std::unique_ptr<expression_t> expr;
 			unary_expression_t(UNARY_OP op_, std::unique_ptr<expression_t>&& expr_) : expr(std::move(expr_)), op(op_) {}
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
-			bool is_lvalue() const override {
-				if (op == UNARY_OP::DEREF) {
+			bool is_deref() const override {
+				if (op == UNARY_OP::DEREF)
 					return true;
-				}
 				return false;
-			}
+			};
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
 
 		};
 
-		struct for_range_expression_t : expression_t {
-			std::unique_ptr<expression_t> start;
-			std::unique_ptr<expression_t> destination;
-			bool is_exclusive;
-			for_range_expression_t(std::unique_ptr<expression_t>&& start, std::unique_ptr<expression_t>&& destination_, bool is_exclusive_ = false) :
-				start(std::move(start)),
-				destination(std::move(destination_)),
-				is_exclusive(is_exclusive_)
-			{
-			}
-			void print_ast(std::ostream& os, uint32_t indent_level /* = 0 */, bool is_last/* = true */) const override;
-			std::string generate_ir(IR_Gen_Context& ctx) const override;
-		};
+		//struct for_range_expression_t : expression_t {
+		//	std::unique_ptr<expression_t> start;
+		//	BIN_OP comparator;
+		//	std::unique_ptr<expression_t> destination;
+		//	for_range_expression_t(std::unique_ptr<expression_t>&& start, std::unique_ptr<expression_t>&& destination_,BIN_OP comparator_) :
+		//		start(std::move(start)),
+		//		comparator(comparator_),
+		//		destination(std::move(destination_)) {
+		//	}
+		//	void print_ast(std::ostream& os, uint32_t indent_level /* = 0 */, bool is_last/* = true */) const override;
+		//	std::string generate_ir(IR_Gen_Context& ctx) const override;
+		//};
 
 		enum class ASSIGNMENT_TYPE {
 			UNKNOWN,
@@ -187,19 +186,19 @@ namespace f3_compiler {
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
 		};
 		struct for_statement_t : statement_t {
-			std::unique_ptr<expression_t> range;
+			std::unique_ptr<expression_t> condition;
 			std::unique_ptr<expression_t> step;
 			std::unique_ptr<block_statement_t> body;
 			for_statement_t(
 				std::unique_ptr<expression_t>&& range_,
 				std::unique_ptr<expression_t>&& step_,
 				std::unique_ptr<block_statement_t>&& body_
-			) : range(std::move(range_)), step(std::move(step_)), body(std::move(body_)) {
+			) : condition(std::move(range_)), step(std::move(step_)), body(std::move(body_)) {
 			}
 			for_statement_t(
 				std::unique_ptr<expression_t>&& range_,
 				std::unique_ptr<block_statement_t>&& body_
-			) : range(std::move(range_)), body(std::move(body_)) {
+			) : condition(std::move(range_)), body(std::move(body_)) {
 			}
 
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;

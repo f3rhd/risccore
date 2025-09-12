@@ -145,18 +145,46 @@ std::unique_ptr<expression_t> Parser::parse_for_range_expr() {
 	auto e = parse_assignment_expr();
 	// (i=0...=10)
 	if (current_token_is(TOKEN_TYPE::TRIPLE_DOT)) {
+		BIN_OP comparator = BIN_OP::LT;
 		bool is_exclusive = false;
 		// skip the tripple dot
 		advance();
-		if (!current_token_is(TOKEN_TYPE::ASSIGNMENT)) {
-			is_exclusive = true;
+
+		if(!current_token_is(TOKEN_TYPE::EQUAL) &&
+			!current_token_is(TOKEN_TYPE::LESS) &&
+			!current_token_is(TOKEN_TYPE::LESS_EQUAL) &&
+			!current_token_is(TOKEN_TYPE::GREATER) &&
+			!current_token_is(TOKEN_TYPE::NOT_EQUAL) &&
+			!current_token_is(TOKEN_TYPE::GRATER_EQUAL) 
+		) 
+		{
+			make_error(*_current_token, "Expected comparison operator.");
 		}
-		else {
-			// eat the =
-			advance();
+		switch(_current_token->type){
+			case TOKEN_TYPE::EQUAL:
+				comparator = BIN_OP::EQUALITY;
+				break;
+			case TOKEN_TYPE::NOT_EQUAL:
+				comparator = BIN_OP::NOT_EQUAL;
+				break;
+			case TOKEN_TYPE::LESS:
+				comparator = BIN_OP::LT;
+				break;
+			case TOKEN_TYPE::LESS_EQUAL:
+				comparator = BIN_OP::LTE;
+				break;
+			case TOKEN_TYPE::GRATER_EQUAL:
+				comparator = BIN_OP::GTE;
+				break;
+			case TOKEN_TYPE::GREATER:
+				comparator = BIN_OP::GT;
+				break;
 		}
+		// eat the comparison operator
+		//@Problem : When the e is assignment operation we are fuqed
+		advance();
 		auto right = parse_assignment_expr();
-		return std::make_unique<for_range_expression_t>(std::move(e),std::move(right),is_exclusive);
+		return std::make_unique<binary_expression_t>(comparator,std::move(e),std::move(right));
 	}
 	return e;
 }
@@ -167,11 +195,13 @@ std::unique_ptr<expression_t> Parser::parse_assignment_expr() {
 		current_token_is(TOKEN_TYPE::M_ASSIGNMENT)
 		) {
 		ASSIGNMENT_TYPE type = ASSIGNMENT_TYPE::UNKNOWN;
-		if ( left != nullptr && !left->is_lvalue()) {
+		if ( left != nullptr && !left->is_lvalue() && !left->is_deref()) {
 			make_error(peek_before(), "Left side of an assignment should be lvalue.");
 		}
 		switch (_current_token->type) {
-		case TOKEN_TYPE::ASSIGNMENT:  type = ASSIGNMENT_TYPE::NORMAL; break;
+		case TOKEN_TYPE::ASSIGNMENT:
+				type = ASSIGNMENT_TYPE::NORMAL;
+				break;
 		case TOKEN_TYPE::P_ASSIGNMENT: type = ASSIGNMENT_TYPE::P; break;
 		case TOKEN_TYPE::M_ASSIGNMENT: type = ASSIGNMENT_TYPE::M; break;
 		}
@@ -532,30 +562,4 @@ Program Parser::parse_program()
 	return {std::move(funcs), };
 }
 
-void Program::generate_IR() {
-
-	IR_Gen_Context ctx;
-	for (auto& func : _functions) {
-		func->generate_ir(ctx);
-	}
-	instructions = std::move(ctx.instructions);
-}
-
-void Program::print_IR(std::ostream& os){
-
-	for(auto& instr : instructions){
-		os << instr.to_string() << '\n';
-	}
-}
-bool Program::has_error() const
-{
-	return had_error;
-}
-
-void Program::print_ast()
-{
-	for (auto& func : _functions) {
-		func->print_ast(std::cout);
-	}
-}
 
