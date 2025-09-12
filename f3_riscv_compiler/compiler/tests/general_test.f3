@@ -1,6 +1,10 @@
+func add(int x, int y) -> int {
+	return x+y;
+}
 func main() -> void {
-	int a = 12;
-	int b = 23;
-	a = a + b;
-	b += 123;
+	int a = add(15,24);
+	int i;
+	for(i=0...<124;i++){
+		a += add(1,0);
+	}
 }

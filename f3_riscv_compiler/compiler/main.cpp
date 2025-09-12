@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 
 	if(ir_file){
 		std::ofstream ofs(ir_file);
-		program.print_IR(ofs);
+		program.print_IR(std::cout);
 	}
 	if (asm_file) {
 		std::ofstream ofs(asm_file);
