@@ -10,7 +10,7 @@
 using namespace  f3_compiler;
 int main(int argc, char** argv) {
 	if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <input.f3> [--print-ast] [--emit-ir <file>] [--emit-asm <file>][--emit-bin <file>]\n";
+        std::cerr << "Usage: " << argv[0] << " <input.f3> [--print-ast] [--emit-ir <file>] [--emit-asm-debug <file>] [--emit-asm <file>][--emit-bin <file>]\n";
         return 1;
 	}
 		const char* input_file = argv[1];
@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 				ir_file = argv[++i];
 				print_ir = true;
 			} else if (strcmp(argv[i], "--emit-asm-debug") == 0 && i + 1 < argc) {
-				asm_file = argv[++i];
+				bin_file = argv[++i];
 				asm_debug_output = true;
 			} else if (strcmp(argv[i], "--emit-bin") == 0 && i + 1 < argc) {
 				bin_file = argv[++i];
@@ -60,12 +60,18 @@ int main(int argc, char** argv) {
 	}
 	if (asm_file) {
 		std::ofstream ofs(asm_file);
+		ofs << ".reset_vector:\n";
+		ofs << "\tli sp, 0xFFFF\n";
+		ofs << "\tcall main\n";
 		ofs << asm_code;
 	}
 
 	if (bin_file) {
 
 		std::ofstream ofs("program.s");
+		ofs << ".reset_vector:\n";
+		ofs << "\tli sp, 0xFFFF\n";
+		ofs << "\tcall main\n";
 		ofs << asm_code;
 		ofs.close();
 		f3_riscv_assembler::Preprocessor asm_prc("program.s");

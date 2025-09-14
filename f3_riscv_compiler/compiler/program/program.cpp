@@ -393,7 +393,7 @@ namespace f3_compiler {
 
 			// emit the function label and function prologue
 			os << function_block.label_instr->label_id << ":\n";
-			int32_t frame_size = function_block.frame_size;
+			int32_t frame_size = align_up(function_block.frame_size,16);
 			// prologue lines are labels and directives — keep as-is but align instruction columns via helper
 			os << '\t' << std::left << std::setw(8) << "addi" << "sp,sp," << -frame_size << '\n';
 			os << '\t' << std::left << std::setw(8) << "sw" << "ra," << frame_size - 4 << "(sp)\n";
@@ -499,6 +499,9 @@ namespace f3_compiler {
 							// for ADD we can use addi, for SUB there is no subi pseudo so materialize into scratch
 							if(instruction->operation == ir_instruction_t::operation_::ADD){
 								emit("addi", destReg + "," + op1Reg + "," + instruction->src2);
+								if(instruction->store_dest_in_stack){
+									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
+								}
 								break;
 							}
 							// for other ops materialize into scratch
@@ -661,7 +664,7 @@ namespace f3_compiler {
 						emit("lw", "ra," + std::to_string(frame_size - 4) + "(sp)");
 						emit("lw", "s0," + std::to_string(frame_size - 8) + "(sp)");
 						emit("addi", "sp,sp," + std::to_string(frame_size));
-						emit("ret", "");
+						emit("jr ", "ra");
 						break;
 					}
 					case ir_instruction_t::operation_::NOP:{
@@ -692,14 +695,14 @@ namespace f3_compiler {
 					emit("lw", "ra," + std::to_string(frame_size - 4) + "(sp)");
 					emit("lw", "s0," + std::to_string(frame_size - 8) + "(sp)");
 					emit("addi", "sp,sp," + std::to_string(frame_size));
-					emit("ret", "");
+					emit("jr ", "ra");
 				}
 			} else {
 				// empty function body, still emit epilogue
 				emit("lw", "ra," + std::to_string(frame_size - 4) + "(sp)");
 				emit("lw", "s0," + std::to_string(frame_size - 8) + "(sp)");
 				emit("addi", "sp,sp," + std::to_string(frame_size));
-				emit("ret", "");
+				emit("jr", "ra");
 			}
 		} // end for function_blocks
 	}
