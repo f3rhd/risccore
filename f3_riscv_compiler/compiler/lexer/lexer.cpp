@@ -157,6 +157,7 @@ void Lexer::tokenize() {
 			}
 			else if (source_string[_i + 1] == '=') {
 				make_token(TOKEN_TYPE::M_ASSIGNMENT, std::string("-="), _row, _col);
+				_i += 2;
 			}
 			else {
 				make_token(TOKEN_TYPE::MINUS, std::string(1, ch), _row, _col);
@@ -288,7 +289,7 @@ void Lexer::tokenize() {
 		}
 		if (ch == '.') {
 			if (source_string[_i + 1] == '.' && source_string[_i + 2] == '.') {
-				make_token(TOKEN_TYPE::TRIPLE_DOT, std::string(1, ch), _row,_col);
+				make_token(TOKEN_TYPE::TRIPLE_DOT, std::string("..."), _row, _col);
 				_i += 3;
 			}
 			else {
@@ -406,6 +407,7 @@ void Lexer::tokenize() {
 			continue;
 		}
 		make_token(TOKEN_TYPE::IDENTIFIER, token_str, _row, _col);
+
 		_col++;
 	}
 	if (comment_start) {

@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="common\nodes.cpp">
+    <ClCompile Include="common\ast\nodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="lexer\lexer.cpp">
@@ -32,13 +32,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\error.hpp">
+    <ClInclude Include="common\other\error.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\nodes.hpp">
+    <ClInclude Include="common\ast\nodes.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\token.hpp">
+    <ClInclude Include="common\other\token.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lexer\lexer.hpp">
@@ -47,10 +47,16 @@
     <ClInclude Include="parser\parser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common\ir_gen_context.hpp">
+    <ClInclude Include="common\ir\ir_gen_context.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="program\program.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\ir\basic_block.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\ir\interference_node.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

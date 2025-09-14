@@ -1,10 +1,12 @@
-func add(int x, int y) -> int {
-	return x+y;
+func fac(int n) -> int {
+	if( n == 1){
+		return n;
+	}
+	return n * fac(n-1);
 }
 func main() -> void {
-	int a = add(15,24);
-	int i;
-	for(i=0...<124;i++){
-		a += add(1,0);
+	int num = fac(5);
+	while(num > 0){
+		num--;
 	}
 }

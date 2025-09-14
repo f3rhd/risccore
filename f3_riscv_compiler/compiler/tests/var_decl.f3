@@ -1,3 +1,0 @@
-func main() -> void {
-	int x = int y + 5;
-}

@@ -1,6 +1,6 @@
 #pragma  once
 #include <iostream>
-#include "../common/token.hpp"
+#include "../common/other/token.hpp"
 namespace f3_compiler {
 
 	enum class ERROR_CODE : uint32_t {

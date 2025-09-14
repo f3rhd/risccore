@@ -1,14 +1,14 @@
 #pragma  once
-#include "../common/token.hpp"
-#include "../common/nodes.hpp"
-#include "../common/error.hpp"
+#include "../common/other/token.hpp"
+#include "../common/other/error.hpp"
 #include "../program/program.hpp"
+#include "../common/ast/nodes.hpp"
 namespace f3_compiler {
 	class Parser {
 	public:
 		Parser(std::vector<token_t>&& tokens) : _tokens(std::move(tokens)), _current_token(&_tokens[0]) {}
 		Program															parse_program();
-		bool															no_error();
+		bool															has_error();
 	private:
 		std::unique_ptr<ast_node::func_decl_t>							parse_function();
 		void															advance();
@@ -16,7 +16,7 @@ namespace f3_compiler {
 		bool															current_token_is(TOKEN_TYPE expected_type);
 		void															expect(TOKEN_TYPE type,const std::string& error_msg);
 		const token_t&													peek_next();
-		const token_t&													peek_before();
+		const token_t&													peek_before(uint32_t i = 1);
 		std::vector<ast_node::func_decl_param_t>						parse_func_decl_params();
 		std::string														parse_identifier();
 		std::unique_ptr<ast_node::block_statement_t> 					parse_func_body();

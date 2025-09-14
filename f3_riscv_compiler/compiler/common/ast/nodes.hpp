@@ -7,7 +7,7 @@
 #include <istream>
 #include <fstream>
 
-#include "ir_gen_context.hpp"
+#include "../ir/ir_gen_context.hpp"
 
 namespace f3_compiler {
 	struct type_t {
@@ -49,6 +49,7 @@ namespace f3_compiler {
 			virtual bool is_lvalue() const { return false; }
 			virtual bool has_call() const { return false; }
 			virtual bool is_deref() const { return false; }
+			virtual bool is_assignment(const std::string& left = "") const { return false; }
 		};
 
 		struct var_expression_t : expression_t {
