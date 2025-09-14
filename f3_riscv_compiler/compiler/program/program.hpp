@@ -11,17 +11,18 @@ namespace f3_compiler {
 		void generate_IR();
 		void generate_basic_blocks();
 		void print_IR(std::ostream& os);
+		//void print_control_flow(std::ostream& os);
 		void print_ast();
 		bool has_error() const;
 		Program(std::vector<std::unique_ptr<ast_node::func_decl_t>>&& functions) : _functions(std::move(functions)) {}
 	private:
 		void set_control_flow_graph();
-		void compute_block_use_def();
-		void compute_block_live_in_out();
+		//void compute_block_use_def();
+		//void compute_block_live_in_out();
 		void compute_instruction_live_in_out();
+		void compute_instruction_use_def();
 		void create_interference_graph_nodes();
 		void compute_interference_graph();
-		void compute_instruction_use_def();
 	private:
 		const basic_block_t* get_basic_block_by_label(const std::string& label);
 		std::vector<std::unique_ptr<ast_node::func_decl_t>>  _functions;

@@ -5,9 +5,11 @@
 #include <iostream>
 #include <sstream>
 #include <set>
+#include <unordered_map>
 struct ir_instruction_t {
     enum class operation_ { 
         UNKNOWN,
+        FUNC_ENTRY,
         LOAD_CONST, STORE,LOAD,GOTO,NOP,
         ADD, SUB, MUL, DIV, REM,
         BGT,BLE,BNEQ,BEQ,BGE,BLT,
@@ -20,6 +22,7 @@ struct ir_instruction_t {
         MOV 
     } operation = operation_::UNKNOWN;
 
+    bool store_dest_in_stack = false;
     std::string dest;
     std::string src1, src2;
     std::string label_id;
@@ -31,19 +34,34 @@ struct ir_instruction_t {
 
     std::string to_string() const {
         std::ostringstream out;
-        if (operation != operation_::LABEL) {
+        if (operation != operation_::LABEL && operation != operation_::FUNC_ENTRY) {
             out << "\t";
         }
         switch (operation) {
         case operation_::LOAD_CONST:
-            out << dest << " = " << src1; // e.g. t1 = 123
+            //out << dest << " = " << src1; // e.g. t1 = 123
+            out << "LI " << dest << "," << src1;
             break;
-        case operation_::ADD: case operation_::SUB: case operation_::MUL:
-        case operation_::DIV: case operation_::REM:
-        case operation_::CMP_LT: case operation_::CMP_GT: case operation_::CMP_GTE:
-        case operation_::CMP_LTE: case operation_::CMP_EQ: case operation_::CMP_NEQ:
-        case operation_::AND: case operation_::OR:
-            out << dest << " = " << src1 << " " << op_to_string() << " " << src2;
+        case operation_::ADD: 
+            out << "ADD " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::SUB: 
+            out << "SUB " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::MUL:
+            out << "MUL " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::DIV: 
+            out << "DIV " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::REM:
+            out << "REM " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::AND: 
+            out << "AND " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::OR:
+            out << "OR " << dest << "," << src1 << ',' << src2;
             break;
         case operation_::NOT:
         case operation_::NEG:
@@ -94,6 +112,7 @@ struct ir_instruction_t {
             out << "BLT " << src1 << "," << src2 <<  ", " << label_id;
             break;
         case operation_::LABEL:
+        case operation_::FUNC_ENTRY:
             out << label_id << ":";
             break;
         case operation_::MOV:
@@ -141,19 +160,27 @@ struct ir_instruction_t {
 
 
 };
-
 struct IR_Gen_Context {
 
 	std::vector<ir_instruction_t> instructions;
 	std::vector<std::string> skip_jump_labels;
     std::vector<std::string> break_jump_labels;
 	std::vector<std::string> return_jump_labels;
+    std::unordered_map<std::string, uint32_t> symbol_differentiator;
     ir_instruction_t comparison_instruction;
     bool left_is_deref = false;
     std::string generate_label() { return ".L" + std::to_string(label_id++); }
 	std::string generate_temp() { return "t" + std::to_string(temp_id++); }
 	void push_scope() { scopes.emplace_back(); }
 	void pop_scope() { scopes.pop_back(); }
+    void reset() {
+        skip_jump_labels.clear();
+        break_jump_labels.clear();
+        return_jump_labels.clear();
+        for(auto& [key,value] : symbol_differentiator){
+            value++;
+        }
+    }
 
 private:
 	uint32_t label_id = 0;
