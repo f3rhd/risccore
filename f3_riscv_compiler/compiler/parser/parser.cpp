@@ -145,6 +145,9 @@ std::unique_ptr<expression_t> Parser::parse_for_range_expr() {
 	auto e = parse_assignment_expr();
 	// (i=0...=10)
 	if (current_token_is(TOKEN_TYPE::TRIPLE_DOT)) {
+		if (!e->is_lvalue()) {
+			make_error(peek_before(2u), "Expected l-value");
+		}
 		BIN_OP comparator = BIN_OP::LT;
 		bool is_exclusive = false;
 		// skip the tripple dot
@@ -181,7 +184,6 @@ std::unique_ptr<expression_t> Parser::parse_for_range_expr() {
 				break;
 		}
 		// eat the comparison operator
-		//@Problem : When the e is assignment operation we are fuqed
 		advance();
 		auto right = parse_assignment_expr();
 		return std::make_unique<binary_expression_t>(comparator,std::move(e),std::move(right));
@@ -541,15 +543,15 @@ std::unique_ptr<statement_t> Parser::parse_statement() {
 	}
 	return parse_expr_statement();
 }
-const token_t& Parser::peek_before(){
-	if(_curr_index > 0)
-		return _tokens[_curr_index - 1];
+const token_t& Parser::peek_before(uint32_t i){
+	if(_curr_index-i > 0)
+		return _tokens[_curr_index - i];
 	return _tokens[0];
 }
 
-bool Parser::no_error()
+bool Parser::has_error()
 {
-	return _errors.empty();
+	return !_errors.empty();
 }
 
 Program Parser::parse_program()

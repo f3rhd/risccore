@@ -127,17 +127,19 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="common\nodes.cpp" />
+    <ClCompile Include="common\ast\nodes.cpp" />
     <ClCompile Include="lexer\lexer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="parser\parser.cpp" />
     <ClCompile Include="program\program.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common\error.hpp" />
-    <ClInclude Include="common\ir_gen_context.hpp" />
-    <ClInclude Include="common\nodes.hpp" />
-    <ClInclude Include="common\token.hpp" />
+    <ClInclude Include="common\ir\basic_block.hpp" />
+    <ClInclude Include="common\ir\interference_node.hpp" />
+    <ClInclude Include="common\other\error.hpp" />
+    <ClInclude Include="common\ir\ir_gen_context.hpp" />
+    <ClInclude Include="common\ast\nodes.hpp" />
+    <ClInclude Include="common\other\token.hpp" />
     <ClInclude Include="lexer\lexer.hpp" />
     <ClInclude Include="parser\parser.hpp" />
     <ClInclude Include="program\program.hpp" />

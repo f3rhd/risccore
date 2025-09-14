@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
 		const char *ir_file = nullptr;
 		const char* asm_file = nullptr;
 		const char* bin_file = nullptr;
+		const char* flow_file = nullptr;
 		for (int i = 2; i < argc; i++) {
 			if (strcmp(argv[i], "--print-ast") == 0) {
 				print_ast = true;
@@ -37,16 +38,16 @@ int main(int argc, char** argv) {
 		}
 		Lexer lexer(input_file);
 		Parser parser(std::move(const_cast<std::vector<token_t>&>(lexer.get_tokens())));
-		if (!parser.no_error()) {
-			exit(EXIT_FAILURE);
-		}
 	auto program = parser.parse_program();
+	if (parser.has_error()) {
+		exit(EXIT_FAILURE);
+	}
 	if (print_ast) {
 		program.print_ast();
 	}
 
 	std::ostringstream asm_stream;
-	program.generate_IR();
+	program.generate_basic_blocks();
 	if (program.has_error()) {
 		exit(EXIT_FAILURE);
 	}

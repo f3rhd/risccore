@@ -122,12 +122,12 @@ namespace f3_riscv_assembler {
 				if(head->middle == nullptr)
 					val = nullptr;
 				else
-					val = head->right->str_ptr_value;
+					val = head->middle->str_ptr_value;
 				utils::throw_error_message({"Operation should have a label identifier as third operand.", val, head->line_info});
 				success = 0;
 			}
 			// Parser will make the identifier node's imm value -1 if it points to nowhere
-			if(head->right->identifier_immediate == -1){
+			if(head->right && head->right->identifier_immediate == -1){
 				utils::throw_error_message({"Identifier points to non-valid label.", head->right->str_ptr_value, head->line_info});
 				success = 0;
 			} 
@@ -142,11 +142,11 @@ namespace f3_riscv_assembler {
 				utils::throw_error_message({"Operation should have an label identifier as second operand.", val, head->line_info});
 				success = 0;
 			}
-			if(head->middle->identifier_immediate == -1){
+			if(head->middle && head->middle->identifier_immediate == -1){
 				utils::throw_error_message({"Identifier points to non-valid label.", head->middle->str_ptr_value, head->line_info});
 				success = 0;
 			} 
-			if(head->right != nullptr){
+			if(head && head->right != nullptr){
 				utils::throw_error_message({"Operation cannot have a third operand.", head->right->str_ptr_value, head->line_info});
 				success = 0;
 			}

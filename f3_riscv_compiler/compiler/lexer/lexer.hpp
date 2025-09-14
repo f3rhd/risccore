@@ -3,8 +3,8 @@
 #include <sstream>
 #include <fstream>
 
-#include "../common/error.hpp"
-#include "../common/token.hpp"
+#include "../common/other/error.hpp"
+#include "../common/other/token.hpp"
 
 namespace f3_compiler {
 	class Lexer {
