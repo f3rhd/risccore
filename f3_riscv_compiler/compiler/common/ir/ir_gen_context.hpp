@@ -23,6 +23,7 @@ struct ir_instruction_t {
     } operation = operation_::UNKNOWN;
 
     bool store_dest_in_stack = false;
+    bool load_var_from_memory = false;
     std::string dest;
     std::string src1, src2;
     std::string label_id;

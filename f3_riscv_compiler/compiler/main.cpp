@@ -46,8 +46,9 @@ int main(int argc, char** argv) {
 		program.print_ast();
 	}
 
-	std::ostringstream asm_stream;
 	program.generate_IR();
+	std::ostringstream asm_stream;
+	program.generate_asm(asm_stream);
 	if (program.has_error()) {
 		exit(EXIT_FAILURE);
 	}
