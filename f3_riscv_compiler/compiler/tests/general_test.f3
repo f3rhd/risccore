@@ -1,11 +1,9 @@
-func fac(int num) -> int {
-	if( num == 1){
-		return num;
-	}
-	return num * fac(num-1);
-}
 
 func main() -> void {
 	
-	int num = fac(5);
+	int num = 1;
+	int  i = 1;
+	for(i...<=5;i++){
+		num = num * i;
+	}
 }
