@@ -5,12 +5,13 @@ namespace f3_compiler {
 		IR_Gen_Context ctx;
 		for (auto& func : _functions) {
 			func->generate_ir(ctx);
+			ctx.reset();
 		}
 		_instructions = std::move(ctx.instructions);
+		generate_basic_blocks();
 	}
 
 	void Program::generate_basic_blocks() {
-		generate_IR();
 		uint64_t i = 0;
 		uint64_t size = _instructions.size();
 
@@ -23,7 +24,9 @@ namespace f3_compiler {
 
 			// Collect instructions until we hit a terminator or a new LABEL
 			while (i < size &&
-				   _instructions[i].operation != ir_instruction_t::operation_::LABEL) {
+				   _instructions[i].operation != ir_instruction_t::operation_::LABEL
+				   && _instructions[i].operation != ir_instruction_t::operation_::FUNC_ENTRY
+				) {
 				
 				block.instructions.push_back(&_instructions[i]);
 
@@ -55,31 +58,7 @@ namespace f3_compiler {
 		//compute_block_use_def();
 		//compute_block_live_in_out();
 	}
-	//void Program::compute_block_use_def()
-	//{
-	//	for (auto& block : _blocks) {
-	//		block.use.clear();
-	//		block.def.clear();
-
-	//		std::set<std::string> defined;
-	//		for (const auto& instr : block.instructions) {
-
-	//			//src1 is used
-	//			 if (!instr->src1.empty() && !std::isdigit(instr->src1[0]) && defined.find(instr->src1) == defined.end())
-	//				block.use.insert(instr->src1);
-
-	//			// src2 is used
-	//			if (!instr->src2.empty() && !std::isdigit(instr->src2[1]) && defined.find(instr->src2) == defined.end())
-	//				block.use.insert(instr->src2);
-
-	//			if (!instr->dest.empty()) {
-	//				block.def.insert(instr->dest);
-	//				defined.insert(instr->dest);
-	//			}
-	//		}
-	//	}
-
-	//}
+	
 	void Program::set_control_flow_graph() {
 
 		for (uint64_t i = 0; i < _blocks.size(); i++) {
@@ -110,41 +89,6 @@ namespace f3_compiler {
 			}
 		}
 	}
-
-	//void Program::compute_block_live_in_out()
-	//{
-	//	std::vector<basic_block_t*> worklist;
-	//	worklist.reserve(_blocks.size());
-	//	for (basic_block_t& block : _blocks) {
-	//		worklist.push_back(&block);
-	//	}
-
-	//	while (!worklist.empty()) {
-	//		basic_block_t* B = worklist.back();
-	//		worklist.pop_back();
-
-	//		std::set<std::string> old_in = B->live_in;
-	//		std::set<std::string> old_out = B->live_out;
-
-	//		// live-out = union of live-in of successors
-	//		B->live_out.clear();
-	//		for (auto* succ : B->successors)
-	//			B->live_out.insert(succ->live_in.begin(), succ->live_in.end());
-
-	//		// live-in = use union (live-out - def)
-	//		B->live_in = B->use;
-	//		for (const auto& temp : B->live_out)
-	//			if (B->def.find(temp) == B->def.end())
-	//				B->live_in.insert(temp);
-
-	//		// if changed, add predecessors back to worklist
-	//		if (B->live_in != old_in || B->live_out != old_out) {
-	//			for (basic_block_t* pred : B->predecessors)
-	//				worklist.push_back(pred);
-	//		}
-	//	}
-	//}
-
 
 	void Program::compute_instruction_use_def(){
 		for(auto& instr : _instructions){
