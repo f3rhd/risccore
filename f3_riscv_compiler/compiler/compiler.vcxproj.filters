@@ -59,5 +59,8 @@
     <ClInclude Include="common\ir\interference_node.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="common\ir\function_block.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -49,6 +49,10 @@ namespace {
 	}
 	inline std::string differentiate_var_if_needed(IR_Gen_Context& ctx, const std::string& var_id){
 
+		for (const char c : var_id) {
+			if (c == '$')
+				return var_id;
+		}
 		if(var_id[0] == 't')
 			return var_id;
 		return var_id + "$" + std::to_string(ctx.symbol_differentiator[var_id]);
@@ -317,51 +321,59 @@ std::string assignment_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	std::string right = rhs->generate_ir(ctx);
 	if(left[0] != 't')
 		instr.store_dest_in_stack = true;
-	if (left[0] != 't' && ctx.symbol_differentiator.find(left) == ctx.symbol_differentiator.end()) {
-		ctx.symbol_differentiator.emplace(left, 0);
-		instr.dest = left;
-	}
-	else if (left[0] != 't' && ctx.symbol_differentiator.find(left) != ctx.symbol_differentiator.end()) {
-		ctx.symbol_differentiator[left]++;
-		instr.dest = left + "$" + std::to_string(ctx.symbol_differentiator[left]);
-	}
+	instr.dest = differentiate_var_if_needed(ctx, left);
 	if (!lhs->is_deref()) {
 		switch (type)
 		{
 		case ASSIGNMENT_TYPE::P:
 			instr.operation = ir_instruction_t::operation_::ADD;
 			instr.src1 = instr.dest;
-			instr.src2 = right;
+			instr.src2 = differentiate_var_if_needed(ctx,right);
 			break;
 		case ASSIGNMENT_TYPE::M:
 			instr.operation = ir_instruction_t::operation_::SUB;
 			instr.src1 = instr.dest;
-			instr.src2 = right;
+			instr.src2 = differentiate_var_if_needed(ctx,right);
 			break;
 		default:
 			instr.operation = ir_instruction_t::operation_::MOV;
-			instr.src1 = right;
+			instr.src2 = differentiate_var_if_needed(ctx,right);
 		}
 	}
 	else {
 		instr.operation = ir_instruction_t::operation_::STORE;
 		instr.dest = left;
 		std::string temp;
+		std::string _temp;
 		std::string destination = ctx.generate_temp();
 		ir_instruction_t instr_2;
+		ir_instruction_t load_instr;
 		switch (type)
 		{
 		case ASSIGNMENT_TYPE::P:
 			temp = lhs->generate_ir(ctx);
+			load_instr.operation = ir_instruction_t::operation_::LOAD;
+			_temp = ctx.generate_temp();
+			load_instr.dest = _temp;
+			load_instr.src1 = temp;
+			ctx.instructions.push_back(std::move(load_instr));
+
 			instr_2.operation = ir_instruction_t::operation_::ADD;
 			instr_2.dest = destination;
-			instr_2.src1 = temp;
+			instr_2.src1 = _temp;
 			instr_2.src2 = right;
 			ctx.instructions.push_back(std::move(instr_2));
+
 			instr.src1 = destination;
 			break;
 		case ASSIGNMENT_TYPE::M:
 			temp = lhs->generate_ir(ctx);
+			load_instr.operation = ir_instruction_t::operation_::LOAD;
+			_temp = ctx.generate_temp();
+			load_instr.dest = _temp;
+			load_instr.src1 = temp;
+			ctx.instructions.push_back(std::move(load_instr));
+
 			instr_2.operation = ir_instruction_t::operation_::SUB;
 			instr_2.dest = destination;
 			instr_2.src1 = temp;
@@ -370,7 +382,7 @@ std::string assignment_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 			instr.src1 = temp;
 			break;
 		default:
-			instr.src1 = right;
+			instr.src1 = differentiate_var_if_needed(ctx,right);
 		}
 
 	}
@@ -476,7 +488,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 			instr.operation = ir_instruction_t::operation_::DEREF;
 			ctx.left_is_deref = false;
 		}
-		return left; // when we do *a = 12 and stuff
+		return differentiate_var_if_needed(ctx,left); // when we do *a = 12 and stuff
 		break;
 	case UNARY_OP::INCR:
 		if (!expr->is_deref()) {
@@ -533,7 +545,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	}
 	destination = ctx.generate_temp();
 	instr.dest = destination;
-	instr.src1 = left;
+	instr.src1 = differentiate_var_if_needed(ctx, left);
 	ctx.instructions.push_back(std::move(instr));
 	return destination;
 }

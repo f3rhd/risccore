@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\ir\basic_block.hpp" />
+    <ClInclude Include="common\ir\function_block.hpp" />
     <ClInclude Include="common\ir\interference_node.hpp" />
     <ClInclude Include="common\other\error.hpp" />
     <ClInclude Include="common\ir\ir_gen_context.hpp" />
