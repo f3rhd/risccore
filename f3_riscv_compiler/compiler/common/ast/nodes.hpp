@@ -98,7 +98,8 @@ namespace f3_compiler {
 		struct unary_expression_t : expression_t {
 			UNARY_OP op = UNARY_OP::UNKNOWN;
 			std::unique_ptr<expression_t> expr;
-			unary_expression_t(UNARY_OP op_, std::unique_ptr<expression_t>&& expr_) : expr(std::move(expr_)), op(op_) {}
+			int32_t ptr_depth = 0;
+			unary_expression_t(UNARY_OP op_, std::unique_ptr<expression_t>&& expr_,int32_t ptr_depth_ = 0) : expr(std::move(expr_)), op(op_), ptr_depth(ptr_depth_){}
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			bool is_deref() const override {
 				if (op == UNARY_OP::DEREF)
@@ -125,8 +126,11 @@ namespace f3_compiler {
 		enum class ASSIGNMENT_TYPE {
 			UNKNOWN,
 			NORMAL,
-			P, // +=
-			M, // =
+			ADD_ASSIGN, // +=
+			SUBTRACT_ASSIGN, // =
+			MULTIPLY_ASSIGN, // *=
+			DIVIDE_ASSIGN, // /=
+			MOD_ASSIGN // %=
 		};
 		struct assignment_expression_t : expression_t {
 			ASSIGNMENT_TYPE type = ASSIGNMENT_TYPE::UNKNOWN;

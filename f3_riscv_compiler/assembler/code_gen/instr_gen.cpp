@@ -95,25 +95,32 @@ namespace f3_riscv_assembler {
 					else if(*head->str_ptr_value == "li"){
 
 						int32_t imm_value = utils::str_to_int32(*head->middle->str_ptr_value);
-						if(imm_value < 2048){
+						// single addi if fits signed 12-bit immediate range [-2048, 2047]
+						if(imm_value >= -2048 && imm_value <= 2047){
 							instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
 							instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
 							instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
 							instr.rs1 = instruction_look_up::get_register_index("zero");
 							instr.imm = imm_value;
 						}else{
-
+							// Expand into: lui rd, upper20 ; addi rd, rd, lower12
 							need_second_instr = true;
+							// compute upper 20 bits taking into account low 12-bit sign (rounding)
+							uint32_t imm_u = static_cast<uint32_t>(imm_value);
+							uint32_t upper_u = (imm_u + 0x800u) & 0xFFFFF000u; // standard adjustment
+							int32_t upper = static_cast<int32_t>(upper_u);
+							int32_t lower = imm_value - upper; // fits in signed 12-bit
+
 							instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::U_TYPE,"lui");
 							instr.type = instruction_look_up::OPERATION_TYPE::U_TYPE;
 							instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-							instr.imm = imm_value & 0xFFF00;
+							instr.imm = upper; // upper holds the U-type immediate (already <<12)
 
 							_instr.opcode = instruction_look_up::get_op_code(instruction_look_up::OPERATION_TYPE::I_TYPE);
 							_instr.type = instruction_look_up::OPERATION_TYPE::I_TYPE;
-							_instr.rd = instruction_look_up::get_register_index(*head->left->str_ptr_value);
-							_instr.rs1 = instruction_look_up::get_register_index("zero");
-							_instr.imm = imm_value & 0xFFF;
+							_instr.rd = instr.rd;
+							_instr.rs1 = instr.rd; // addi rd, rd, lower
+							_instr.imm = lower;
 						}
 					}             
 					else if(*head->str_ptr_value == "beqz"){

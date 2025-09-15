@@ -99,7 +99,7 @@ type_t Parser::parse_type()
 		type_pointer_depth++;
 		advance();
 	}
-	return { .base = type_base,.pointer_depth = type_pointer_depth };
+	return { type_base,type_pointer_depth };
 }
 void Parser::expect(TOKEN_TYPE type, const std::string& error_msg)
 {
@@ -193,8 +193,8 @@ std::unique_ptr<expression_t> Parser::parse_for_range_expr() {
 std::unique_ptr<expression_t> Parser::parse_assignment_expr() {
 	auto left = parse_equality_expr();
 	if (current_token_is(TOKEN_TYPE::ASSIGNMENT) ||
-		current_token_is(TOKEN_TYPE::P_ASSIGNMENT) ||
-		current_token_is(TOKEN_TYPE::M_ASSIGNMENT)
+		current_token_is(TOKEN_TYPE::MINUS_EQUAL) ||
+		current_token_is(TOKEN_TYPE::PLUS_EQUAL)
 		) {
 		ASSIGNMENT_TYPE type = ASSIGNMENT_TYPE::UNKNOWN;
 		if ( left != nullptr && !left->is_lvalue() && !left->is_deref()) {
@@ -204,8 +204,11 @@ std::unique_ptr<expression_t> Parser::parse_assignment_expr() {
 		case TOKEN_TYPE::ASSIGNMENT:
 				type = ASSIGNMENT_TYPE::NORMAL;
 				break;
-		case TOKEN_TYPE::P_ASSIGNMENT: type = ASSIGNMENT_TYPE::P; break;
-		case TOKEN_TYPE::M_ASSIGNMENT: type = ASSIGNMENT_TYPE::M; break;
+		case TOKEN_TYPE::MINUS_EQUAL: type = ASSIGNMENT_TYPE::ADD_ASSIGN; break;
+		case TOKEN_TYPE::PLUS_EQUAL: type = ASSIGNMENT_TYPE::SUBTRACT_ASSIGN; break;
+		case TOKEN_TYPE::SLASH_EQUAL: type = ASSIGNMENT_TYPE::DIVIDE_ASSIGN; break;
+		case TOKEN_TYPE::PERCENTAGE_EQUAL: type = ASSIGNMENT_TYPE::MOD_ASSIGN; break;
+		case TOKEN_TYPE::STAR_EQUAL: type = ASSIGNMENT_TYPE::MULTIPLY_ASSIGN; break;
 		}
 		advance();
 		auto right = parse_equality_expr();
@@ -304,6 +307,7 @@ std::unique_ptr<expression_t> Parser::parse_mod() {
 }
 std::unique_ptr<expression_t> Parser::parse_unary_op() {
 	// Handle prefix unary operators
+	static uint32_t pointer_depth = 0;
 	if (
 		current_token_is(TOKEN_TYPE::DOUBLE_PLUS) ||
 		current_token_is(TOKEN_TYPE::MINUS) ||
@@ -316,20 +320,25 @@ std::unique_ptr<expression_t> Parser::parse_unary_op() {
 		switch (_current_token->type) {
 		case TOKEN_TYPE::DOUBLE_PLUS: op = UNARY_OP::INCR; break;
 		case TOKEN_TYPE::MINUS: op = UNARY_OP::NEG; break;
-		case TOKEN_TYPE::DOUBLE_MINUS: op = UNARY_OP::DECR; break;
+		case TOKEN_TYPE::DOUBLE_MINUS: op = UNARY_OP::DECR;
+			break;
 		case TOKEN_TYPE::EXCLAMATION: op = UNARY_OP::NOT; break;
 		case TOKEN_TYPE::AMPERSAND: op = UNARY_OP::ADDR; break;
-		case TOKEN_TYPE::STAR: op = UNARY_OP::DEREF; break;
+		case TOKEN_TYPE::STAR: op = UNARY_OP::DEREF;
+			break;
 		default:
 			make_error(*_current_token, "Unknown unary operator.");
 			break;
 		}
 		advance();
 		auto operand = parse_unary_op();
-		return std::make_unique<unary_expression_t>(op, std::move(operand));
+		if(op != UNARY_OP::DEREF)
+			pointer_depth = -1;
+		return std::make_unique<unary_expression_t>(op, std::move(operand),++pointer_depth);
 	}
 
 	// Parse the primary expression
+	pointer_depth = 0;
 	auto expr = parse_primary_expr();
 
 	// Handle postfix unary operators (e.g., x++, x--)

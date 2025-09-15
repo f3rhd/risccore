@@ -135,7 +135,7 @@ void Lexer::tokenize() {
 				_i += 2;
 			}
 			else if (source_string[_i + 1] == '=') {
-				make_token(TOKEN_TYPE::P_ASSIGNMENT, std::string("+="), _row, _col);
+				make_token(TOKEN_TYPE::MINUS_EQUAL, std::string("+="), _row, _col);
 				_i += 2;
 			}
 			else {
@@ -156,7 +156,7 @@ void Lexer::tokenize() {
 				_i += 2;
 			}
 			else if (source_string[_i + 1] == '=') {
-				make_token(TOKEN_TYPE::M_ASSIGNMENT, std::string("-="), _row, _col);
+				make_token(TOKEN_TYPE::PLUS_EQUAL, std::string("-="), _row, _col);
 				_i += 2;
 			}
 			else {
@@ -173,24 +173,41 @@ void Lexer::tokenize() {
 			continue;
 		}
 		if (ch == '*') {
-
-			make_token(TOKEN_TYPE::STAR, std::string(1, ch), _row, _col);
-			_i++;
+			if (source_string[_i + 1] == '=') {
+				make_token(TOKEN_TYPE::STAR_EQUAL, std::string("*="), _row, _col);
+				_i += 2;
+			}
+			else {
+				make_token(TOKEN_TYPE::STAR, std::string("*"), _row, _col);
+				_i++;
+			}
 			_col++;
 			continue;
 		}
 		if (ch == '/') {
-
-			make_token(TOKEN_TYPE::SLASH, std::string(1, ch), _row, _col);
-			_i++;
+			if (source_string[_i + 1] == '=') {
+				make_token(TOKEN_TYPE::SLASH_EQUAL, std::string("/="), _row, _col);
+				_i += 2;
+			}
+			else {
+				make_token(TOKEN_TYPE::SLASH, std::string("/"), _row, _col);
+				_i++;
+			}
 			_col++;
 			continue;
 		}
 		if (ch == '%') {
 
-			make_token(TOKEN_TYPE::PERCENTAGE, std::string(1, ch), _row, _col);
-			_i++;
+			if (source_string[_i + 1] == '=') {
+				make_token(TOKEN_TYPE::PERCENTAGE_EQUAL, std::string("%="), _row, _col);
+				_i += 2;
+			}
+			else {
+				make_token(TOKEN_TYPE::PERCENTAGE, std::string("%"), _row, _col);
+				_i++;
+			}
 			_col++;
+	
 			continue;
 		}
 		if (ch == '=') {

@@ -9,20 +9,20 @@ module rom #(parameter SIZE = (4 << 20)) // 4MB
     int fd,r;
     int i;
     initial begin
-        fd  = $fopen("program.bin","rb");
-        i = 0;
-        if(fd == 0) begin
-            $display("Failed to open the file.");
-            $finish;
-        end
-        while(1) begin
-            r = $fgetc(fd);
-            if(r == -1)
-                break;
-            cells[i] = r[7:0];
-            i++;
-        end
-        //$readmemb("instructions.mem", cells);
+       fd  = $fopen("program.bin","rb");
+       i = 0;
+       if(fd == 0) begin
+           $display("Failed to open the file.");
+           $finish;
+       end
+       while(1) begin
+           r = $fgetc(fd);
+           if(r == -1)
+               break;
+           cells[i] = r[7:0];
+           i++;
+       end
+        //$readmemh("instructions.mem", cells);
     end
 
     // === Read 32-bit word (little-endian) ===
