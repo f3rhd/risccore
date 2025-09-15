@@ -8,7 +8,7 @@ namespace f3_compiler {
 			return (offset + alignment - 1) / alignment * alignment;
 		}
 		inline std::string actual_offset(int32_t logical_offset, int32_t saved_regs_bytes = 8) {
-			return std::to_string(-(saved_regs_bytes + logical_offset));
+			return std::to_string((logical_offset - saved_regs_bytes));
 		}
 	}
 	void Program::generate_asm(std::ostream& os){
@@ -83,7 +83,7 @@ namespace f3_compiler {
 					_function_blocks.back().local_vars.emplace(instr->src2,-logical_offset);
 				}
 			}
-			block.frame_size = logical_offset;
+			block.frame_size = logical_offset + 8;
 		}
 	} 
 	void Program::generate_basic_blocks() {
@@ -448,6 +448,12 @@ namespace f3_compiler {
 					std::string op = get_allocated_reg_for_var(instruction->src2) + "," + actual_offset(function_block.local_vars[instruction->src2]) + "(s0)";
 					emit("lw", op);
 				}
+				// store instructon's destination is a memory address
+				if(instruction->operation == ir_instruction_t::operation_::STORE
+					&& function_block.local_vars.find(instruction->dest) != function_block.local_vars.end()){
+					std::string op = get_allocated_reg_for_var(instruction->dest) + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)";
+					emit("lw", op);
+				}
 				// emit instruction-specific assembly
 				switch(instruction->operation){
 					case ir_instruction_t::operation_::PARAM:{
@@ -541,7 +547,7 @@ namespace f3_compiler {
 						std::string destReg = get_allocated_reg_for_var(instruction->dest);
 						// src1 should be a local variable (stack slot)
 						auto it = function_block.local_vars.find(instruction->src1);
-						if(it == function_block.local_vars.end()){
+						if(it != function_block.local_vars.end()){
 							auto off = actual_offset(it->second);
 							emit("lw", destReg + "," + off + "(s0)");
 						} else {
@@ -552,7 +558,7 @@ namespace f3_compiler {
 						break;
 					}
 					case ir_instruction_t::operation_::STORE: {
-						// sw src1Reg, offset(s0) where dest names variable slot
+						// sw src1Reg, 0(ptr) where dest names variable slot
 						std::string srcReg;
 						if(is_immediate(instruction->src1)){
 							// materialize immediate into scratch then store
@@ -561,15 +567,8 @@ namespace f3_compiler {
 						} else {
 							srcReg = get_allocated_reg_for_var(instruction->src1);
 						}
-						auto it = function_block.local_vars.find(instruction->dest);
-						if(it == function_block.local_vars.end()){
-							auto off = actual_offset(it->second);
-							emit("sw", srcReg + "," + (off) + "(s0)");
-						} else {
-							// fallback: dest is an address in register, store to 0(destReg)
-							std::string addrReg = get_allocated_reg_for_var(instruction->dest);
-							emit("sw", srcReg + ",0(" + addrReg + ")");
-						}
+						std::string addrReg = get_allocated_reg_for_var(instruction->dest);
+						emit("sw", srcReg + ",0(" + addrReg + ")");
 						break;
 					}
 					case ir_instruction_t::operation_::GOTO: {

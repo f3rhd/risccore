@@ -131,9 +131,7 @@ namespace f3_riscv_assembler {
 						instr.rs1,
 						instr.rs2,
 						instr.imm);
-					std::cout << "\tHex: " << std::hex << std::setw(8) << std::setfill('0') << raw << std::dec << '\n';
-					std::cout << "\tBin:" << std::bitset<32>(raw) << '\n';
-					std::cout << "\tDec:" << raw << '\n';
+					std::cout << /*"\tHex: " <<*/ std::hex << std::setw(8) << std::setfill('0') << raw << std::dec << '\n';
 				}
 				buffer.push_back(raw);
 			}

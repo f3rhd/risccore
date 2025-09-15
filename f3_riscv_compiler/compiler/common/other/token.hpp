@@ -22,8 +22,11 @@ namespace f3_compiler {
 		LCURLY, // {
 		RCURLY, // }
 		ASSIGNMENT, // =
-		P_ASSIGNMENT, // -=
-		M_ASSIGNMENT, // +=
+		MINUS_EQUAL, // -=
+		PLUS_EQUAL, // +=
+		STAR_EQUAL, // *=
+		SLASH_EQUAL, //-=
+		PERCENTAGE_EQUAL, // %=
 		ARROW, // ->
 		GREATER, // >
 		GRATER_EQUAL, // >=

@@ -1,9 +1,15 @@
-
+func fac(int n) -> int {
+	if(n <= 1){
+		return 1;
+	}
+	return n * fac(n-1);
+}
 func main() -> void {
 	
-	int num = 1;
-	int  i = 1;
-	for(i...<=5;i++){
-		num = num * i;
+	int num = fac(5);
+	int x = 0;
+	while(x == 0){
+		x +=1;
+		x -=1;
 	}
 }

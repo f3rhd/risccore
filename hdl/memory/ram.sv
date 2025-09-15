@@ -73,6 +73,7 @@ module ram #(parameter SIZE = (4<<20) // 4MB
 
                 if (_word_addr + 3 < SIZE)
                     cells[_word_addr + 3] <= data_in[31:24];
+                $display("Wrote 0x%0h to the memory 0x%0h at time:%0d",data_in,_word_addr,$time);
             end
 
             2'b01: begin // write half word
@@ -81,11 +82,13 @@ module ram #(parameter SIZE = (4<<20) // 4MB
 
                 if (_word_addr + 1 < SIZE)
                     cells[_word_addr + 1] <= data_in[15:8];
+                $display("Wrote 0x%0h to the memory 0x%0h at time:%0d",data_in,_word_addr,$time);
             end
 
             2'b10: begin // write byte
                 if (_word_addr < SIZE)
                     cells[_word_addr] <= data_in[7:0];
+                $display("Wrote 0x%0h to the memory 0x%0h at time:%0d",data_in,_word_addr,$time);
             end
 
             default: ; // no write
