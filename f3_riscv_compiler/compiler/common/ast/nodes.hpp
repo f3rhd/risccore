@@ -8,28 +8,11 @@
 #include <fstream>
 
 #include "../ir/ir_gen_context.hpp"
+#include "../analysis/analysis_context.hpp"
+#include "../other/f3_type.hpp"
 
 namespace f3_compiler {
-	struct type_t {
-		enum class BASE { INT, UINT, VOID, UNKNOWN } base = BASE::INT;
-		int32_t pointer_depth = 0;
-
-		std::string str() const {
-			auto _pointer_depth = [&]() -> std::string {
-				std::string str;
-				for (int i = 0; i < pointer_depth; i++)
-					str += '*';
-				return str;
-			};
-			switch (base) {
-			case BASE::INT: return "int" + _pointer_depth();
-			case BASE::UINT: return "uint" + _pointer_depth() ;
-			case BASE::VOID: return "void" + _pointer_depth() ;
-			default: return "int" + _pointer_depth();
-			}
-		}
-
-	};
+	
 	namespace ast_node {
 
 		struct node_t {
@@ -38,13 +21,6 @@ namespace f3_compiler {
 			virtual std::string generate_ir(IR_Gen_Context& ctx) const = 0;
 		};
 
-		struct func_decl_param_t {
-			std::string name;
-			type_t type;
-
-			func_decl_param_t(type_t typ, std::string&& id) : name(std::move(id)), type(typ) {}
-			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const;
-		};
 		struct expression_t : node_t {
 			virtual bool is_lvalue() const { return false; }
 			virtual bool has_call() const { return false; }
@@ -109,19 +85,6 @@ namespace f3_compiler {
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
 
 		};
-
-		//struct for_range_expression_t : expression_t {
-		//	std::unique_ptr<expression_t> start;
-		//	BIN_OP comparator;
-		//	std::unique_ptr<expression_t> destination;
-		//	for_range_expression_t(std::unique_ptr<expression_t>&& start, std::unique_ptr<expression_t>&& destination_,BIN_OP comparator_) :
-		//		start(std::move(start)),
-		//		comparator(comparator_),
-		//		destination(std::move(destination_)) {
-		//	}
-		//	void print_ast(std::ostream& os, uint32_t indent_level /* = 0 */, bool is_last/* = true */) const override;
-		//	std::string generate_ir(IR_Gen_Context& ctx) const override;
-		//};
 
 		enum class ASSIGNMENT_TYPE {
 			UNKNOWN,

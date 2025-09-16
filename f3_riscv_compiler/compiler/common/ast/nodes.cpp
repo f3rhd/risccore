@@ -2,6 +2,10 @@
 #include <algorithm>
 using namespace f3_compiler::ast_node;
 namespace {
+
+
+
+	// IR GENERATION
 	void add_nop_on_label_clash(IR_Gen_Context& ctx) 
 	{
 		if (ctx.instructions.back().operation == ir_instruction_t::operation_::LABEL) {
@@ -893,7 +897,7 @@ void for_statement_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/,
 		body->print_ast(os, indent_level + 2, true);
 }
 
-void f3_compiler::ast_node::func_decl_param_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/, bool is_last /*= true*/) const
+void f3_compiler::func_decl_param_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/, bool is_last /*= true*/) const
 {
 	draw_branch(os, indent_level, is_last);
 	os << COLOR_LABEL << "param : " << COLOR_RESET
