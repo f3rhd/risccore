@@ -7,9 +7,9 @@ func fac(int n) -> int {
 func main() -> void {
 	
 	int num = fac(5);
-	int x = 0;
-	while(x == 0){
-		x +=1;
-		x -=1;
+	int* num_ptr = &num;
+	int i = 0;
+	for(i...<=4;i++){
+		*num_ptr++;
 	}
 }
