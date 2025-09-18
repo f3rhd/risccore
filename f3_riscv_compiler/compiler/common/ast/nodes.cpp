@@ -54,7 +54,7 @@ type_t return_statement_t::analyse(Analysis_Context& ctx) const {
 		return_expression_type = {type_t::BASE::VOID, 0};
 
 	auto func_decl_info = ctx.get_func_decl_info(ctx.current_func_id);
-	// I cannot find a reason why this could happen but we are gonna see
+	// I cannot find a reason why this could happen but we are gonna see as program include no global statements
 	if(!func_decl_info) {
 		ctx.make_error(ERROR_CODE::RETURN_DOES_NOT_MATCH, "return", "Return statement could not find valid function");
 		return {};
@@ -1206,7 +1206,7 @@ void binary_expression_t::print_ast(std::ostream& os, uint32_t indent_level, boo
 void unary_expression_t::print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const
 {
 	draw_branch(os, indent_level, is_last);
-	os << COLOR_LABEL << "unary_op(" << ptr_depth << "): " << COLOR_OP << unary_op_to_string(op) << COLOR_RESET << "\n";
+	os << COLOR_LABEL << "unary_op(ptr_depth = " << ptr_depth << "): " << COLOR_OP << unary_op_to_string(op) << COLOR_RESET << "\n";
 	if (expr) expr->print_ast(os, indent_level + 1, false);
 }
 void assignment_expression_t::print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const
