@@ -29,51 +29,51 @@ const std::vector<token_t>& f3_compiler::Lexer::get_tokens()
 	return tokens;
 }
 
-std::string Lexer::token_name(TOKEN_TYPE type) {
-		switch (type) {
-		case TOKEN_TYPE::PLUS: return "Token_Type::PLUS";
-		case TOKEN_TYPE::MINUS: return "Token_Type::MINUS";
-		case TOKEN_TYPE::SLASH: return "Token_Type::DIVIDE";
-		case TOKEN_TYPE::STAR: return "Token_Type::STAR";
-		case TOKEN_TYPE::PERCENTAGE: return "Token_Type::PERCENTAGE";
-		case TOKEN_TYPE::LPAREN: return "Token_Type::LPAREN";
-		case TOKEN_TYPE::RPAREN: return "Token_Type::RPAREN";
-		case TOKEN_TYPE::LCURLY: return "Token_Type::LCURLY";
-		case TOKEN_TYPE::RCURLY: return "Token_Type::RCURLY";
-		case TOKEN_TYPE::ASSIGNMENT: return "Token_Type::ASSIGNMENT";
-		case TOKEN_TYPE::ARROW: return "Token_Type::ARROW";
-		case TOKEN_TYPE::GREATER: return "Token_Type::Greater";
-		case TOKEN_TYPE::GRATER_EQUAL: return "Token_Type::GREATER_EQUAL";
-		case TOKEN_TYPE::LESS: return "Token_Type::LESS";
-		case TOKEN_TYPE::LESS_EQUAL: return "Token_Type::LESS_EQUAL";
-		case TOKEN_TYPE::EQUAL: return "Token_Type::EQUAL";
-		case TOKEN_TYPE::SEMICOLON: return "Token_Type::SEMICOLON";
-		case TOKEN_TYPE::INT_LITERAL: return "Token_Type::INT_LITERAL";
-		case TOKEN_TYPE::EXCLAMATION: return "Token_Type::EXCLAMATION";
-		case TOKEN_TYPE::NOT_EQUAL: return "Token_Type::NOT_EQUAL";
-		case TOKEN_TYPE::AMPERSAND: return "Token_Type::AMPERSAND";
-		case TOKEN_TYPE::DOUBLE_AMPERSAND: return "Token_Type::DOUBLE_AMPERSAND";
-		//case TOKEN_TYPE::COLUMN: return "Token_Type::COLUMN";
-		case TOKEN_TYPE::DOUBLE_COLUMN: return "Token_Type::DOUBLE_COLUMN";
-		case TOKEN_TYPE::KW_INT: return "Token_Type::KW_INT";
-		case TOKEN_TYPE::KW_UINT: return "Token_Type::KW_UINT";
-		case TOKEN_TYPE::KW_VOID: return "Token_Type::KW_VOID";
-		case TOKEN_TYPE::KW_OR: return "Token_Type::KW_OR";
-		case TOKEN_TYPE::KW_AND: return "Token_Type::KW_AND";
-		case TOKEN_TYPE::KW_RETURN: return "Token_Type::KW_RETURN";
-		case TOKEN_TYPE::KW_FUNC: return "Token_Type::KW_FUNC";
-		case TOKEN_TYPE::KW_IF: return "Token_Type::KW_IF";
-		case TOKEN_TYPE::KW_ELSE: return "Token_Type::KW_ELSE";
-		case TOKEN_TYPE::KW_WHILE: return "Token_Type::KW_WHILE";
-		case TOKEN_TYPE::KW_FOR: return "Token_Type::KW_FOR";
-		case TOKEN_TYPE::KW_SKIP: return "Token_Type::KW_SKIP";
-		case TOKEN_TYPE::IDENTIFIER: return "Token_Type::KW_IDENTIFIER";
-		case TOKEN_TYPE::DOT:  return "Token_Type::DOT";
-		case TOKEN_TYPE::COMMA: return "Token_Type::COMMA";
-		case TOKEN_TYPE::END_OF_FILE: return "Token_Type::EOF";
-		default: return "UNKNOWN";
-	} 
-}
+//std::string Lexer::token_name(TOKEN_TYPE type) {
+//		switch (type) {
+//		case TOKEN_TYPE::PLUS: return "Token_Type::PLUS";
+//		case TOKEN_TYPE::MINUS: return "Token_Type::MINUS";
+//		case TOKEN_TYPE::SLASH: return "Token_Type::DIVIDE";
+//		case TOKEN_TYPE::STAR: return "Token_Type::STAR";
+//		case TOKEN_TYPE::PERCENTAGE: return "Token_Type::PERCENTAGE";
+//		case TOKEN_TYPE::LPAREN: return "Token_Type::LPAREN";
+//		case TOKEN_TYPE::RPAREN: return "Token_Type::RPAREN";
+//		case TOKEN_TYPE::LCURLY: return "Token_Type::LCURLY";
+//		case TOKEN_TYPE::RCURLY: return "Token_Type::RCURLY";
+//		case TOKEN_TYPE::ASSIGNMENT: return "Token_Type::ASSIGNMENT";
+//		case TOKEN_TYPE::ARROW: return "Token_Type::ARROW";
+//		case TOKEN_TYPE::GREATER: return "Token_Type::Greater";
+//		case TOKEN_TYPE::GRATER_EQUAL: return "Token_Type::GREATER_EQUAL";
+//		case TOKEN_TYPE::LESS: return "Token_Type::LESS";
+//		case TOKEN_TYPE::LESS_EQUAL: return "Token_Type::LESS_EQUAL";
+//		case TOKEN_TYPE::EQUAL: return "Token_Type::EQUAL";
+//		case TOKEN_TYPE::SEMICOLON: return "Token_Type::SEMICOLON";
+//		case TOKEN_TYPE::INT_LITERAL: return "Token_Type::INT_LITERAL";
+//		case TOKEN_TYPE::EXCLAMATION: return "Token_Type::EXCLAMATION";
+//		case TOKEN_TYPE::NOT_EQUAL: return "Token_Type::NOT_EQUAL";
+//		case TOKEN_TYPE::AMPERSAND: return "Token_Type::AMPERSAND";
+//		case TOKEN_TYPE::DOUBLE_AMPERSAND: return "Token_Type::DOUBLE_AMPERSAND";
+//		//case TOKEN_TYPE::COLUMN: return "Token_Type::COLUMN";
+//		case TOKEN_TYPE::DOUBLE_COLUMN: return "Token_Type::DOUBLE_COLUMN";
+//		case TOKEN_TYPE::KW_INT: return "Token_Type::KW_INT";
+//		case TOKEN_TYPE::KW_UINT: return "Token_Type::KW_UINT";
+//		case TOKEN_TYPE::KW_VOID: return "Token_Type::KW_VOID";
+//		case TOKEN_TYPE::KW_OR: return "Token_Type::KW_OR";
+//		case TOKEN_TYPE::KW_AND: return "Token_Type::KW_AND";
+//		case TOKEN_TYPE::KW_RETURN: return "Token_Type::KW_RETURN";
+//		case TOKEN_TYPE::KW_FUNC: return "Token_Type::KW_FUNC";
+//		case TOKEN_TYPE::KW_IF: return "Token_Type::KW_IF";
+//		case TOKEN_TYPE::KW_ELSE: return "Token_Type::KW_ELSE";
+//		case TOKEN_TYPE::KW_WHILE: return "Token_Type::KW_WHILE";
+//		case TOKEN_TYPE::KW_FOR: return "Token_Type::KW_FOR";
+//		case TOKEN_TYPE::KW_SKIP: return "Token_Type::KW_SKIP";
+//		case TOKEN_TYPE::IDENTIFIER: return "Token_Type::KW_IDENTIFIER";
+//		case TOKEN_TYPE::DOT:  return "Token_Type::DOT";
+//		case TOKEN_TYPE::COMMA: return "Token_Type::COMMA";
+//		case TOKEN_TYPE::END_OF_FILE: return "Token_Type::EOF";
+//		default: return "UNKNOWN";
+//	} 
+//}
 void Lexer::tokenize() {
 
 	const std::string& source_string = _source_string_stream.str();
@@ -167,8 +167,14 @@ void Lexer::tokenize() {
 			continue;
 		}
 		if (ch == '!') {
-			make_token(TOKEN_TYPE::EXCLAMATION, std::string(1, ch), _row, _col);
-			_i++;
+			if (source_string[_i + 1] == '=') {
+				make_token(TOKEN_TYPE::NOT_EQUAL, std::string("!="), _row, _col);
+				_i += 2;
+			}
+			else {
+				make_token(TOKEN_TYPE::EXCLAMATION, std::string(1, ch), _row, _col);
+				_i++;
+			}
 			_col++;
 			continue;
 		}

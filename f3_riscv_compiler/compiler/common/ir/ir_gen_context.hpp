@@ -161,28 +161,30 @@ struct ir_instruction_t {
 
 
 };
+// flags
+auto constexpr is_if_statement = 1 << 0;
+auto constexpr is_comparsion = 1 << 1;
+auto constexpr is_while_statement = 1 << 2;
 struct IR_Gen_Context {
-
-	std::vector<ir_instruction_t> instructions;
-	std::vector<std::string> skip_jump_labels;
-    std::vector<std::string> break_jump_labels;
-	std::vector<std::string> return_jump_labels;
-    std::unordered_map<std::string, uint32_t> symbol_differentiator;
-    ir_instruction_t comparison_instruction;
-    bool left_is_deref = false;
     std::string generate_label() { return ".L" + std::to_string(label_id++); }
 	std::string generate_temp() { return "t" + std::to_string(temp_id++); }
-	void push_scope() { scopes.emplace_back(); }
+    void push_scope() { scopes.emplace_back(); }
 	void pop_scope() { scopes.pop_back(); }
     void reset() {
         skip_jump_labels.clear();
         break_jump_labels.clear();
-        return_jump_labels.clear();
-        for(auto& [key,value] : symbol_differentiator){
+        for(auto& [key,value] : symbol_mangles){
             value++;
         }
     }
-
+    uint32_t flag = 0;
+    bool left_is_deref = false;
+public:
+    std::vector<ir_instruction_t> instructions;
+	std::vector<std::string> skip_jump_labels;
+    std::vector<std::string> break_jump_labels;
+    std::unordered_map<std::string, uint32_t> symbol_mangles;
+    ir_instruction_t comparison_instruction;
 private:
 	uint32_t label_id = 0;
 	uint32_t temp_id = 0;

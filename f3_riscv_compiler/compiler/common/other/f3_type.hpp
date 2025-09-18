@@ -2,7 +2,8 @@
 #include <string>
 #include <cstdint>
 struct type_t {
-		enum class BASE { INT, UINT, VOID, UNKNOWN } base = BASE::INT;
+		// success is used in analysis
+		enum class BASE { INT, UINT, VOID, UNKNOWN,SUCCESS} base = BASE::VOID;
 		int32_t pointer_depth = 0;
 
 		std::string str() const {

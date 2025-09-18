@@ -62,5 +62,11 @@
     <ClInclude Include="common\ir\function_block.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="common\analysis\analysis_context.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common\other\f3_type.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

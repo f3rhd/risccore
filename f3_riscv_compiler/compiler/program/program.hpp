@@ -9,11 +9,12 @@
 
 namespace f3_compiler {
 	struct Program {
+		void analyse();
 		void generate_IR();
 		void generate_asm(std::ostream& os);
 		void print_IR(std::ostream& os);
 		void print_ast();
-		bool has_error() const;
+		bool has_error();
 		Program(std::vector<std::unique_ptr<ast_node::func_decl_t>>&& functions) : _functions(std::move(functions)) {}
 	private:
 		void set_control_flow_graph();
@@ -31,10 +32,10 @@ namespace f3_compiler {
 		std::vector<std::string> _spilled_vars;
 		const basic_block_t* get_basic_block_by_label(const std::string& label);
 		std::vector<std::unique_ptr<ast_node::func_decl_t>>  _functions;
-		bool had_error = false;
 		std::vector<ir_instruction_t> _instructions;
 		std::vector<basic_block_t> _blocks;
 		std::unordered_map<std::string,interference_node_t> _interference_nodes;
 		std::vector<function_block_t> _function_blocks;
+		std::vector<error_t> _errors;
 	};
 }
