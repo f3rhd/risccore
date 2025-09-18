@@ -1,6 +1,6 @@
 #pragma  once
 #include <iostream>
-#include "../common/other/token.hpp"
+#include "token.hpp"
 namespace f3_compiler {
 
 	enum class ERROR_CODE : uint32_t {
@@ -11,7 +11,13 @@ namespace f3_compiler {
 		INVALID_CHAR,
 		INVALID_NUMBER_FORMAT,
 		UNTERMINATED_COMMENT,
-		UNDEFINED_REFERENCE
+		UNDEFINED_REFERENCE,
+		RETURN_DOES_NOT_MATCH,
+		LOOP_KEYWORD_IS_OUTSIDE_OF_LOOP,
+		FUNCTION_SHOULD_RETURN,
+		VAR_IS_NOT_DEFINED_IN_SCOPE,
+		CALL_TO_UNDEFINED_FUCNTION,
+		TYPES_DO_NOT_MATCH
 	};
 	struct error_t {
 
@@ -33,8 +39,7 @@ namespace f3_compiler {
 		error_t(ERROR_CODE err_code,const std::string &cause,const std::string& msg) : error_code(err_code),message(msg) {
 			if (cause_token.value.empty())
 				std::cout << "error f" << static_cast<uint32_t>(error_code)
-				<< "(" << "*"
-				<< "," << "*" << ") : " << message << '\n';
+				<< "(" << ") : " << message << '\n';
 			else
 				std::cout << "error f" << static_cast<uint32_t>(error_code) 
 					<< "(" << "???"

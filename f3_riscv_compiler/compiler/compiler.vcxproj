@@ -134,12 +134,14 @@
     <ClCompile Include="program\program.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="common\analysis\analysis_context.hpp" />
     <ClInclude Include="common\ir\basic_block.hpp" />
     <ClInclude Include="common\ir\function_block.hpp" />
     <ClInclude Include="common\ir\interference_node.hpp" />
     <ClInclude Include="common\other\error.hpp" />
     <ClInclude Include="common\ir\ir_gen_context.hpp" />
     <ClInclude Include="common\ast\nodes.hpp" />
+    <ClInclude Include="common\other\f3_type.hpp" />
     <ClInclude Include="common\other\token.hpp" />
     <ClInclude Include="lexer\lexer.hpp" />
     <ClInclude Include="parser\parser.hpp" />

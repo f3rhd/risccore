@@ -25,7 +25,7 @@ namespace f3_compiler {
 			virtual bool is_lvalue() const { return false; }
 			virtual bool has_call() const { return false; }
 			virtual bool is_deref() const { return false; }
-			virtual bool is_assignment(const std::string& left = "") const { return false; }
+			virtual type_t analyse(Analysis_Context& ctx) const = 0;
 		};
 
 		struct var_expression_t : expression_t {
@@ -35,6 +35,7 @@ namespace f3_compiler {
 
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 
 		struct integer_literal_t : expression_t {
@@ -43,6 +44,7 @@ namespace f3_compiler {
 
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 		struct func_call_expr_t : expression_t {
 
@@ -52,6 +54,7 @@ namespace f3_compiler {
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
 			bool has_call() const override { return true; }
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 		enum class BIN_OP {
 			ADD, SUB, DIV, MUL, MOD, GT, LT, GTE, LTE, EQUALITY, NOT_EQUAL, AND, OR
@@ -69,6 +72,7 @@ namespace f3_compiler {
 
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 
 		};
 		struct unary_expression_t : expression_t {
@@ -83,7 +87,7 @@ namespace f3_compiler {
 				return false;
 			};
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
-
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 
 		enum class ASSIGNMENT_TYPE {
@@ -105,11 +109,14 @@ namespace f3_compiler {
 
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
+
 		};
 
 		struct statement_t : node_t {
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override = 0;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			virtual type_t analyse(Analysis_Context& ctx) const = 0;
 		};
 
 		struct var_decl_statement_t : statement_t {
@@ -120,6 +127,7 @@ namespace f3_compiler {
 
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 
 		struct block_statement_t : statement_t {
@@ -127,6 +135,7 @@ namespace f3_compiler {
 			block_statement_t(std::vector<std::unique_ptr<statement_t>>&& statements_) : statements(std::move(statements_)) {}
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last = true) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 
 		};
 		struct if_statement_t : statement_t {
@@ -143,6 +152,7 @@ namespace f3_compiler {
 			}
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 		struct while_statement_t : if_statement_t {
 			while_statement_t(std::vector<std::unique_ptr<expression_t>>&& condition_,
@@ -152,6 +162,7 @@ namespace f3_compiler {
 
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 		struct for_statement_t : statement_t {
 			std::unique_ptr<expression_t> condition;
@@ -171,6 +182,7 @@ namespace f3_compiler {
 
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		
 		};
 		struct return_statement_t : statement_t {
@@ -178,17 +190,20 @@ namespace f3_compiler {
 			return_statement_t(std::unique_ptr<expression_t>&& return_expr_) : return_expr(std::move(return_expr_)) {}
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 		struct break_statement_t : statement_t {
 			break_statement_t() = default;
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 
 		struct skip_statement_t : statement_t {
 			skip_statement_t() = default;
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 
 		struct expr_statement_t : statement_t {
@@ -196,6 +211,7 @@ namespace f3_compiler {
 			expr_statement_t(std::unique_ptr<expression_t>&& expr_) : expr(std::move(expr_)) {}
 			void print_ast(std::ostream& os, uint32_t indent_level = 0, bool is_last = true) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
 		};
 
 		struct func_decl_t : node_t {
@@ -204,6 +220,7 @@ namespace f3_compiler {
 			std::vector<func_decl_param_t> arguments;
 			std::unique_ptr<block_statement_t> body;
 
+			void analyse(Analysis_Context & ctx);
 			func_decl_t(std::string&& func_name, std::vector<func_decl_param_t>&& args, type_t ret, std::unique_ptr<block_statement_t> body_) :
 				id(std::move(func_name)), return_type(ret), body(std::move(body_)), arguments(std::move(args)) {
 			}

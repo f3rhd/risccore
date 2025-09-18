@@ -46,7 +46,10 @@ int main(int argc, char** argv) {
 	if (print_ast) {
 		program.print_ast();
 	}
-
+	program.analyse();
+	if(program.has_error()){
+		exit(EXIT_FAILURE);
+	}
 	program.generate_IR();
 	std::ostringstream asm_stream;
 	program.generate_asm(asm_stream);
@@ -57,7 +60,7 @@ int main(int argc, char** argv) {
 
 	if(ir_file){
 		std::ofstream ofs(ir_file);
-		program.print_IR(std::cout);
+		program.print_IR(ofs);
 	}
 	if (asm_file) {
 		std::ofstream ofs(asm_file);

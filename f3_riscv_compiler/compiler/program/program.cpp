@@ -180,7 +180,6 @@ namespace f3_compiler {
 	void Program::compute_instruction_live_in_out() {
 		bool changed = true;
 
-		// Iterate until live_in/live_out stabilize (fixed point)
 		while (changed) {
 			changed = false;
 
@@ -288,15 +287,10 @@ namespace f3_compiler {
 			}
 		}
 
-		// degree map
-		std::unordered_map<std::string,int> degree;
-		for (const auto& kv : adj) degree[kv.first] = static_cast<int>(kv.second.size());
-
 		// Work on a modifiable set of nodes
 		std::unordered_set<std::string> nodes;
 		for (const auto& kv : adj) nodes.insert(kv.first);
 
-		// simplify stack + spilled candidates
 		std::vector<std::string> simplify_stack;
 		std::unordered_set<std::string> spilled_candidates;
 
@@ -383,7 +377,6 @@ namespace f3_compiler {
 				coloring[node] = chosen;
 			}
 		}
-		// Save results into Program members
 		_coloring = std::move(coloring);
 		_spilled_vars = std::move(actually_spilled);
 	}
@@ -394,16 +387,13 @@ namespace f3_compiler {
 			// emit the function label and function prologue
 			os << function_block.label_instr->label_id << ":\n";
 			int32_t frame_size = align_up(function_block.frame_size,16);
-			// prologue lines are labels and directives — keep as-is but align instruction columns via helper
 			os << '\t' << std::left << std::setw(8) << "addi" << "sp,sp," << -frame_size << '\n';
 			os << '\t' << std::left << std::setw(8) << "sw" << "ra," << frame_size - 4 << "(sp)\n";
 			os << '\t' << std::left << std::setw(8) << "sw" << "s0," << frame_size - 8 << "(sp)\n";
 			os << '\t' << std::left << std::setw(8) << "addi" << "s0,sp," << frame_size << '\n'; // frame pointer
 
-			// printing helper: mnemonic column width
 			const int MNEMONIC_WIDTH = 8;
 			auto emit = [&](const std::string& mnemonic, const std::string& operands){
-				// if mnemonic is empty, still indent but don't pad
 				if(mnemonic.empty()){
 					os << '\t' << operands << '\n';
 				} else {
@@ -411,7 +401,6 @@ namespace f3_compiler {
 				}
 			};
 
-			// helper lambdas
 			auto is_immediate = [](const std::string& s)->bool{
 				if(s.empty()) return false;
 				if(s.size()>2 && s[0]=='0' && (s[1]=='x' || s[1]=='X')) return true;
@@ -454,7 +443,6 @@ namespace f3_compiler {
 					std::string op = get_allocated_reg_for_var(instruction->dest) + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)";
 					emit("lw", op);
 				}
-				// emit instruction-specific assembly
 				switch(instruction->operation){
 					case ir_instruction_t::operation_::PARAM:{
 						// PARAM handled as storing argument register onto stack slot for the named parameter
@@ -705,10 +693,6 @@ namespace f3_compiler {
 			}
 		} // end for function_blocks
 	}
-	bool Program::has_error() const
-	{
-		return had_error;
-	}
 
 	const basic_block_t* Program::get_basic_block_by_label(const std::string& label)
 	{
@@ -730,5 +714,16 @@ namespace f3_compiler {
 		for (auto& instruction : _instructions) {
 				os << instruction.to_string() << '\n';
 		}
+	}
+	void Program::analyse(){
+		Analysis_Context ctx;
+		for(auto& func : _functions){
+			func->analyse(ctx);
+			ctx.reset();
+		}
+		_errors = std::move(ctx.get_errors());
+	}
+	bool Program::has_error() {
+		return _errors.size() > 0;
 	}
 }

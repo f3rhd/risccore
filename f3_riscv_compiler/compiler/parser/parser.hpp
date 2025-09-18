@@ -3,6 +3,7 @@
 #include "../common/other/error.hpp"
 #include "../program/program.hpp"
 #include "../common/ast/nodes.hpp"
+#include "../common/analysis/analysis_context.hpp"
 namespace f3_compiler {
 	class Parser {
 	public:
@@ -17,7 +18,7 @@ namespace f3_compiler {
 		void															expect(TOKEN_TYPE type,const std::string& error_msg);
 		const token_t&													peek_next();
 		const token_t&													peek_before(uint32_t i = 1);
-		std::vector<ast_node::func_decl_param_t>						parse_func_decl_params();
+		std::vector<func_decl_param_t>									parse_func_decl_params();
 		std::string														parse_identifier();
 		std::unique_ptr<ast_node::block_statement_t> 					parse_func_body();
 		std::unique_ptr<ast_node::block_statement_t>					parse_block_statement();

@@ -241,7 +241,7 @@ std::unique_ptr<expression_t> Parser::parse_logical_or_expr() {
 
 std::unique_ptr<expression_t> Parser::parse_logical_and_expr() {
 	auto e = parse_relational_expr();
-	if (current_token_is(TOKEN_TYPE::DOUBLE_AMPERSAND) || current_token_is(TOKEN_TYPE::KW_AND)) {
+	while(current_token_is(TOKEN_TYPE::DOUBLE_AMPERSAND) || current_token_is(TOKEN_TYPE::KW_AND)) {
 		BIN_OP op = BIN_OP::AND;
 		advance();
 		auto right = parse_relational_expr();
@@ -255,7 +255,8 @@ std::unique_ptr<expression_t> Parser::parse_relational_expr() {
 		current_token_is(TOKEN_TYPE::GREATER) ||
 		current_token_is(TOKEN_TYPE::GRATER_EQUAL) ||
 		current_token_is(TOKEN_TYPE::LESS) ||
-		current_token_is(TOKEN_TYPE::LESS_EQUAL)
+		current_token_is(TOKEN_TYPE::LESS_EQUAL) || 
+		current_token_is(TOKEN_TYPE::NOT_EQUAL)
 	) {
 
 		BIN_OP op;
@@ -265,6 +266,7 @@ std::unique_ptr<expression_t> Parser::parse_relational_expr() {
 		case TOKEN_TYPE::GRATER_EQUAL: op = BIN_OP::GTE; break;
 		case TOKEN_TYPE::LESS: op = BIN_OP::LT; break;
 		case TOKEN_TYPE::LESS_EQUAL: op = BIN_OP::LTE; break;
+		case TOKEN_TYPE::NOT_EQUAL: op = BIN_OP::NOT_EQUAL; break;
 		}
 		advance();
 		auto right = parse_addition_subtraction();
