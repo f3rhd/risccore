@@ -1,4 +1,7 @@
 func main() -> void {
 	
-	int x = call();
+	int x = 123;
+	if(x > 123 || x < 124){
+		x++;
+	}
 }

@@ -72,19 +72,20 @@ int main(int argc, char** argv) {
 
 	if (bin_file) {
 
-		std::ofstream ofs("program.s");
+		std::string temp = "out" + std::string(bin_file);
+		std::ofstream ofs(temp);
 		ofs << ".reset_vector:\n";
 		ofs << "\tli sp, 0xFFFF\n";
 		ofs << "\tcall main\n";
 		ofs << asm_code;
 		ofs.close();
-		f3_riscv_assembler::Preprocessor asm_prc("program.s");
+		f3_riscv_assembler::Preprocessor asm_prc(temp.c_str());
 		f3_riscv_assembler::Parser asm_parser;
 		asm_parser.parse_lines(asm_prc.process(asm_debug_output), asm_prc.get_labels());
 		f3_riscv_assembler::instr_gen::generator gen;
 		gen.generate_instructions(asm_parser.get_ast_nodes());
 		f3_riscv_assembler::code_gen::generate_bin_file(bin_file, gen.get_instructions(),asm_debug_output);
-		std::remove("program.s");
+		std::remove(temp.c_str());
 	}
 	return 0;
 }
