@@ -572,14 +572,24 @@ namespace f3_compiler {
 						// branch src1, src2, label
 						std::string r1, r2;
 						if(is_immediate(instruction->src1)){
-							emit("li", scratch + "," + instruction->src1);
-							r1 = scratch;
+							if(instruction->src1 == "0"){
+								r1 = "zero";
+							}
+							else{
+
+								emit("li", scratch + "," + instruction->src1);
+								r1 = scratch;
+							}
 						} else {
 							r1 = get_allocated_reg_for_var(instruction->src1);
 						}
 						if(is_immediate(instruction->src2)){
-							emit("li", scratch + "," + instruction->src2);
-							r2 = scratch;
+							if(instruction->src2 == "0"){
+								r2 = "zero";
+							}else{
+								emit("li", scratch + "," + instruction->src2);
+								r2 = scratch;
+							}
 						} else {
 							r2 = get_allocated_reg_for_var(instruction->src2);
 						}

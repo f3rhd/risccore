@@ -352,6 +352,9 @@ namespace {
 			return var_id;
 		return  "$" + var_id + std::to_string(ctx.symbol_mangles[var_id]);
 	}
+	inline std::string mangle(const std::string& str) {
+		return "." + str;
+	}
 	void generate_jump_if_false(expression_t* expr, IR_Gen_Context& ctx, const std::string& false_label);
 	void generate_jump_if_true(expression_t* expr, IR_Gen_Context& ctx, const std::string& true_label);
 
@@ -463,7 +466,7 @@ std::string func_decl_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
 	// fucntion entry label
 	instr.operation = ir_instruction_t::operation_::FUNC_ENTRY;
-	instr.label_id = id;
+	instr.label_id = mangle(id);
 	ctx.instructions.push_back(std::move(instr));
 	for (auto& argument : arguments) {
 		ir_instruction_t instr;
@@ -656,6 +659,7 @@ std::string return_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	std::string temp = return_expr->generate_ir(ctx);
 	return_instruction.operation = ir_instruction_t::operation_::RETURN;
 	return_instruction.src1 = mangle_var_if_needed(ctx,temp);
+	ctx.instructions.push_back(std::move(return_instruction));
 	return "";
 }
 std::string break_statement_t::generate_ir(IR_Gen_Context& ctx) const {
@@ -1021,7 +1025,7 @@ std::string func_call_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 	call_instr.operation = ir_instruction_t::operation_::CALL;
 	std::string destination = ctx.generate_temp();
 	call_instr.dest = destination;
-	call_instr.label_id = id;
+	call_instr.label_id = mangle(id);
 	call_instr.func_argument_count = static_cast<uint32_t>(arguments.size());
 	ctx.instructions.push_back(std::move(call_instr));
 	return destination;

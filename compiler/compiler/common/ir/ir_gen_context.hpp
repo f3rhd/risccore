@@ -134,6 +134,7 @@ struct ir_instruction_t {
         case operation_::NOP:
             out << "NOP";
             break;
+
         }
         return out.str();
     }

@@ -9,7 +9,7 @@ namespace f3_riscv_assembler {
 	Preprocessor::Preprocessor(const std::string& source_file_path){
 		FILE* source_file = fopen(source_file_path.c_str(), "r");
 		if(source_file == 0 ){
-			printf("Source file does not exist.");
+			printf("Assembler Error : Source file does not exist.");
 			exit(EXIT_FAILURE);
 		}
 		_source_file = source_file;
@@ -34,7 +34,7 @@ namespace f3_riscv_assembler {
 					std::vector<std::string> caller_arguments = get_arguments(line_tokens,0);
 					if(caller_arguments.size() != const_cast<Macro*>(called_macro)->arguments.size()){
 						Line line;
-						utils::throw_error_message({"Macro and caller arguments did not match. Unexpected behavior is possible.", &caller_arguments.back(),&line});
+						utils::throw_error_message({"Assembler Error : Macro and caller arguments did not match. Unexpected behavior is possible.", &caller_arguments.back(),&line});
 					}
 					std::vector<std::string> expanded_lines;
 					for (uint32_t i = 0; i < called_macro->definition.size();i++){
@@ -141,8 +141,9 @@ namespace f3_riscv_assembler {
 		   std::cout << "Line " << line.true_row_number << '(' << line.memory_row_number << ')' << ':' << '\n';
 		   for (const Token &token : line.tokens)
 		   {
-			   std::cout << '\t' << token.word <<  "<-" << utils::token_type_to_string(token.type) << '\n';
+			   std::cout << '\t' << token.word <<  " " ;
 		   }
+		   std::cout << '\n';
 	   }
 	}
 	std::unordered_map<std::string,uint32_t>& Preprocessor::get_labels(){
