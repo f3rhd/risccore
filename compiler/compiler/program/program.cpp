@@ -195,7 +195,7 @@ namespace f3_compiler {
 					std::set<std::string> old_in = instr->live_in;
 					std::set<std::string> old_out = instr->live_out;
 
-					// Compute live_out = union of live_in of successors
+					// live_out = union of live_in of successors
 					instr->live_out.clear();
 					if (it == block.instructions.rbegin()) {
 						// last instruction in block
@@ -213,7 +213,7 @@ namespace f3_compiler {
 						instr->live_out = (*(next_it))->live_in;
 					}
 
-					// Compute live_in = use union (live_out - def)
+					// live_in = use union (live_out - def)
 					instr->live_in = instr->use;
 					for (const std::string& var : instr->live_out) {
 						if (instr->def.find(var) == instr->def.end()) {
@@ -277,7 +277,7 @@ namespace f3_compiler {
 		// number of registers
 		const int K = 7;
 
-		// Build adjacency sets (unique neighbors)
+		// build unoredered_map of [id,neighbors] from interference nodes
 		std::unordered_map<std::string, std::unordered_set<std::string>> adj;
 		adj.reserve(_interference_nodes.size());
 		for (const auto& kv : _interference_nodes) {
@@ -298,7 +298,6 @@ namespace f3_compiler {
 		std::vector<std::string> simplify_stack;
 		std::unordered_set<std::string> spilled_candidates;
 
-		// copy adjacency for destructive removal
 		std::unordered_map<std::string, std::unordered_set<std::string>> adj_copy = adj;
 
 		while (!nodes.empty()) {
@@ -323,7 +322,6 @@ namespace f3_compiler {
 
 			if (removed_node) continue;
 
-			// No low-degree node found -> pick a spill candidate (heuristic: max degree)
 			std::string spill;
 			int maxdeg = -1;
 			for (const std::string& n : nodes) {
@@ -334,7 +332,6 @@ namespace f3_compiler {
 				}
 			}
 			if (!spill.empty()) {
-				// mark as candidate and remove from graph
 				spilled_candidates.insert(spill);
 				simplify_stack.push_back(spill);
 				for (const auto& nb : adj_copy[spill]) {
@@ -343,12 +340,10 @@ namespace f3_compiler {
 				adj_copy.erase(spill);
 				nodes.erase(spill);
 			} else {
-				// break to avoid infinite loop
 				break;
 			}
 		}
 
-		// Assign colors by popping stack (reverse order)
 		std::unordered_map<std::string,int> coloring;
 		std::vector<std::string> actually_spilled;
 
@@ -356,7 +351,6 @@ namespace f3_compiler {
 			std::string node = simplify_stack.back();
 			simplify_stack.pop_back();
 
-			// collect used colors by already-colored neighbors (original adjacency)
 			std::vector<bool> used(K, false);
 			for (const std::string& nb : adj[node]) {
 				auto itc = coloring.find(nb);
@@ -366,7 +360,6 @@ namespace f3_compiler {
 				}
 			}
 
-			// find first available color
 			int chosen = -1;
 			for (int c = 0; c < K; ++c) {
 				if (!used[c]) {
@@ -375,7 +368,6 @@ namespace f3_compiler {
 				}
 			}
 			if (chosen == -1) {
-				// cannot color -> mark spill
 				actually_spilled.push_back(node);
 			} else {
 				coloring[node] = chosen;
@@ -431,12 +423,14 @@ namespace f3_compiler {
 
 				if( instruction->operation != ir_instruction_t::operation_::ADDR
 					&& instruction->operation != ir_instruction_t::operation_::RETURN 
+					&& instruction->operation != ir_instruction_t::operation_::ARG
 					&& function_block.local_vars.find(instruction->src1) != function_block.local_vars.end()){
 					std::string op = get_allocated_reg_for_var(instruction->src1) + "," + actual_offset(function_block.local_vars[instruction->src1]) + "(s0)";
 					emit("lw", op);
 				}
 				if(instruction->operation != ir_instruction_t::operation_::ADDR
 					&& instruction->operation != ir_instruction_t::operation_::RETURN 
+					&& instruction->operation != ir_instruction_t::operation_::ARG
 					&& function_block.local_vars.find(instruction->src2) != function_block.local_vars.end()){
 					std::string op = get_allocated_reg_for_var(instruction->src2) + "," + actual_offset(function_block.local_vars[instruction->src2]) + "(s0)";
 					emit("lw", op);
@@ -494,7 +488,7 @@ namespace f3_compiler {
 						std::string op2Reg;
 						bool op2Immediate = is_immediate(instruction->src2);
 						if(op2Immediate){
-							// for ADD we can use addi, for SUB there is no subi pseudo so materialize into scratch
+							// for ADD we can use addi for SUB there is no subi pseudo so materialize into scratch
 							if(instruction->operation == ir_instruction_t::operation_::ADD){
 								emit("addi", destReg + "," + op1Reg + "," + instruction->src2);
 								if(instruction->store_dest_in_stack){
@@ -535,13 +529,10 @@ namespace f3_compiler {
 						break;
 					}
 					case ir_instruction_t::operation_::LOAD: {
-						// lw destReg, offset(s0)  where src1 names the variable on stack
 						std::string destReg = get_allocated_reg_for_var(instruction->dest);
-						// src1 should be a local variable (stack slot)
 						auto it = function_block.local_vars.find(instruction->src1);
 						if (instruction->load_src_is_ptr) {
 
-							// fallback: load from address held in register src1: lw dest,0(srcReg)
 							std::string addrReg = get_allocated_reg_for_var(instruction->src1);
 							emit("lw", destReg + ",0(" + addrReg + ")");
 						}
@@ -554,13 +545,7 @@ namespace f3_compiler {
 					case ir_instruction_t::operation_::STORE: {
 						// sw src1Reg, 0(ptr) where dest names variable slot
 						std::string srcReg;
-						if(is_immediate(instruction->src1)){
-							// materialize immediate into scratch then store
-							emit("li", scratch + "," + instruction->src1);
-							srcReg = scratch;
-						} else {
-							srcReg = get_allocated_reg_for_var(instruction->src1);
-						}
+						srcReg = get_allocated_reg_for_var(instruction->src1);
 						std::string addrReg = get_allocated_reg_for_var(instruction->dest);
 						emit("sw", srcReg + ",0(" + addrReg + ")");
 						break;
@@ -613,7 +598,7 @@ namespace f3_compiler {
 						break;
 					}
 					case ir_instruction_t::operation_::LABEL: {
-						// labels inside functions: emit label followed by newline (no tab)
+						// labels inside functions: emit label followed by newline
 						os << instruction->label_id << ":\n";
 						break;
 					}
@@ -680,7 +665,7 @@ namespace f3_compiler {
 						break;
 					}
 					default: {
-						// Unknown / unhandled op: print comment with to_string() to help debugging
+						// unknown
 						emit("", std::string("# unhandled IR: ") + instruction->to_string());
 						argument_counter = 0;
 						call_argument_counter = 0;
