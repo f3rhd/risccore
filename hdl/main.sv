@@ -130,8 +130,6 @@ module cpu(
         .ex_rs1_addr(_pip_id_ex_rs1_addr_out),
         .ex_rs2_addr(_pip_id_ex_rs2_addr_out),
         .ex_rd_addr(_pip_id_ex_reg_write_addr_out),
-        .dec_rs1_addr(_pip_if_id_instr_out[19:15]),
-        .dec_rs2_addr(_pip_if_id_instr_out[24:20]),
         .mem_reg_write_addr(_pip_ex_mem_reg_write_addr_out),
         .mem_reg_write_signal(_pip_ex_mem_ctrl_signals_out[8]),
         .wb_reg_write_signal(_pip_mem_wb_ctrl_signals_out[3]),
