@@ -141,7 +141,7 @@ namespace f3_riscv_assembler {
 		   std::cout << "Line " << line.true_row_number << '(' << line.memory_row_number << ')' << ':' << '\n';
 		   for (const Token &token : line.tokens)
 		   {
-			   std::cout << '\t' << token.word <<  " " ;
+			   std::cout << '\t' << token.word;
 		   }
 		   std::cout << '\n';
 	   }
