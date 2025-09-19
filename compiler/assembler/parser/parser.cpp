@@ -59,7 +59,6 @@ namespace f3_riscv_assembler {
 
 			next_tok = current_peek();
 
-			// Special-case: jal/jalr acting as pseudo when no comma (single-operand form)
 			if ((*(opr_node->str_ptr_value))[0] == 'j') {
 				if (opr_node->opr_type == instruction_look_up::OPERATION_TYPE::I_TYPE && next_tok == nullptr)
 					opr_node->opr_type = instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5;
@@ -109,7 +108,7 @@ namespace f3_riscv_assembler {
 				}
 			}
 
-			// Parse right operand (if present)
+			// Parse right operand if there is one
 			opr_node->right = parse_line(line);
 			return opr_node;
 		}
