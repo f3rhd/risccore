@@ -2,8 +2,6 @@ module hazard_unit(
     input logic[4:0] ex_rs1_addr,
     input logic[4:0] ex_rs2_addr,
     input logic[4:0] ex_rd_addr,
-    input logic[4:0] dec_rs1_addr,
-    input logic[4:0] dec_rs2_addr,
     input logic[4:0] mem_reg_write_addr,
     input logic[4:0] wb_reg_write_addr,
     input logic mem_reg_write_signal,

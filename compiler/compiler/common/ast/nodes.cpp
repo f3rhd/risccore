@@ -85,7 +85,7 @@ type_t expr_statement_t::analyse(Analysis_Context& ctx) const {
 }
 type_t func_call_expr_t::analyse(Analysis_Context& ctx) const {
 	auto func_decl_info = ctx.get_func_decl_info(id);
-	if(func_decl_info){
+	if(!func_decl_info){
 		ctx.make_error(ERROR_CODE::CALL_TO_UNDEFINED_FUCNTION, id, "Undefined function call.");
 		return {type_t::BASE::UNKNOWN, 0};
 	}
@@ -96,9 +96,9 @@ type_t func_call_expr_t::analyse(Analysis_Context& ctx) const {
 		}
 	}
 	for (size_t i = 0; i < arguments.size();i++) {
-		type_t argument_type = ctx.get_var_type(dynamic_cast<var_expression_t*>(arguments[i].get())->name);
-		type_t decl_type = ctx.get_var_type((*(func_decl_info->arguments))[i].name);
-		if (argument_type.base != decl_type.base || argument_type.pointer_depth != decl_type.pointer_depth) {
+		type_t var_argument_type = arguments[i]->analyse(ctx);
+		type_t decl_type = (*(func_decl_info->arguments))[i].type;
+		if (var_argument_type.base != decl_type.base || var_argument_type.pointer_depth != decl_type.pointer_depth) {
 			ctx.make_error(ERROR_CODE::CALL_TO_UNDEFINED_FUCNTION, id, "Function call arguments do not match to declaration.");
 			return {type_t::BASE::UNKNOWN, 0};
 		}
@@ -231,16 +231,12 @@ type_t if_statement_t::analyse(Analysis_Context& ctx) const {
 
 	// then block
 	if (body) {
-		ctx.push_scope();
 		body->analyse(ctx);
-		ctx.pop_scope();
 	}
 
 	// else block
 	if (else_body) {
-		ctx.push_scope();
 		else_body->analyse(ctx);
-		ctx.pop_scope();
 	}
 
 	return {};
@@ -254,13 +250,10 @@ type_t while_statement_t::analyse(Analysis_Context& ctx) const {
 		}
 	}
 
-	// analyse body with loop flags
 	bool prev_in_loop = ctx.in_loop;
 	ctx.in_loop = true;
 	if (body) {
-		ctx.push_scope();
 		body->analyse(ctx);
-		ctx.pop_scope();
 	}
 	ctx.in_loop = prev_in_loop;
 
@@ -507,11 +500,6 @@ std::string if_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t branch_instr;
 
 	generate_jump_if_false(condition.back().get(), ctx, label_1);
-	add_nop_on_label_clash(ctx);
-	ir_instruction_t label__;
-	label__.operation = ir_instruction_t::operation_::LABEL;
-	label__.label_id = ctx.generate_label();
-	ctx.instructions.push_back(std::move(label__));
 	body->generate_ir(ctx);
 
 	if (else_body && !else_body->statements.empty()) {
