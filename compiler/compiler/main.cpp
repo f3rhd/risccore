@@ -66,26 +66,40 @@ int main(int argc, char** argv) {
 		std::ofstream ofs(asm_file);
 		ofs << ".reset_vector:\n";
 		ofs << "\tli sp, 0xFFFF\n";
-		ofs << "\tcall main\n";
+		ofs << "\tcall .main\n";
 		ofs << asm_code;
 	}
 
 	if (bin_file) {
+		std::string temp = std::string(bin_file) + ".s";
+		{
+			std::ofstream ofs(temp);
+			if (!ofs) {
+				std::cerr << "Error: Could not open " << temp << " for writing.\n";
+				return 1 ;
+			}
+			ofs << ".reset_vector:\n";
+			ofs << "\tli sp, 0xFFFF\n";
+			ofs << "\tcall .main\n";
+			ofs << asm_code;
+		}
 
-		std::string temp = "out" + std::string(bin_file);
-		std::ofstream ofs(temp);
-		ofs << ".reset_vector:\n";
-		ofs << "\tli sp, 0xFFFF\n";
-		ofs << "\tcall main\n";
-		ofs << asm_code;
-		ofs.close();
-		f3_riscv_assembler::Preprocessor asm_prc(temp.c_str());
+		f3_riscv_assembler::Preprocessor asm_prc(temp);
 		f3_riscv_assembler::Parser asm_parser;
 		asm_parser.parse_lines(asm_prc.process(asm_debug_output), asm_prc.get_labels());
+
 		f3_riscv_assembler::instr_gen::generator gen;
 		gen.generate_instructions(asm_parser.get_ast_nodes());
-		f3_riscv_assembler::code_gen::generate_bin_file(bin_file, gen.get_instructions(),asm_debug_output);
-		std::remove(temp.c_str());
+
+		f3_riscv_assembler::code_gen::generate_bin_file(
+			bin_file,
+			gen.get_instructions(),
+			asm_debug_output
+		);
+
+		if (std::remove(temp.c_str()) != 0) {
+			std::cerr << "Warning: could not remove temp file " << temp << "\n";
+		}
 	}
 	return 0;
 }

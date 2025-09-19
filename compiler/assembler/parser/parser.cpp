@@ -23,7 +23,7 @@ namespace f3_riscv_assembler {
 	void Parser::rewind() {
 		_token_index = 0;
 	}
-	Ast_Node *Parser::parse_line(Line &line) {
+		Ast_Node *Parser::parse_line(Line &line) {
 
 		const Token *active_token = eat(line.tokens);
 
@@ -48,55 +48,68 @@ namespace f3_riscv_assembler {
 			Ast_Node *opr_node = utils::make_operation_node(&(active_token->word),
 															instruction_look_up::get_opr_type(active_token->word), &line);
 
-			const Token *comma_lp_token = peek(line.tokens);
-			if(comma_lp_token != nullptr && comma_lp_token->type ==  TOKEN_TYPE::COMMA){
-				utils::throw_error_message({"Unexpected comma.", &comma_lp_token->word, &line});
+			auto current_peek = [&]() -> const Token * { return peek(line.tokens); };
+
+			const Token *next_tok = current_peek();
+			if (next_tok != nullptr && next_tok->type == TOKEN_TYPE::COMMA) {
+				utils::throw_error_message({"Unexpected comma.", &next_tok->word, &line});
 			}
+
 			opr_node->left = parse_line(line);
-			comma_lp_token = peek(line.tokens);
-			// jalr and jal instructions can act as pseudo even tho they are truly not
+
+			next_tok = current_peek();
+
+			// Special-case: jal/jalr acting as pseudo when no comma (single-operand form)
 			if ((*(opr_node->str_ptr_value))[0] == 'j') {
-				if (opr_node->opr_type == instruction_look_up::OPERATION_TYPE::I_TYPE && comma_lp_token == nullptr)
+				if (opr_node->opr_type == instruction_look_up::OPERATION_TYPE::I_TYPE && next_tok == nullptr)
 					opr_node->opr_type = instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5;
-				else if (opr_node->opr_type == instruction_look_up::OPERATION_TYPE::J_TYPE && comma_lp_token == nullptr)
+				else if (opr_node->opr_type == instruction_look_up::OPERATION_TYPE::J_TYPE && next_tok == nullptr)
 					opr_node->opr_type = instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4;
 			}
-			if (comma_lp_token != nullptr && comma_lp_token->type == TOKEN_TYPE::COMMA) {
-				eat(line.tokens);
-			}
-			else {
-				if (opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4 &&
-					opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5 &&
-					opr_node->opr_type !=
-						instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6) { // these opreations do not need comma
-					const std::string *val = comma_lp_token ? opr_node->left->str_ptr_value : nullptr;
+
+			auto requires_comma_after_left = [&](instruction_look_up::OPERATION_TYPE t) -> bool {
+				// These operation types do not require a comma after the first operand
+				if (t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4 || t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5 || t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6)
+					return false;
+				return true;
+			};
+
+			if (requires_comma_after_left(opr_node->opr_type)) {
+				if (next_tok != nullptr && next_tok->type == TOKEN_TYPE::COMMA) {
+					eat(line.tokens);
+				}
+				else {
+					const std::string *val = opr_node->left ? opr_node->left->str_ptr_value : nullptr;
 					utils::throw_error_message({"Expected ',' ", val, &line});
 					exit(1);
 				}
 			}
-			opr_node->middle = parse_line(line);
-			comma_lp_token = peek(line.tokens);
 
-			// J,U,PSEUDO_1,PSEUDO_0 and PSEUDO_2 type operations have two operands, so we do not need to check for second
-			// comma
-			if (opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4 &&
-				opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5 &&
-				opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_1 &&
-				opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_2 &&
-				opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6 &&
-				opr_node->opr_type != instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_0 &&
-				opr_node->opr_type != instruction_look_up::OPERATION_TYPE::J_TYPE &&
-				opr_node->opr_type != instruction_look_up::OPERATION_TYPE::U_TYPE) {
-				if (comma_lp_token != nullptr &&
-					(comma_lp_token->type == TOKEN_TYPE::COMMA || comma_lp_token->type == TOKEN_TYPE::LPAREN)) {
+			opr_node->middle = parse_line(line);
+
+			next_tok = current_peek();
+
+			auto requires_second_separator = [&](instruction_look_up::OPERATION_TYPE t) -> bool {
+				// These operation types have only two operands or otherwise don't need a second separator
+				if (t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_4 || t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_5 || t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_1 || t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_2 ||
+					t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_6 || t == instruction_look_up::OPERATION_TYPE::PSEUDO_TYPE_0 || t == instruction_look_up::OPERATION_TYPE::J_TYPE || t == instruction_look_up::OPERATION_TYPE::U_TYPE)
+					return false;
+				return true;
+			};
+
+			if (requires_second_separator(opr_node->opr_type)) {
+				if (next_tok != nullptr &&
+					(next_tok->type == TOKEN_TYPE::COMMA || next_tok->type == TOKEN_TYPE::LPAREN)) {
 					eat(line.tokens);
 				}
 				else {
-					const std::string *val = comma_lp_token ? opr_node->left->str_ptr_value : nullptr;
+					const std::string *val = opr_node->left ? opr_node->left->str_ptr_value : nullptr;
 					utils::throw_error_message({"Expected ',' or '('  ", val, &line});
 					exit(1);
 				}
 			}
+
+			// Parse right operand (if present)
 			opr_node->right = parse_line(line);
 			return opr_node;
 		}
