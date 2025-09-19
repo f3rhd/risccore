@@ -66,21 +66,24 @@ namespace f3_compiler {
 			for(auto& instr : block.instructions){
 				if(!instr->dest.empty() && instr->dest[0] != 't' && !std::isdigit(instr->dest[0])){
 					instr->store_dest_in_stack = true;
-					if(_function_blocks.back().local_vars.find(instr->dest) == _function_blocks.back().local_vars.end())
+					if (block.local_vars.find(instr->dest) == block.local_vars.end()) {
 						logical_offset += 4;
-					_function_blocks.back().local_vars.emplace(instr->dest,-logical_offset);
+						block.local_vars.emplace(instr->dest,-logical_offset);
+					}
 				}
 				if(!instr->src1.empty() && instr->src1[0] != 't' && !std::isdigit(instr->src1[0])){
 					instr->load_var_from_memory = true;
-					if(_function_blocks.back().local_vars.find(instr->src1) == _function_blocks.back().local_vars.end())
+					if (block.local_vars.find(instr->src1) == block.local_vars.end()) {
 						logical_offset += 4;
-					_function_blocks.back().local_vars.emplace(instr->src1,-logical_offset);
+						block.local_vars.emplace(instr->src1,-logical_offset);
+					}
 				}
 				if(!instr->src2.empty() && instr->src2[0] != 't' &&  !std::isdigit(instr->src2[0])){
 					instr->load_var_from_memory = true;
-					if(_function_blocks.back().local_vars.find(instr->src2) == _function_blocks.back().local_vars.end())
+					if (block.local_vars.find(instr->src2) == block.local_vars.end()) {
 						logical_offset += 4;
-					_function_blocks.back().local_vars.emplace(instr->src2,-logical_offset);
+						block.local_vars.emplace(instr->src2,-logical_offset);
+					}
 				}
 			}
 			block.frame_size = logical_offset + 8;
@@ -91,15 +94,16 @@ namespace f3_compiler {
 		uint64_t size = _instructions.size();
 
 		while (i < size) {
-		// Only start a block if we see a LABEL
-		if (_instructions[i].operation == ir_instruction_t::operation_::LABEL) {
+		// Only start a block if we see a LABEL or func entry
+		if (_instructions[i].operation == ir_instruction_t::operation_::LABEL || _instructions[i].operation == ir_instruction_t::operation_::FUNC_ENTRY) {
 			basic_block_t block;
 			block.label_instr = &_instructions[i];
 			i++;
 
 			// Collect instructions until we hit a terminator or a new LABEL
 			while (i < size &&
-				   _instructions[i].operation != ir_instruction_t::operation_::LABEL
+				_instructions[i].operation != ir_instruction_t::operation_::LABEL
+				&& _instructions[i].operation != ir_instruction_t::operation_::FUNC_ENTRY
 				) {
 				
 				block.instructions.push_back(&_instructions[i]);
