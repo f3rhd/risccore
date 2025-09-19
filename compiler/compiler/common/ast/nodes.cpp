@@ -935,6 +935,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 			load_ptr.operation = ir_instruction_t::operation_::LOAD;
 			load_ptr.dest = addr_temp;
 			load_ptr.src1 = mangle_var_if_needed(ctx, left);
+			load_ptr.load_src_is_ptr = true;
 			ctx.instructions.push_back(std::move(load_ptr));
 			return addr_temp;
 		}
@@ -944,6 +945,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 			load_ptr.operation = ir_instruction_t::operation_::LOAD;
 			load_ptr.dest = addr_temp;
 			load_ptr.src1 = mangle_var_if_needed(ctx, left);
+			load_ptr.load_src_is_ptr = true;
 			ctx.instructions.push_back(std::move(load_ptr));
 			return addr_temp;
 		}
@@ -952,6 +954,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		load_ptr.operation = ir_instruction_t::operation_::LOAD;
 		load_ptr.dest = left;
 		load_ptr.src1 = mangle_var_if_needed(ctx, left);
+		load_ptr.load_src_is_ptr = true;
 		ctx.instructions.push_back(std::move(load_ptr));
 		return left;
 	}
@@ -969,6 +972,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		instr_2.operation = ir_instruction_t::operation_::LOAD;
 		instr_2.dest = temp;
 		instr_2.src1 = mangle_var_if_needed(ctx,left);
+		instr_2.load_src_is_ptr = true;
 		ctx.instructions.push_back(std::move(instr_2));
 
 		instr_3.operation = ir_instruction_t::operation_::ADD;
@@ -994,6 +998,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		instr_2.operation = ir_instruction_t::operation_::LOAD;
 		instr_2.dest = temp;
 		instr_2.src1 = mangle_var_if_needed(ctx,left);
+		instr_2.load_src_is_ptr = true;
 		ctx.instructions.push_back(std::move(instr_2));
 
 		instr_3.operation = ir_instruction_t::operation_::SUB;
