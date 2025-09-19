@@ -24,6 +24,7 @@ struct ir_instruction_t {
 
     bool store_dest_in_stack = false;
     bool load_var_from_memory = false;
+    bool load_src_is_ptr = false;
     std::string dest;
     std::string src1, src2;
     std::string label_id;

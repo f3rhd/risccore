@@ -539,14 +539,16 @@ namespace f3_compiler {
 						std::string destReg = get_allocated_reg_for_var(instruction->dest);
 						// src1 should be a local variable (stack slot)
 						auto it = function_block.local_vars.find(instruction->src1);
-						if(it != function_block.local_vars.end()){
-							auto off = actual_offset(it->second);
-							emit("lw", destReg + "," + off + "(s0)");
-						} else {
+						if (instruction->load_src_is_ptr) {
+
 							// fallback: load from address held in register src1: lw dest,0(srcReg)
 							std::string addrReg = get_allocated_reg_for_var(instruction->src1);
 							emit("lw", destReg + ",0(" + addrReg + ")");
 						}
+						else if(it != function_block.local_vars.end()){
+							auto off = actual_offset(it->second);
+							emit("lw", destReg + "," + off + "(s0)");
+						} 
 						break;
 					}
 					case ir_instruction_t::operation_::STORE: {
