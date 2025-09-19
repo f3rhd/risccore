@@ -195,7 +195,7 @@ type_t unary_expression_t::analyse(Analysis_Context& ctx) const {
 		return {t.base, t.pointer_depth - 1};
 	case UNARY_OP::INCR:
 	case UNARY_OP::DECR:
-		if (!expr->is_lvalue()) {
+		if (!expr->is_lvalue() && !expr->is_deref()) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Increment/Decrement requires an lvalue");
 			return make_unknown();
 		}
@@ -906,11 +906,12 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr_2;
 	ir_instruction_t instr_3;
 	instr_2.operation = ir_instruction_t::operation_::LOAD_CONST;
+	auto prev = ctx.left_is_deref;
 	if(op == UNARY_OP::INCR || op == UNARY_OP::DECR){
 		ctx.left_is_deref = true;
 	}
 	std::string left = expr->generate_ir(ctx);
-
+	ctx.left_is_deref = prev;
 	std::string destination;
 	std::string temp = ctx.generate_temp();
 	switch (op)
@@ -928,7 +929,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		if (ctx.left_is_deref )
 		{
 			if(ptr_depth == 1)
-				return left;
+				return mangle_var_if_needed(ctx,left);
 			std::string addr_temp = ctx.generate_temp();
 			ir_instruction_t load_ptr;
 			load_ptr.operation = ir_instruction_t::operation_::LOAD;
