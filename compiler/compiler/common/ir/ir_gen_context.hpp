@@ -164,9 +164,6 @@ struct ir_instruction_t {
 
 };
 // flags
-auto constexpr is_if_statement = 1 << 0;
-auto constexpr is_comparsion = 1 << 1;
-auto constexpr is_while_statement = 1 << 2;
 struct IR_Gen_Context {
     std::string generate_label() { return ".L" + std::to_string(label_id++); }
 	std::string generate_temp() { return "t" + std::to_string(temp_id++); }
