@@ -54,7 +54,7 @@ type_t return_statement_t::analyse(Analysis_Context& ctx) const {
 		return_expression_type = {type_t::BASE::VOID, 0};
 
 	auto func_decl_info = ctx.get_func_decl_info(ctx.current_func_id);
-	// I cannot find a reason why this could happen but we are gonna see as program include no global statements
+	// I cannot find a reason why this could happen as program include no global statements but we are gonna see a
 	if(!func_decl_info) {
 		ctx.make_error(ERROR_CODE::RETURN_DOES_NOT_MATCH, "return", "Return statement could not find valid function");
 		return {};
@@ -884,13 +884,6 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		instr.operation = ir_instruction_t::operation_::CMP_NEQ;
 		ctx.comparison_instruction = std::move(instr);
 		return "";
-	// @Uncomplete : I actually forgot these exist
-	//case BIN_OP::AND:
-	//	instr.operation = ir_instruction_t::operation_::AND;
-	//	break;
-	//case BIN_OP::OR:
-	//	instr.operation = ir_instruction_t::operation_::OR;
-	//	break;
 	default:
 		break;
 	}
@@ -1032,11 +1025,20 @@ std::string func_call_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 	std::string destination = ctx.generate_temp();
 	call_instr.dest = destination;
 	call_instr.label_id = mangle(id);
-	call_instr.func_argument_count = static_cast<uint32_t>(arguments.size());
 	ctx.instructions.push_back(std::move(call_instr));
 	return destination;
 }
-// AST printing
+/*
+  /$$$$$$   /$$$$$$  /$$$$$$$$       /$$$$$$$  /$$$$$$$  /$$$$$$ /$$   /$$ /$$$$$$$$ /$$$$$$ /$$   /$$  /$$$$$$ 
+ /$$__  $$ /$$__  $$|__  $$__/      | $$__  $$| $$__  $$|_  $$_/| $$$ | $$|__  $$__/|_  $$_/| $$$ | $$ /$$__  $$
+| $$  \ $$| $$  \__/   | $$         | $$  \ $$| $$  \ $$  | $$  | $$$$| $$   | $$     | $$  | $$$$| $$| $$  \__/
+| $$$$$$$$|  $$$$$$    | $$         | $$$$$$$/| $$$$$$$/  | $$  | $$ $$ $$   | $$     | $$  | $$ $$ $$| $$ /$$$$
+| $$__  $$ \____  $$   | $$         | $$____/ | $$__  $$  | $$  | $$  $$$$   | $$     | $$  | $$  $$$$| $$|_  $$
+| $$  | $$ /$$  \ $$   | $$         | $$      | $$  \ $$  | $$  | $$\  $$$   | $$     | $$  | $$\  $$$| $$  \ $$
+| $$  | $$|  $$$$$$/   | $$         | $$      | $$  | $$ /$$$$$$| $$ \  $$   | $$    /$$$$$$| $$ \  $$|  $$$$$$/
+|__/  |__/ \______/    |__/         |__/      |__/  |__/|______/|__/  \__/   |__/   |______/|__/  \__/ \______/ 
+                                                                                                                
+*/
 auto constexpr COLOR_RESET = "\033[0m";
 auto constexpr COLOR_FUNC = "\033[36m"; // cyan
 auto constexpr COLOR_VAR = "\033[35m"; // magenta
@@ -1089,19 +1091,6 @@ static void draw_branch(std::ostream& os, uint32_t indent_level, bool is_last) {
 	os << (is_last ? "'-- " : "|--");
 }
 
-
-
-/*
-  /$$$$$$   /$$$$$$  /$$$$$$$$       /$$$$$$$  /$$$$$$$  /$$$$$$ /$$   /$$ /$$$$$$$$ /$$$$$$ /$$   /$$  /$$$$$$ 
- /$$__  $$ /$$__  $$|__  $$__/      | $$__  $$| $$__  $$|_  $$_/| $$$ | $$|__  $$__/|_  $$_/| $$$ | $$ /$$__  $$
-| $$  \ $$| $$  \__/   | $$         | $$  \ $$| $$  \ $$  | $$  | $$$$| $$   | $$     | $$  | $$$$| $$| $$  \__/
-| $$$$$$$$|  $$$$$$    | $$         | $$$$$$$/| $$$$$$$/  | $$  | $$ $$ $$   | $$     | $$  | $$ $$ $$| $$ /$$$$
-| $$__  $$ \____  $$   | $$         | $$____/ | $$__  $$  | $$  | $$  $$$$   | $$     | $$  | $$  $$$$| $$|_  $$
-| $$  | $$ /$$  \ $$   | $$         | $$      | $$  \ $$  | $$  | $$\  $$$   | $$     | $$  | $$\  $$$| $$  \ $$
-| $$  | $$|  $$$$$$/   | $$         | $$      | $$  | $$ /$$$$$$| $$ \  $$   | $$    /$$$$$$| $$ \  $$|  $$$$$$/
-|__/  |__/ \______/    |__/         |__/      |__/  |__/|______/|__/  \__/   |__/   |______/|__/  \__/ \______/ 
-                                                                                                                
-*/
 void while_statement_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/, bool is_last /*= true*/) const
 {
 	draw_branch(os, indent_level, is_last);

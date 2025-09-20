@@ -143,7 +143,6 @@ namespace f3_compiler {
 				continue;
 			case ir_instruction_t::operation_::GOTO:
 				block.successors.push_back(get_basic_block_by_label(block.instructions.back()->label_id));
-				const_cast<basic_block_t*>(get_basic_block_by_label(block.instructions.back()->label_id))->predecessors.push_back(&block);
 				break;
 			case ir_instruction_t::operation_::BEQ: 
 			case ir_instruction_t::operation_::BNEQ: 
@@ -152,10 +151,8 @@ namespace f3_compiler {
 			case ir_instruction_t::operation_::BGT: 
 			case ir_instruction_t::operation_::BGE:
 				block.successors.push_back(get_basic_block_by_label(block.instructions.back()->label_id));
-				const_cast<basic_block_t*>(get_basic_block_by_label(block.instructions.back()->label_id))->predecessors.push_back(&block);
 				if (i + 1 < _blocks.size()) {
 					block.successors.push_back(get_basic_block_by_label(_blocks[i + 1].label_instr->label_id));
-					const_cast<basic_block_t*>(get_basic_block_by_label(_blocks[i+1].label_instr->label_id))->predecessors.push_back(&block);
 				}
 				break;
 			}

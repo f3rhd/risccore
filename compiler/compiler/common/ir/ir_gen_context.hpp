@@ -32,7 +32,6 @@ struct ir_instruction_t {
     std::set<std::string> live_in;
     std::set<std::string> live_out;
     std::set<std::string> def;
-    uint32_t func_argument_count = 0;
 
     std::string to_string() const {
         std::ostringstream out;
@@ -84,7 +83,8 @@ struct ir_instruction_t {
         case operation_::CALL:
             if (!dest.empty())
                 out << dest << " = ";
-            out << "CALL " << label_id << ", " << func_argument_count;
+            out << "CALL " << label_id;
+            ;
             break;
         case operation_::RETURN:
             out << "RETURN " << src1;
