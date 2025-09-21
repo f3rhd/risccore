@@ -12,6 +12,9 @@ using namespace f3_compiler::ast_node;
 |__/  |__/ \______/    |__/         |__/  |__/|__/  \__/|__/  |__/|________/|__/    \______/ |______/ \______/ 
 */
 void func_decl_t::analyse(Analysis_Context& ctx) {
+	if (ctx.has_func_def(id)) {
+		ctx.make_error(ERROR_CODE::FUNCTION_REDEFINITION, id, "Function redefinition is not allowed.");
+	}
 	analysis_func_decl_info_t decl_info;
 	decl_info.arguments = &arguments;
 	decl_info.return_type = &return_type;
@@ -217,6 +220,8 @@ type_t var_decl_statement_t::analyse(Analysis_Context& ctx) const {
 		}
 	}
 	// add the variable to the current scope
+	if (ctx.get_var_type(name).base != type_t::BASE::UNKNOWN)
+		ctx.make_error(ERROR_CODE::VARIABLE_REDEFINITION, name, "Variable cannot be initialized more than once.");
 	ctx.add_var(name, type);
 	return {};
 }
@@ -497,7 +502,6 @@ std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	return "";
 }
 std::string if_statement_t::generate_ir(IR_Gen_Context& ctx) const {
-	ctx.flag = is_if_statement;
 	std::string label_1 = ctx.generate_label();
 	std::string label_2 = ctx.generate_label();
 	ir_instruction_t branch_instr;
