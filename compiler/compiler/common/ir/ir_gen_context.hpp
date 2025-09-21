@@ -163,7 +163,6 @@ struct ir_instruction_t {
 
 
 };
-// flags
 struct IR_Gen_Context {
     std::string generate_label() { return ".L" + std::to_string(label_id++); }
 	std::string generate_temp() { return "t" + std::to_string(temp_id++); }

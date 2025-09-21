@@ -49,6 +49,9 @@ namespace f3_compiler {
 			_scopes.clear();
 		}
 
+		bool has_func_def(const std::string id) {
+			return _func_decls.find(id) != _func_decls.end();
+		}
 		std::vector<error_t>& get_errors(){
 			return _errors;
 		};
