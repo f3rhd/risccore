@@ -89,12 +89,6 @@ struct ir_instruction_t {
         case operation_::RETURN:
             out << "RETURN " << src1;
             break;
-        //case operation_::BRANCH_IF_NOT:
-        //    out << "BRANCH_IF_NOT " << src1 << ", " << label_id;
-        //    break;
-        //case operation_::BRANCH_IF:
-        //    out << "BRANCH_IF " << src1 << ", " << label_id;
-        //    break;
         case operation_::BEQ:
             out << "BEQ " << src1 << ", " << src2 << ", " << label_id;
             break;

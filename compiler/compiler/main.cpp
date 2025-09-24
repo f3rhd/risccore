@@ -7,7 +7,6 @@
 #include "../assembler/code_gen/instr_gen.hpp"
 #include "../assembler/parser/parser.hpp"
 #include "../assembler/preprocessor/preprocessor.hpp"
-// TODO : SEMANTIC ANALYSIS 
 using namespace  f3_compiler;
 int main(int argc, char** argv) {
 	if (argc < 2) {
@@ -45,6 +44,7 @@ int main(int argc, char** argv) {
 	}
 	if (print_ast) {
 		program.print_ast();
+		return 0;
 	}
 	program.analyse();
 	if(program.has_error()){
