@@ -41,7 +41,7 @@ namespace f3_compiler {
 		}
 		analysis_func_decl_info_t* get_func_decl_info(const std::string& id){ 
 			if(_func_decls.find(id) == _func_decls.end()){
-				nullptr;
+				return nullptr;
 			}
 			return &_func_decls[id];
 		}

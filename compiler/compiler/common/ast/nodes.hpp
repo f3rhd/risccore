@@ -57,10 +57,17 @@ namespace f3_compiler {
 			type_t analyse(Analysis_Context &ctx) const override;
 		};
 		enum class BIN_OP {
-			ADD, SUB, DIV, MUL, MOD, GT, LT, GTE, LTE, EQUALITY, NOT_EQUAL, AND, OR
+			ADD, SUB, DIV, MUL, 
+			MOD, GT, LT, GTE, 
+			LTE, EQUALITY, 
+			NOT_EQUAL, 
+			LOGICAL_AND, LOGICAL_OR,
+			BIT_AND,BIT_OR,
+			BIT_XOR,
+			BIT_LEFT_SHIFT,BIT_RIGHT_SHIFT
 		};
 		enum class UNARY_OP {
-			UNKNOWN, NEG, INCR, DECR, NOT, ADDR, DEREF
+			UNKNOWN, NEG, INCR, DECR, NOT_LOGICAL, ADDR, DEREF,BIT_NOT
 		};
 		struct binary_expression_t : expression_t {
 			BIN_OP op;

@@ -87,7 +87,7 @@ type_t expr_statement_t::analyse(Analysis_Context& ctx) const {
 	return {};
 }
 type_t func_call_expr_t::analyse(Analysis_Context& ctx) const {
-	auto func_decl_info = ctx.get_func_decl_info(id);
+	analysis_func_decl_info_t* func_decl_info = ctx.get_func_decl_info(id);
 	if(!func_decl_info){
 		ctx.make_error(ERROR_CODE::CALL_TO_UNDEFINED_FUCNTION, id, "Undefined function call.");
 		return {type_t::BASE::UNKNOWN, 0};
@@ -129,14 +129,18 @@ type_t integer_literal_t::analyse(Analysis_Context& ctx) const {
 }
 type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 
-	type_t l = lhs->analyse(ctx);
-	type_t r = rhs->analyse(ctx);
+	type_t l, r;
+	if (lhs)
+		l = lhs->analyse(ctx);
+	if (rhs)
+		r = rhs->analyse(ctx);
 
-	auto make_unknown = [](){ return type_t{type_t::BASE::UNKNOWN, 0}; };
-	auto make_int = [](){ return type_t{type_t::BASE::INT, 0}; };
+	auto make_unknown = []() { return type_t{ type_t::BASE::UNKNOWN, 0 }; };
+	auto make_int = []() { return type_t{ type_t::BASE::INT, 0 }; };
 
 	// arithmetic
-	if (op == BIN_OP::ADD || op == BIN_OP::SUB || op == BIN_OP::MUL || op == BIN_OP::DIV || op == BIN_OP::MOD) {
+	if (op == BIN_OP::ADD || op == BIN_OP::SUB || op == BIN_OP::MUL || op == BIN_OP::DIV || op == BIN_OP::MOD ||
+		op == BIN_OP::BIT_AND || op == BIN_OP::BIT_OR || op == BIN_OP::BIT_XOR || op == BIN_OP::BIT_LEFT_SHIFT || op == BIN_OP::BIT_RIGHT_SHIFT) {
 		// require same base (INT/UINT), and not pointers
 		if (l.base == r.base && (l.base == type_t::BASE::INT || l.base == type_t::BASE::UINT) && l.pointer_depth == 0 && r.pointer_depth == 0) {
 			return l;
@@ -155,7 +159,7 @@ type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 		return make_unknown();
 	}
 
-	if (op == BIN_OP::AND || op == BIN_OP::OR) {
+	if (op == BIN_OP::LOGICAL_AND || op == BIN_OP::LOGICAL_OR) {
 		// require integer (boolean-ish) non-pointer
 		if (l.base == type_t::BASE::INT && r.base == type_t::BASE::INT && l.pointer_depth == 0 && r.pointer_depth == 0) {
 			return make_int();
@@ -177,7 +181,14 @@ type_t unary_expression_t::analyse(Analysis_Context& ctx) const {
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Unary - requires an integer operand");
 		return make_unknown();
-	case UNARY_OP::NOT:
+	case UNARY_OP::BIT_NOT:
+		if ((t.base == type_t::BASE::INT || t.base == type_t::BASE::UINT) && t.pointer_depth == 0) {
+			return t;
+		}
+		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Unary ~ requires an integer operand");
+		return make_unknown();
+
+	case UNARY_OP::NOT_LOGICAL:
 		if ((t.base == type_t::BASE::INT || t.base == type_t::BASE::UINT) && t.pointer_depth == 0) {
 			return {type_t::BASE::INT, 0};
 		}
@@ -366,11 +377,11 @@ namespace {
 	void generate_jump_if_false(expression_t* expr, IR_Gen_Context& ctx, const std::string& false_label) {
 		if (auto be = dynamic_cast<binary_expression_t*>(expr)) {
 			switch (be->op) {
-				case BIN_OP::AND:
+				case BIN_OP::LOGICAL_AND:
 					generate_jump_if_false(be->lhs.get(), ctx, false_label);
 					generate_jump_if_false(be->rhs.get(), ctx, false_label);
 					return;
-				case BIN_OP::OR: {
+				case BIN_OP::LOGICAL_OR: {
 					// cont stands for continue
 					std::string cont = ctx.generate_label();
 					generate_jump_if_true(be->lhs.get(), ctx, cont);
@@ -419,12 +430,12 @@ namespace {
 	void generate_jump_if_true(expression_t* expr, IR_Gen_Context& ctx, const std::string& true_label) {
 		if (auto be = dynamic_cast<binary_expression_t*>(expr)) {
 			switch (be->op) {
-				case BIN_OP::OR:
+				case BIN_OP::LOGICAL_OR:
 					// a || b -> if a true goto true; if b true goto true
 					generate_jump_if_true(be->lhs.get(), ctx, true_label);
 					generate_jump_if_true(be->rhs.get(), ctx, true_label);
 					return;
-				case BIN_OP::AND: {
+				case BIN_OP::LOGICAL_AND: {
 					std::string cont = ctx.generate_label();
 					generate_jump_if_false(be->lhs.get(), ctx, cont);
 					generate_jump_if_true(be->rhs.get(), ctx, true_label);
@@ -916,7 +927,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	case UNARY_OP::NEG:
 		instr.operation = ir_instruction_t::operation_::NEG;
 		break;
-	case UNARY_OP::NOT:
+	case UNARY_OP::NOT_LOGICAL:
 		instr.operation = ir_instruction_t::operation_::NOT;
 		break;
 	case UNARY_OP::ADDR:
@@ -1053,6 +1064,16 @@ auto constexpr COLOR_LABEL = "\033[90m"; // gray
 static inline std::string bin_op_to_string(f3_compiler::ast_node::BIN_OP op) {
 	switch (op) {
 	case BIN_OP::ADD: return "+";
+	case BIN_OP::BIT_LEFT_SHIFT:
+		return "<<<";
+	case BIN_OP::BIT_RIGHT_SHIFT:
+		return ">>>";
+	case BIN_OP::BIT_AND:
+		return "&";
+	case BIN_OP::BIT_XOR:
+		return "^";
+	case BIN_OP::BIT_OR:
+		return "|";
 	case BIN_OP::SUB: return "-";
 	case BIN_OP::DIV: return "/";
 	case BIN_OP::MUL: return "*";
@@ -1063,8 +1084,8 @@ static inline std::string bin_op_to_string(f3_compiler::ast_node::BIN_OP op) {
 	case BIN_OP::LTE: return "<=";
 	case BIN_OP::EQUALITY: return "==";
 	case BIN_OP::NOT_EQUAL: return "!=";
-	case BIN_OP::AND: return "&&";
-	case BIN_OP::OR: return "||";
+	case BIN_OP::LOGICAL_AND: return "&&";
+	case BIN_OP::LOGICAL_OR: return "||";
 	}
 	return "????";
 }
@@ -1078,12 +1099,14 @@ static inline std::string unary_op_to_string(f3_compiler::ast_node::UNARY_OP op)
 		return "++";
 	case UNARY_OP::DECR:
 		return "--";
-	case UNARY_OP::NOT:
+	case UNARY_OP::NOT_LOGICAL:
 		return "!";
 	case UNARY_OP::ADDR:
 		return "&";
 	case UNARY_OP::DEREF:
 		return "*";
+	case UNARY_OP::BIT_NOT:
+		return "~";
 	default:
 		return "????";
 	}

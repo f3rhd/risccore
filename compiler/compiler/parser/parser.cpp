@@ -191,7 +191,7 @@ std::unique_ptr<expression_t> Parser::parse_for_range_expr() {
 	return e;
 }
 std::unique_ptr<expression_t> Parser::parse_assignment_expr() {
-	auto left = parse_equality_expr();
+	auto left = parse_logical_or_expr();
 	if (current_token_is(TOKEN_TYPE::ASSIGNMENT) ||
 		current_token_is(TOKEN_TYPE::MINUS_EQUAL) ||
 		current_token_is(TOKEN_TYPE::PLUS_EQUAL)
@@ -211,27 +211,17 @@ std::unique_ptr<expression_t> Parser::parse_assignment_expr() {
 		case TOKEN_TYPE::STAR_EQUAL: type = ASSIGNMENT_TYPE::MULTIPLY_ASSIGN; break;
 		}
 		advance();
-		auto right = parse_equality_expr();
+		auto right = parse_logical_or_expr();
 		return std::make_unique<assignment_expression_t>(type,std::move(left), std::move(right));
 	}
 	return left;
 }
 
-std::unique_ptr<expression_t> Parser::parse_equality_expr() {
-	auto e = parse_logical_or_expr();
-	while (current_token_is(TOKEN_TYPE::EQUAL) || current_token_is(TOKEN_TYPE::NOT_EQUAL)) {
-		BIN_OP op = current_token_is(TOKEN_TYPE::EQUAL) ? BIN_OP::EQUALITY : BIN_OP::NOT_EQUAL;
-		advance();
-		auto right = parse_logical_or_expr();
-		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
-	}
-	return e;
-}
 
 std::unique_ptr<expression_t> Parser::parse_logical_or_expr() {
 	auto e = parse_logical_and_expr();
 	while (current_token_is(TOKEN_TYPE::DOUBLE_COLUMN) || current_token_is(TOKEN_TYPE::KW_OR)) {
-		BIN_OP op = BIN_OP::OR;
+		BIN_OP op = BIN_OP::LOGICAL_OR;
 		advance();
 		auto right = parse_logical_and_expr();
 		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
@@ -240,9 +230,52 @@ std::unique_ptr<expression_t> Parser::parse_logical_or_expr() {
 }
 
 std::unique_ptr<expression_t> Parser::parse_logical_and_expr() {
-	auto e = parse_relational_expr();
+	auto e = parse_bit_or();
 	while(current_token_is(TOKEN_TYPE::DOUBLE_AMPERSAND) || current_token_is(TOKEN_TYPE::KW_AND)) {
-		BIN_OP op = BIN_OP::AND;
+		BIN_OP op = BIN_OP::LOGICAL_AND;
+		advance();
+		auto right = parse_bit_or();
+		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
+	}
+	return e;
+}
+
+std::unique_ptr<expression_t> Parser::parse_bit_or(){
+	auto e = parse_bit_xor();
+	while(current_token_is(TOKEN_TYPE::SINGLE_COLUMN)){
+		BIN_OP op = BIN_OP::BIT_OR;
+		advance();
+		auto right = parse_bit_xor();
+		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
+	}
+	return e;
+
+}
+std::unique_ptr<expression_t> Parser::parse_bit_xor(){
+	auto e = parse_bit_and();
+	while(current_token_is(TOKEN_TYPE::CARET)){
+		BIN_OP op = BIN_OP::BIT_XOR;
+		advance();
+		auto right = parse_bit_and();
+		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
+	}
+	return e;
+
+}
+std::unique_ptr<expression_t> Parser::parse_bit_and(){
+	auto e = parse_equality_expr();
+	while(current_token_is(TOKEN_TYPE::AMPERSAND)){
+		BIN_OP op = BIN_OP::BIT_AND;
+		advance();
+		auto right = parse_equality_expr();
+		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
+	}
+	return e;
+}
+std::unique_ptr<expression_t> Parser::parse_equality_expr() {
+	auto e = parse_relational_expr();
+	while (current_token_is(TOKEN_TYPE::EQUAL) || current_token_is(TOKEN_TYPE::NOT_EQUAL)) {
+		BIN_OP op = current_token_is(TOKEN_TYPE::EQUAL) ? BIN_OP::EQUALITY : BIN_OP::NOT_EQUAL;
 		advance();
 		auto right = parse_relational_expr();
 		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
@@ -250,7 +283,7 @@ std::unique_ptr<expression_t> Parser::parse_logical_and_expr() {
 	return e;
 }
 std::unique_ptr<expression_t> Parser::parse_relational_expr() {
-	auto e = parse_addition_subtraction();
+	auto e = parse_logical_shift();
 	while (
 		current_token_is(TOKEN_TYPE::GREATER) ||
 		current_token_is(TOKEN_TYPE::GRATER_EQUAL) ||
@@ -268,6 +301,16 @@ std::unique_ptr<expression_t> Parser::parse_relational_expr() {
 		case TOKEN_TYPE::LESS_EQUAL: op = BIN_OP::LTE; break;
 		case TOKEN_TYPE::NOT_EQUAL: op = BIN_OP::NOT_EQUAL; break;
 		}
+		advance();
+		auto right = parse_logical_shift();
+		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
+	}
+	return e;
+}
+std::unique_ptr<expression_t> Parser::parse_logical_shift(){
+	auto e = parse_addition_subtraction();
+	while(current_token_is(TOKEN_TYPE::LESS_LESS_LESS) || current_token_is(TOKEN_TYPE::GREATER_GREATER_GREATER)){
+		BIN_OP op = _current_token->type == TOKEN_TYPE::LESS_LESS_LESS ? BIN_OP::BIT_LEFT_SHIFT : BIN_OP::BIT_RIGHT_SHIFT;
 		advance();
 		auto right = parse_addition_subtraction();
 		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
@@ -316,7 +359,8 @@ std::unique_ptr<expression_t> Parser::parse_unary_op() {
 		current_token_is(TOKEN_TYPE::DOUBLE_MINUS) ||
 		current_token_is(TOKEN_TYPE::EXCLAMATION) ||
 		current_token_is(TOKEN_TYPE::AMPERSAND) ||
-		current_token_is(TOKEN_TYPE::STAR)
+		current_token_is(TOKEN_TYPE::STAR) || 
+		current_token_is(TOKEN_TYPE::TILDA)
 		) {
 		UNARY_OP op = UNARY_OP::UNKNOWN;
 		switch (_current_token->type) {
@@ -324,10 +368,11 @@ std::unique_ptr<expression_t> Parser::parse_unary_op() {
 		case TOKEN_TYPE::MINUS: op = UNARY_OP::NEG; break;
 		case TOKEN_TYPE::DOUBLE_MINUS: op = UNARY_OP::DECR;
 			break;
-		case TOKEN_TYPE::EXCLAMATION: op = UNARY_OP::NOT; break;
+		case TOKEN_TYPE::EXCLAMATION: op = UNARY_OP::NOT_LOGICAL; break;
 		case TOKEN_TYPE::AMPERSAND: op = UNARY_OP::ADDR; break;
 		case TOKEN_TYPE::STAR: op = UNARY_OP::DEREF;
 			break;
+		case TOKEN_TYPE::TILDA: op = UNARY_OP::BIT_NOT;
 		default:
 			make_error(*_current_token, "Unknown unary operator.");
 			break;

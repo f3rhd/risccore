@@ -45,11 +45,11 @@ namespace f3_compiler {
 		DOT, // .
 		TRIPLE_DOT, 
 		COMMA,
-
-		/*
-		@Incomplete : 
-		Will later add : ^,>>, <<,?, |,~
-		*/
+		LESS_LESS_LESS, // <<<
+		GREATER_GREATER_GREATER, // >>>
+		SINGLE_COLUMN, // |
+		TILDA, // ~
+		CARET, // ^
 
 		KW_INT, // int
 		KW_UINT, // uint
@@ -64,10 +64,7 @@ namespace f3_compiler {
 		KW_BREAK, // break
 		KW_SKIP, // skip 
 		KW_FOR, // for
-		/*
-		func main() -> void {
-		}
-		*/
+
 		IDENTIFIER,
 		END_OF_FILE
 	};
