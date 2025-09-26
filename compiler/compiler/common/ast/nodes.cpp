@@ -142,7 +142,7 @@ type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 	if (op == BIN_OP::ADD || op == BIN_OP::SUB || op == BIN_OP::MUL || op == BIN_OP::DIV || op == BIN_OP::MOD ||
 		op == BIN_OP::BIT_AND || op == BIN_OP::BIT_OR || op == BIN_OP::BIT_XOR || op == BIN_OP::BIT_LEFT_SHIFT || op == BIN_OP::BIT_RIGHT_SHIFT) {
 		// require same base (INT/UINT), and not pointers
-		if (l.base == r.base && (l.base == type_t::BASE::INT || l.base == type_t::BASE::UINT) && l.pointer_depth == 0 && r.pointer_depth == 0) {
+		if (l.base == r.base && l.base == type_t::BASE::INT || /*l.base == type_t::BASE::UINT) && */  l.pointer_depth == 0 && r.pointer_depth == 0) {
 			return l;
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Arithmetic operands must be integer types and match");
@@ -176,20 +176,20 @@ type_t unary_expression_t::analyse(Analysis_Context& ctx) const {
 
 	switch (op) {
 	case UNARY_OP::NEG:
-		if ((t.base == type_t::BASE::INT || t.base == type_t::BASE::UINT) && t.pointer_depth == 0) {
+		if ((t.base == type_t::BASE::INT /* || t.base == type_t::BASE::UINT*/) && t.pointer_depth == 0) {
 			return t;
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Unary - requires an integer operand");
 		return make_unknown();
 	case UNARY_OP::BIT_NOT:
-		if ((t.base == type_t::BASE::INT || t.base == type_t::BASE::UINT) && t.pointer_depth == 0) {
+		if ((t.base == type_t::BASE::INT /*|| t.base == type_t::BASE::UINT*/ ) && t.pointer_depth == 0) {
 			return t;
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Unary ~ requires an integer operand");
 		return make_unknown();
 
 	case UNARY_OP::NOT_LOGICAL:
-		if ((t.base == type_t::BASE::INT || t.base == type_t::BASE::UINT) && t.pointer_depth == 0) {
+		if ((t.base == type_t::BASE::INT /* || t.base == type_t::BASE::UINT*/) && t.pointer_depth == 0) {
 			return {type_t::BASE::INT, 0};
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Unary ! requires an integer operand");
@@ -213,7 +213,7 @@ type_t unary_expression_t::analyse(Analysis_Context& ctx) const {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Increment/Decrement requires an lvalue");
 			return make_unknown();
 		}
-		if (!(t.base == type_t::BASE::INT || t.base == type_t::BASE::UINT) || t.pointer_depth != 0) {
+		if (!(t.base == type_t::BASE::INT /* || t.base == type_t::BASE::UINT*/) || t.pointer_depth != 0) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Increment/Decrement requires a non-pointer integer");
 			return make_unknown();
 		}

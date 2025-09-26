@@ -394,11 +394,11 @@ void Lexer::tokenize() {
 			_col++;
 			continue;
 		}
-		if (token_str == "uint") {
-			make_token(TOKEN_TYPE::KW_UINT, token_str, _row, _col);
-			_col++;
-			continue;
-		}
+		//if (token_str == "uint") {
+		//	make_token(TOKEN_TYPE::KW_UINT, token_str, _row, _col);
+		//	_col++;
+		//	continue;
+		//}
 		if (token_str == "void") {
 			make_token(TOKEN_TYPE::KW_VOID, token_str, _row, _col);
 			_col++;
