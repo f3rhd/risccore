@@ -3,7 +3,7 @@
 #include <cstdint>
 struct type_t {
 		// success is used in analysis
-		enum class BASE { INT, UINT, VOID, UNKNOWN,SUCCESS} base = BASE::VOID;
+		enum class BASE { INT, VOID, UNKNOWN,SUCCESS} base = BASE::VOID;
 		int32_t pointer_depth = 0;
 
 		std::string str() const {
@@ -15,7 +15,6 @@ struct type_t {
 			};
 			switch (base) {
 			case BASE::INT: return "int" + _pointer_depth();
-			case BASE::UINT: return "uint" + _pointer_depth() ;
 			case BASE::VOID: return "void" + _pointer_depth() ;
 			default: return "int" + _pointer_depth();
 			}

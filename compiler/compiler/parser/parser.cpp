@@ -89,7 +89,7 @@ type_t Parser::parse_type()
 	int32_t type_pointer_depth = 0;
 	switch (_current_token->type) {
 	case TOKEN_TYPE::KW_INT: type_base = type_t::BASE::INT; break;
-	case TOKEN_TYPE::KW_UINT: type_base = type_t::BASE::UINT; break;
+	//case TOKEN_TYPE::KW_UINT: type_base = type_t::BASE::UINT; break;
 	case TOKEN_TYPE::KW_VOID: type_base = type_t::BASE::VOID; break;
 	default:
 		make_error(*_current_token, { "Unknown type." });
