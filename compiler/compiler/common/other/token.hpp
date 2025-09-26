@@ -45,8 +45,8 @@ namespace f3_compiler {
 		DOT, // .
 		TRIPLE_DOT, 
 		COMMA,
-		LESS_LESS_LESS, // <<<
-		GREATER_GREATER_GREATER, // >>>
+		LESS_LESS, // <<<
+		GREATER_GREATER, // >>>
 		SINGLE_COLUMN, // |
 		TILDA, // ~
 		CARET, // ^

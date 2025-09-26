@@ -13,8 +13,9 @@ struct ir_instruction_t {
         LOAD_CONST, STORE,LOAD,GOTO,NOP,
         ADD, SUB, MUL, DIV, REM,
         BGT,BLE,BNEQ,BEQ,BGE,BLT,
-        CMP_LT, CMP_GT, CMP_GTE, CMP_LTE, CMP_EQ, CMP_NEQ,
-        AND, OR, NOT, NEG,
+        LOGICAL_AND, LOGICAL_OR, NEG,
+        BIT_AND,BIT_OR,BIT_XOR,BIT_NOT,
+        SHIFT_LEFT,SHIFT_RIGHT,
         ADDR, DEREF,
         PARAM,ARG,
         CALL, RETURN, 
@@ -58,13 +59,24 @@ struct ir_instruction_t {
         case operation_::REM:
             out << "REM " << dest << "," << src1 << ',' << src2;
             break;
-        case operation_::AND: 
+        case operation_::BIT_AND: 
             out << "AND " << dest << "," << src1 << ',' << src2;
             break;
-        case operation_::OR:
+        case operation_::BIT_OR:
             out << "OR " << dest << "," << src1 << ',' << src2;
             break;
-        case operation_::NOT:
+        case operation_::BIT_XOR:
+            out << "XOR " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::BIT_NOT:
+            out << "NOT " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::SHIFT_LEFT:
+            out << "SLL " << dest << "," << src1 << ',' << src2;
+            break;
+        case operation_::SHIFT_RIGHT:
+            out << "SRL " << dest << "," << src1 << ',' << src2;
+            break;
         case operation_::NEG:
             out << dest << " = " << op_to_string() << " " << src1;
             break;
@@ -141,15 +153,15 @@ struct ir_instruction_t {
         case operation_::MUL: return "*";
         case operation_::DIV: return "/";
         case operation_::REM: return "%";
-        case operation_::CMP_LT: return "<";
-        case operation_::CMP_GT: return ">";
-        case operation_::CMP_GTE: return ">=";
-        case operation_::CMP_LTE: return "<=";
-        case operation_::CMP_EQ: return "==";
-        case operation_::CMP_NEQ: return "!=";
-        case operation_::AND: return "&&";
-        case operation_::OR: return "||";
-        case operation_::NOT: return "!";
+        case operation_::BLT: return "<";
+        case operation_::BGT: return ">";
+        case operation_::BGE: return ">=";
+        case operation_::BLE: return "<=";
+        case operation_::BEQ: return "==";
+        case operation_::BNEQ: return "!=";
+        case operation_::LOGICAL_AND: return "&&";
+        case operation_::LOGICAL_OR: return "||";
+        case operation_::BIT_NOT: return "!";
         case operation_::NEG: return "-";
         default: return "?";
         }

@@ -466,6 +466,11 @@ namespace f3_compiler {
 						}
 						break;
 					}
+					case ir_instruction_t::operation_::BIT_AND:
+					case ir_instruction_t::operation_::SHIFT_LEFT:
+					case ir_instruction_t::operation_::SHIFT_RIGHT:
+					case ir_instruction_t::operation_::BIT_OR:
+					case ir_instruction_t::operation_::BIT_XOR:
 					case ir_instruction_t::operation_::ADD:
 					case ir_instruction_t::operation_::SUB:
 					case ir_instruction_t::operation_::MUL:
@@ -473,32 +478,32 @@ namespace f3_compiler {
 					case ir_instruction_t::operation_::REM: {
 						// binary ops: dest = src1 op src2
 						std::string destReg = get_allocated_reg_for_var(instruction->dest);
-						std::string op1Reg;
-						// src1 may be immediate (rare) or var/temp
-						if(is_immediate(instruction->src1)){
-							// materialize into scratch then use
-							emit("li", scratch + "," + instruction->src1);
-							op1Reg = scratch;
-						} else {
-							op1Reg = get_allocated_reg_for_var(instruction->src1);
-						}
-						std::string op2Reg;
-						bool op2Immediate = is_immediate(instruction->src2);
-						if(op2Immediate){
-							// for ADD we can use addi for SUB there is no subi pseudo so materialize into scratch
-							if(instruction->operation == ir_instruction_t::operation_::ADD){
-								emit("addi", destReg + "," + op1Reg + "," + instruction->src2);
-								if(instruction->store_dest_in_stack){
-									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
-								}
-								break;
-							}
-							// for other ops materialize into scratch
-							emit("li", scratch + "," + instruction->src2);
-							op2Reg = scratch;
-						} else {
-							op2Reg = get_allocated_reg_for_var(instruction->src2);
-						}
+						std::string op1Reg = get_allocated_reg_for_var(instruction->src1);
+						std::string op2Reg = get_allocated_reg_for_var(instruction->src2);
+						//// src1 may be immediate (rare) or var/temp
+						//if(is_immediate(instruction->src1)){
+						//	// materialize into scratch then use
+						//	emit("li", scratch + "," + instruction->src1);
+						//	op1Reg = scratch;
+						//} else {
+						//	op1Reg = get_allocated_reg_for_var(instruction->src1);
+						//}
+						//std::string op2Reg;
+						//bool op2Immediate = is_immediate(instruction->src2);
+						//if(op2Immediate){
+						//	// for ADD we can use addi for SUB there is no subi pseudo so materialize into scratch
+						//	if(instruction->operation == ir_instruction_t::operation_::ADD){
+						//		emit("addi", destReg + "," + op1Reg + "," + instruction->src2);
+						//		if(instruction->store_dest_in_stack){
+						//			emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
+						//		}
+						//		break;
+						//	}
+						//	// for other ops materialize into scratch
+						//	emit("li", scratch + "," + instruction->src2);
+						//	op2Reg = scratch;
+						//} else {
+						//}
 
 						// map op to mnemonic
 						switch(instruction->operation){
@@ -516,6 +521,21 @@ namespace f3_compiler {
 								break;
 							case ir_instruction_t::operation_::REM:
 								emit("rem", destReg + "," + op1Reg + "," + op2Reg);
+								break;
+							case ir_instruction_t::operation_::BIT_AND:
+								emit("and", destReg + "," + op1Reg + "," + op2Reg);
+								break;
+							case ir_instruction_t::operation_::BIT_OR:
+								emit("or", destReg + "," + op1Reg + "," + op2Reg);
+								break;
+							case ir_instruction_t::operation_::BIT_XOR:
+								emit("xor", destReg + "," + op1Reg + "," + op2Reg);
+								break;
+							case ir_instruction_t::operation_::SHIFT_LEFT:
+								emit("sll", destReg + "," + op1Reg + "," + op2Reg);
+								break;
+							case ir_instruction_t::operation_::SHIFT_RIGHT:
+								emit("slr", destReg + "," + op1Reg + "," + op2Reg);
 								break;
 							default:
 								break;
@@ -656,7 +676,18 @@ namespace f3_compiler {
 						emit("nop", "");
 						break;
 					}
-					case ir_instruction_t::operation_::ADDR :  {
+					case ir_instruction_t::operation_::NEG:{
+						std::string op = get_allocated_reg_for_var(instruction->dest)  + "," + get_allocated_reg_for_var(instruction->src1);
+						emit("neg",op);
+						break;
+					}
+					case ir_instruction_t::operation_::BIT_NOT :{
+						std::string op = get_allocated_reg_for_var(instruction->dest)  + "," + get_allocated_reg_for_var(instruction->src1);
+						emit("not", op);
+						break;
+					}
+					case ir_instruction_t::operation_::ADDR:
+					{
 						std::string op = get_allocated_reg_for_var(instruction->dest) + ",s0," + actual_offset(function_block.local_vars[instruction->src1]);
 						emit("addi ",op);
 						break;
