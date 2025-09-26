@@ -875,30 +875,20 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	case BIN_OP::MOD:
 		instr.operation = ir_instruction_t::operation_::REM;
 		break;
-	case BIN_OP::GT:
-		instr.operation = ir_instruction_t::operation_::CMP_GT;
-		ctx.comparison_instruction = std::move(instr);
-		return "";
-	case BIN_OP::LT:
-		instr.operation = ir_instruction_t::operation_::CMP_LT;
-		ctx.comparison_instruction = std::move(instr);
-		return "";
-	case BIN_OP::GTE:
-		instr.operation = ir_instruction_t::operation_::CMP_GTE;
-		ctx.comparison_instruction = std::move(instr);
-		return "";
-	case BIN_OP::LTE:
-		instr.operation = ir_instruction_t::operation_::CMP_LTE;
-		ctx.comparison_instruction = std::move(instr);
-		return "";
-	case BIN_OP::EQUALITY:
-		instr.operation = ir_instruction_t::operation_::CMP_EQ;
-		ctx.comparison_instruction = std::move(instr);
-		return "";
-	case BIN_OP::NOT_EQUAL:
-		instr.operation = ir_instruction_t::operation_::CMP_NEQ;
-		ctx.comparison_instruction = std::move(instr);
-		return "";
+	case BIN_OP::BIT_AND:
+		instr.operation = ir_instruction_t::operation_::BIT_AND;
+		break;
+	case BIN_OP::BIT_OR:
+		instr.operation = ir_instruction_t::operation_::BIT_OR;
+		break;
+	case BIN_OP::BIT_XOR:
+		instr.operation = ir_instruction_t::operation_::BIT_XOR;
+		break;
+	case BIN_OP::BIT_LEFT_SHIFT:
+		instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
+		break;
+	case BIN_OP::BIT_RIGHT_SHIFT:
+		instr.operation = ir_instruction_t::operation_::SHIFT_RIGHT;
 	default:
 		break;
 	}
@@ -927,8 +917,8 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	case UNARY_OP::NEG:
 		instr.operation = ir_instruction_t::operation_::NEG;
 		break;
-	case UNARY_OP::NOT_LOGICAL:
-		instr.operation = ir_instruction_t::operation_::NOT;
+	case UNARY_OP::BIT_NOT:
+		instr.operation = ir_instruction_t::operation_::BIT_NOT;
 		break;
 	case UNARY_OP::ADDR:
 		instr.operation = ir_instruction_t::operation_::ADDR;

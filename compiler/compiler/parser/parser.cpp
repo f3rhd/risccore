@@ -309,8 +309,8 @@ std::unique_ptr<expression_t> Parser::parse_relational_expr() {
 }
 std::unique_ptr<expression_t> Parser::parse_logical_shift(){
 	auto e = parse_addition_subtraction();
-	while(current_token_is(TOKEN_TYPE::LESS_LESS_LESS) || current_token_is(TOKEN_TYPE::GREATER_GREATER_GREATER)){
-		BIN_OP op = _current_token->type == TOKEN_TYPE::LESS_LESS_LESS ? BIN_OP::BIT_LEFT_SHIFT : BIN_OP::BIT_RIGHT_SHIFT;
+	while(current_token_is(TOKEN_TYPE::LESS_LESS) || current_token_is(TOKEN_TYPE::GREATER_GREATER)){
+		BIN_OP op = _current_token->type == TOKEN_TYPE::LESS_LESS ? BIN_OP::BIT_LEFT_SHIFT : BIN_OP::BIT_RIGHT_SHIFT;
 		advance();
 		auto right = parse_addition_subtraction();
 		e = std::make_unique<binary_expression_t>(op, std::move(e), std::move(right));
@@ -373,6 +373,7 @@ std::unique_ptr<expression_t> Parser::parse_unary_op() {
 		case TOKEN_TYPE::STAR: op = UNARY_OP::DEREF;
 			break;
 		case TOKEN_TYPE::TILDA: op = UNARY_OP::BIT_NOT;
+			break;
 		default:
 			make_error(*_current_token, "Unknown unary operator.");
 			break;

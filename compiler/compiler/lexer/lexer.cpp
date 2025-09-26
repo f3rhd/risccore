@@ -275,9 +275,9 @@ void Lexer::tokenize() {
 				make_token(TOKEN_TYPE::GRATER_EQUAL, std::string(">="), _row, _col);
 				_i += 2;
 			}
-			else if(source_string[_i+1] == '>' && source_string[_i+2] == '>'){
-				make_token(TOKEN_TYPE::GREATER_GREATER_GREATER, std::string(">>>"), _row, _col);
-				_i += 3;
+			else if(source_string[_i+1] == '>' ){
+				make_token(TOKEN_TYPE::GREATER_GREATER, std::string(">>"), _row, _col);
+				_i += 2;
 			}
 			else {
 				make_token(TOKEN_TYPE::GREATER, std::string(">"), _row, _col);
@@ -291,9 +291,9 @@ void Lexer::tokenize() {
 				make_token(TOKEN_TYPE::LESS_EQUAL, std::string("<="), _row, _col);
 				_i += 2;
 			}
-			else if(source_string[_i+1] == '<' && source_string[_i+2] == '<'){
-				make_token(TOKEN_TYPE::LESS_LESS_LESS, std::string("<<<"), _row, _col);
-				_i += 3;
+			else if(source_string[_i+1] == '<' ){
+				make_token(TOKEN_TYPE::LESS_LESS, std::string("<<"), _row, _col);
+				_i += 2;
 			}
 			else {
 				make_token(TOKEN_TYPE::LESS, std::string(1, ch), _row, _col);
