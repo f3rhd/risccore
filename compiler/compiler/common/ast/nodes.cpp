@@ -354,10 +354,7 @@ namespace {
 		}
 		return ir_instruction_t::operation_::BEQ;
 	}
-	inline std::string mangle_var(IR_Gen_Context& ctx, const std::string& var_id){
-
-			
-		auto is_immediate = [](const std::string& s)->bool{
+	 inline bool is_immediate(const std::string& s) {
 			if(s.empty()) return false;
 			if(s.size()>2 && s[0]=='0' && (s[1]=='x' || s[1]=='X')) return true;
 			size_t i = 0;
@@ -368,6 +365,9 @@ namespace {
 			}
 			return true;
 		};
+	inline std::string mangle_var(IR_Gen_Context& ctx, const std::string& var_id){
+
+			
 		if (is_immediate(var_id)) {
 			return var_id;
 		}
@@ -879,30 +879,60 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	std::string right = rhs->generate_ir(ctx);
 	instr.src1 = mangle_var(ctx,left);
 	instr.src2 = mangle_var(ctx,right);
+	int32_t a = -1;
+	int32_t b = -1;
+	if (is_immediate(left) && is_immediate(right)) {
+		 a = std::stoi(left);
+		 b = std::stoi(right);
+	}
 	switch (op) {
 	case BIN_OP::ADD:
 		instr.operation = ir_instruction_t::operation_::ADD;
+		if (a != -1 && b != -1) {
+			return std::to_string(a + b);
+		}
 		break;
 	case BIN_OP::SUB:
 		instr.operation = ir_instruction_t::operation_::SUB;
+		if (a != -1 && b != -1) {
+			return std::to_string(a - b);
+		}
 		break;
 	case BIN_OP::DIV:
 		instr.operation = ir_instruction_t::operation_::DIV;
+		if (a != -1 && b != -1) {
+			return std::to_string(a / b);
+		}
 		break;
 	case BIN_OP::MUL:
 		instr.operation = ir_instruction_t::operation_::MUL;
+		if (a != -1 && b != -1) {
+			return std::to_string(a * b);
+		}
 		break;
 	case BIN_OP::MOD:
 		instr.operation = ir_instruction_t::operation_::REM;
+		if (a != -1 && b != -1) {
+			return std::to_string(a % b);
+		}
 		break;
 	case BIN_OP::BIT_AND:
 		instr.operation = ir_instruction_t::operation_::BIT_AND;
+		if (a != -1 && b != -1) {
+			return std::to_string(a & b);
+		}
 		break;
 	case BIN_OP::BIT_OR:
 		instr.operation = ir_instruction_t::operation_::BIT_OR;
+		if (a != -1 && b != -1) {
+			return std::to_string(a | b);
+		}
 		break;
 	case BIN_OP::BIT_XOR:
 		instr.operation = ir_instruction_t::operation_::BIT_XOR;
+		if (a != -1 && b != -1) {
+			return std::to_string(a ^ b);
+		}
 		break;
 	case BIN_OP::BIT_LEFT_SHIFT:
 		instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
@@ -912,6 +942,7 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	default:
 		break;
 	}
+	// Just in time 
 	std::string dest = ctx.generate_temp();
 	instr.dest = dest;
 	ctx.instructions.push_back(std::move(instr));

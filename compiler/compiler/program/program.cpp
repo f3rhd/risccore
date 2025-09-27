@@ -490,17 +490,9 @@ namespace f3_compiler {
 						std::string op2Reg;
 						bool op2Immediate = is_immediate(instruction->src2);
 						if(op2Immediate){
-							// for ADD we can use addi for SUB there is no subi pseudo so materialize into scratch
 
 							if(instruction->operation == ir_instruction_t::operation_::ADD){
 								emit("addi", destReg + "," + op1Reg + "," + instruction->src2);
-								if(instruction->store_dest_in_stack){
-									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
-								}
-								break;
-							}
-							if(instruction->operation == ir_instruction_t::operation_::REM){
-								emit("remi", destReg + "," + op1Reg + "," + instruction->src2);
 								if(instruction->store_dest_in_stack){
 									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
 								}
@@ -544,6 +536,37 @@ namespace f3_compiler {
 							// for other ops materialize into scratch
 							emit("li", scratch + "," + instruction->src2);
 							op2Reg = scratch;
+							if (instruction->operation == ir_instruction_t::operation_::DIV) {
+								emit("div", destReg + "," + op1Reg + "," + op2Reg);
+								if(instruction->store_dest_in_stack){
+									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
+								}
+								break;
+							}
+							if (instruction->operation == ir_instruction_t::operation_::MUL) {
+
+								emit("mul", destReg + "," + op1Reg + "," + op2Reg);
+								if(instruction->store_dest_in_stack){
+									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
+								}
+								break;
+							}
+							if (instruction->operation == ir_instruction_t::operation_::REM) {
+
+								emit("rem", destReg + "," + op1Reg + "," + op2Reg);
+								if(instruction->store_dest_in_stack){
+									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
+								}
+								break;
+							}
+							if (instruction->operation == ir_instruction_t::operation_::SUB) {
+
+								emit("sub", destReg + "," + op1Reg + "," + op2Reg);
+								if(instruction->store_dest_in_stack){
+									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
+								}
+								break;
+							}
 						} else {
 							// map op to mnemonic
 							op2Reg = get_allocated_reg_for_var(instruction->src2);
@@ -583,7 +606,6 @@ namespace f3_compiler {
 							}
 
 						}
-
 							if(instruction->store_dest_in_stack){
 							emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
 						}
