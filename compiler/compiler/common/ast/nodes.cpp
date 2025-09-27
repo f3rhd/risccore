@@ -31,9 +31,7 @@ void func_decl_t::analyse(Analysis_Context& ctx) {
 	if(body)
 		body->analyse(ctx);
 
-	// pop function scope
 	ctx.pop_scope();
-
 	if(return_type.base != type_t::BASE::VOID && !ctx.has_return){
 		ctx.make_error(ERROR_CODE::FUNCTION_SHOULD_RETURN,
 					   id, "Missing return statement in a non-void functon");
@@ -231,8 +229,8 @@ type_t var_decl_statement_t::analyse(Analysis_Context& ctx) const {
 		}
 	}
 	// add the variable to the current scope
-	if (ctx.get_var_type(name).base != type_t::BASE::UNKNOWN)
-		ctx.make_error(ERROR_CODE::VARIABLE_REDEFINITION, name, "Variable cannot be initialized more than once.");
+	if (ctx.var_is_defined_in_scope(name))
+		ctx.make_error(ERROR_CODE::VARIABLE_REDEFINITION, name, "Variable cannot be initialized more than once in the same scope.");
 	ctx.add_var(name, type);
 	return {};
 }
@@ -293,9 +291,7 @@ type_t for_statement_t::analyse(Analysis_Context& ctx) const {
 	bool prev_in_loop = ctx.in_loop;
 	ctx.in_loop = true;
 	if (body) {
-		ctx.push_scope();
 		body->analyse(ctx);
-		ctx.pop_scope();
 	}
 	ctx.in_loop = prev_in_loop;
 
@@ -358,15 +354,23 @@ namespace {
 		}
 		return ir_instruction_t::operation_::BEQ;
 	}
-	inline std::string mangle_var_if_needed(IR_Gen_Context& ctx, const std::string& var_id){
+	inline std::string mangle_var(IR_Gen_Context& ctx, const std::string& var_id){
 
-		for (const char c : var_id) {
-			if (c == '$')
-				return var_id;
-		}
-		if(var_id[0] == 't')
+		if (var_id[0] == 't')
 			return var_id;
-		return  "$" + var_id + std::to_string(ctx.symbol_mangles[var_id]);
+
+		std::string value = "$";
+		auto& scopes = ctx.get_scopes();
+		for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+
+			const std::pair<std::string, std::vector<std::string>>& scope = (*it);
+			if (std::find(scope.second.begin(), scope.second.end(), var_id) != scope.second.end()) {
+				value += scope.first + "::";
+				break;
+			}
+		}
+		value += var_id;
+		return value;
 	}
 	inline std::string mangle(const std::string& str) {
 		return "." + str;
@@ -405,8 +409,8 @@ namespace {
 					std::string r = be->rhs->generate_ir(ctx);
 					ir_instruction_t branch;
 					branch.operation = convert_comparsion_to_branch_operation(be->op, true);
-					branch.src1 = mangle_var_if_needed(ctx, l);
-					branch.src2 = mangle_var_if_needed(ctx, r);
+					branch.src1 = mangle_var(ctx, l);
+					branch.src2 = mangle_var(ctx, r);
 					branch.label_id = false_label;
 					ctx.instructions.push_back(std::move(branch));
 					return;
@@ -419,7 +423,7 @@ namespace {
 			std::string val = expr->generate_ir(ctx);
 			ir_instruction_t branch;
 			branch.operation = ir_instruction_t::operation_::BEQ;
-			branch.src1 = mangle_var_if_needed(ctx, val);
+			branch.src1 = mangle_var(ctx, val);
 			branch.src2 = "0";
 			branch.label_id = false_label;
 			ctx.instructions.push_back(std::move(branch));
@@ -456,8 +460,8 @@ namespace {
 					std::string r = be->rhs->generate_ir(ctx);
 					ir_instruction_t branch;
 					branch.operation = convert_comparsion_to_branch_operation(be->op, false); 
-					branch.src1 = mangle_var_if_needed(ctx, l);
-					branch.src2 = mangle_var_if_needed(ctx, r);
+					branch.src1 = mangle_var(ctx, l);
+					branch.src2 = mangle_var(ctx, r);
 					branch.label_id = true_label;
 					ctx.instructions.push_back(std::move(branch));
 					return;
@@ -471,7 +475,7 @@ namespace {
 			std::string val = expr->generate_ir(ctx);
 			ir_instruction_t branch;
 			branch.operation = ir_instruction_t::operation_::BNEQ;
-			branch.src1 = mangle_var_if_needed(ctx, val);
+			branch.src1 = mangle_var(ctx, val);
 			branch.src2 = "0";
 			branch.label_id = true_label;
 			ctx.instructions.push_back(std::move(branch));
@@ -484,29 +488,35 @@ std::string func_decl_t::generate_ir(IR_Gen_Context& ctx) const {
 	instr.operation = ir_instruction_t::operation_::FUNC_ENTRY;
 	instr.label_id = mangle(id);
 	ctx.instructions.push_back(std::move(instr));
+	ctx.push_body(id);
 	for (auto& argument : arguments) {
 		ir_instruction_t instr;
 		instr.operation = ir_instruction_t::operation_::PARAM;
-		instr.dest = mangle_var_if_needed(ctx,argument.name);
+		instr.dest = "$" + id + "::" + argument.name;
 		ctx.instructions.push_back(std::move(instr));
+		ctx.add_var_id(argument.name);
 	}
 	body->generate_ir(ctx);
+	ctx.pop_body();
 	return "";
 }
 std::string block_statement_t::generate_ir(IR_Gen_Context& ctx) const {
+	ctx.push_body(ctx.generate_body_id());
 	for(auto& statement : statements){
 		statement->generate_ir(ctx);
 	}
+	ctx.pop_body();
 	return "";
 }
 
 std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
+	ctx.add_var_id(name);
 	if(rhs){
 		std::string source = rhs->generate_ir(ctx);
 		instr.operation = ir_instruction_t::operation_::MOV;
-		instr.dest = mangle_var_if_needed(ctx,name);
-		instr.src1 = mangle_var_if_needed(ctx,source);
+		instr.dest = mangle_var(ctx,name);
+		instr.src1 = mangle_var(ctx,source);
 		instr.store_dest_in_stack = true;
 		ctx.instructions.push_back(std::move(instr));
 	}
@@ -623,6 +633,7 @@ std::string for_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	body_label_instr.label_id = body_label;
 	add_nop_on_label_clash(ctx);
 	ctx.instructions.push_back(std::move(body_label_instr));
+
 	body->generate_ir(ctx);
 
 	// Increment and stuff
@@ -673,7 +684,7 @@ std::string return_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	}
 	std::string temp = return_expr->generate_ir(ctx);
 	return_instruction.operation = ir_instruction_t::operation_::RETURN;
-	return_instruction.src1 = mangle_var_if_needed(ctx,temp);
+	return_instruction.src1 = mangle_var(ctx,temp);
 	ctx.instructions.push_back(std::move(return_instruction));
 	return "";
 }
@@ -712,38 +723,38 @@ std::string assignment_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	std::string right = rhs->generate_ir(ctx);
 	if(left[0] != 't')
 		instr.store_dest_in_stack = true;
-	instr.dest = mangle_var_if_needed(ctx, left);
+	instr.dest = mangle_var(ctx, left);
 	if (!lhs->is_deref()) {
 		switch (type)
 		{
 		default:
 			instr.operation = ir_instruction_t::operation_::MOV;
-			instr.src1 = mangle_var_if_needed(ctx,right);
+			instr.src1 = mangle_var(ctx,right);
 			break;
 		case ASSIGNMENT_TYPE::ADD_ASSIGN:
 			instr.operation = ir_instruction_t::operation_::ADD;
 			instr.src1 = instr.dest;
-			instr.src2 = mangle_var_if_needed(ctx,right);
+			instr.src2 = mangle_var(ctx,right);
 			break;
 		case ASSIGNMENT_TYPE::SUBTRACT_ASSIGN:
 			instr.operation = ir_instruction_t::operation_::SUB;
 			instr.src1 = instr.dest;
-			instr.src2 = mangle_var_if_needed(ctx,right);
+			instr.src2 = mangle_var(ctx,right);
 			break;
 		case ASSIGNMENT_TYPE::MULTIPLY_ASSIGN:
 			instr.operation = ir_instruction_t::operation_::MUL;
 			instr.src1 = instr.dest;
-			instr.src2 = mangle_var_if_needed(ctx,right);
+			instr.src2 = mangle_var(ctx,right);
 			break;
 		case ASSIGNMENT_TYPE::DIVIDE_ASSIGN:
 			instr.operation = ir_instruction_t::operation_::DIV;
 			instr.src1 = instr.dest;
-			instr.src2 = mangle_var_if_needed(ctx,right);
+			instr.src2 = mangle_var(ctx,right);
 			break;
 		case ASSIGNMENT_TYPE::MOD_ASSIGN:
 			instr.operation = ir_instruction_t::operation_::REM;
 			instr.src1 = instr.dest;
-			instr.src2 = mangle_var_if_needed(ctx,right);
+			instr.src2 = mangle_var(ctx,right);
 		}
 	}
 	else {
@@ -832,7 +843,7 @@ std::string assignment_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 			instr.src1 = destination;
 			break;
 		default:
-			instr.src1 = mangle_var_if_needed(ctx,right);
+			instr.src1 = mangle_var(ctx,right);
 			instr.operation = ir_instruction_t::operation_::STORE;
 		}
 
@@ -857,8 +868,8 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
 	std::string left = lhs->generate_ir(ctx);
 	std::string right = rhs->generate_ir(ctx);
-	instr.src1 = mangle_var_if_needed(ctx,left);
-	instr.src2 = mangle_var_if_needed(ctx,right);
+	instr.src1 = mangle_var(ctx,left);
+	instr.src2 = mangle_var(ctx,right);
 	switch (op) {
 	case BIN_OP::ADD:
 		instr.operation = ir_instruction_t::operation_::ADD;
@@ -927,12 +938,12 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		if (ctx.left_is_deref )
 		{
 			if(ptr_depth == 1)
-				return mangle_var_if_needed(ctx,left);
+				return mangle_var(ctx,left);
 			std::string addr_temp = ctx.generate_temp();
 			ir_instruction_t load_ptr;
 			load_ptr.operation = ir_instruction_t::operation_::LOAD;
 			load_ptr.dest = addr_temp;
-			load_ptr.src1 = mangle_var_if_needed(ctx, left);
+			load_ptr.src1 = mangle_var(ctx, left);
 			load_ptr.load_src_is_ptr = true;
 			ctx.instructions.push_back(std::move(load_ptr));
 			return addr_temp;
@@ -942,7 +953,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 			ir_instruction_t load_ptr;
 			load_ptr.operation = ir_instruction_t::operation_::LOAD;
 			load_ptr.dest = addr_temp;
-			load_ptr.src1 = mangle_var_if_needed(ctx, left);
+			load_ptr.src1 = mangle_var(ctx, left);
 			load_ptr.load_src_is_ptr = true;
 			ctx.instructions.push_back(std::move(load_ptr));
 			return addr_temp;
@@ -951,7 +962,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		ir_instruction_t load_ptr;
 		load_ptr.operation = ir_instruction_t::operation_::LOAD;
 		load_ptr.dest = left;
-		load_ptr.src1 = mangle_var_if_needed(ctx, left);
+		load_ptr.src1 = mangle_var(ctx, left);
 		load_ptr.load_src_is_ptr = true;
 		ctx.instructions.push_back(std::move(load_ptr));
 		return left;
@@ -960,7 +971,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		if (!expr->is_deref()) {
 			instr.operation = ir_instruction_t::operation_::ADD;
 			// if the non temporary symbol is current function's
-			instr.src1 = instr.dest = mangle_var_if_needed(ctx,left);
+			instr.src1 = instr.dest = mangle_var(ctx,left);
 			instr.src2 = std::to_string(1);
 			if(instr.dest[0] != 't')
 				instr.store_dest_in_stack = true;
@@ -969,7 +980,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		}
 		instr_2.operation = ir_instruction_t::operation_::LOAD;
 		instr_2.dest = temp;
-		instr_2.src1 = mangle_var_if_needed(ctx,left);
+		instr_2.src1 = mangle_var(ctx,left);
 		instr_2.load_src_is_ptr = true;
 		ctx.instructions.push_back(std::move(instr_2));
 
@@ -979,14 +990,14 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		ctx.instructions.push_back(std::move(instr_3));
 		instr.operation = ir_instruction_t::operation_::STORE;
 		instr.src1 = temp;
-		instr.dest = mangle_var_if_needed(ctx,left);
+		instr.dest = mangle_var(ctx,left);
 		ctx.instructions.push_back(std::move(instr));
 		ctx.left_is_deref = false;
 		return temp;
 	case UNARY_OP::DECR:
 		if (!expr->is_deref()) {
 			instr.operation = ir_instruction_t::operation_::SUB;
-			instr.src1 = instr.dest = mangle_var_if_needed(ctx,left);
+			instr.src1 = instr.dest = mangle_var(ctx,left);
 			instr.src2 = std::to_string(1);
 			if(instr.dest[0] != 't')
 				instr.store_dest_in_stack = true;
@@ -995,7 +1006,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		}
 		instr_2.operation = ir_instruction_t::operation_::LOAD;
 		instr_2.dest = temp;
-		instr_2.src1 = mangle_var_if_needed(ctx,left);
+		instr_2.src1 = mangle_var(ctx,left);
 		instr_2.load_src_is_ptr = true;
 		ctx.instructions.push_back(std::move(instr_2));
 
@@ -1005,7 +1016,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		ctx.instructions.push_back(std::move(instr_3));
 		instr.operation = ir_instruction_t::operation_::STORE;
 		instr.src1 = temp;
-		instr.dest = mangle_var_if_needed(ctx,left);
+		instr.dest = mangle_var(ctx,left);
 		ctx.instructions.push_back(std::move(instr));
 		ctx.left_is_deref = false;
 		return temp;
@@ -1014,7 +1025,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	}
 	destination = ctx.generate_temp();
 	instr.dest = destination;
-	instr.src1 = mangle_var_if_needed(ctx, left);
+	instr.src1 = mangle_var(ctx, left);
 	ctx.instructions.push_back(std::move(instr));
 	return destination;
 }
@@ -1022,7 +1033,7 @@ std::string func_call_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 	for(auto& argument : arguments){
 		ir_instruction_t instr;
 		instr.operation = ir_instruction_t::operation_::ARG;
-		instr.src1 = mangle_var_if_needed(ctx,argument->generate_ir(ctx));
+		instr.src1 = mangle_var(ctx,argument->generate_ir(ctx));
 		ctx.instructions.push_back(std::move(instr));
 	}
 	ir_instruction_t call_instr;
