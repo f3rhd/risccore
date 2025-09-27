@@ -356,6 +356,21 @@ namespace {
 	}
 	inline std::string mangle_var(IR_Gen_Context& ctx, const std::string& var_id){
 
+			
+		auto is_immediate = [](const std::string& s)->bool{
+			if(s.empty()) return false;
+			if(s.size()>2 && s[0]=='0' && (s[1]=='x' || s[1]=='X')) return true;
+			size_t i = 0;
+			if(s[0]=='-') i = 1;
+			if(i==s.size()) return false;
+			for(; i < s.size(); ++i){
+				if(!std::isdigit(static_cast<unsigned char>(s[i]))) return false;
+			}
+			return true;
+		};
+		if (is_immediate(var_id)) {
+			return var_id;
+		}
 		if (var_id[0] == 't')
 			return var_id;
 
@@ -852,13 +867,7 @@ std::string assignment_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	return "";
 }
 std::string integer_literal_t::generate_ir(IR_Gen_Context& ctx) const {
-	ir_instruction_t instr;
-	instr.operation = ir_instruction_t::operation_::LOAD_CONST;
-	std::string temp = ctx.generate_temp();
-	instr.dest = temp;
-	instr.src1 = std::to_string(value);
-	ctx.instructions.push_back(std::move(instr));
-	return temp;
+	return std::to_string(value);
 }
 std::string var_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	return name;
