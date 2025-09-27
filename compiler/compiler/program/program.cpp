@@ -479,7 +479,7 @@ namespace f3_compiler {
 						// binary ops: dest = src1 op src2
 						std::string destReg = get_allocated_reg_for_var(instruction->dest);
 						std::string op1Reg;
-						// src1 may be immediate (rare) or var/temp
+						// src1 may be immediate 
 						if(is_immediate(instruction->src1)){
 							// materialize into scratch then use
 							emit("li", scratch + "," + instruction->src1);
@@ -546,6 +546,7 @@ namespace f3_compiler {
 							op2Reg = scratch;
 						} else {
 							// map op to mnemonic
+							op2Reg = get_allocated_reg_for_var(instruction->src2);
 							switch(instruction->operation){
 								case ir_instruction_t::operation_::ADD:
 									emit("add", destReg + "," + op1Reg + "," + op2Reg);
