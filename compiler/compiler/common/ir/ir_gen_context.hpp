@@ -6,6 +6,44 @@
 #include <sstream>
 #include <set>
 #include <unordered_map>
+#include <utility>
+struct ir_instruction_t;
+struct IR_Gen_Context {
+    std::string generate_label() { return ".L" + std::to_string(_label_id++); }
+	std::string generate_temp() { return "t" + std::to_string(_temp_id++); }
+    // these two functions are used for name resolution and stuff to prevent the global name clashing
+    void push_body(const std::string& id) { 
+        _scopes.emplace_back(); 
+        _scopes.back().first = id;
+    }
+    void pop_body() { 
+        _scopes.pop_back(); 
+    }
+    void add_var_id(const std::string & id) { 
+        _scopes.back().second.push_back(id); 
+    }
+    const std::vector<std::pair<std::string,std::vector<std::string>>> &get_scopes() {
+        return _scopes; 
+    }
+    void reset() {
+        skip_jump_labels.clear();
+        break_jump_labels.clear();
+        _scopes.clear();
+    }
+    std::string generate_body_id() {
+        return "b" + std::to_string(_body_id++);
+    }
+public:
+    std::vector<ir_instruction_t> instructions;
+	std::vector<std::string> skip_jump_labels;
+    std::vector<std::string> break_jump_labels;
+    bool left_is_deref = false;
+private:
+	std::vector<std::pair<std::string,std::vector<std::string>>> _scopes; // will keep track of defined vars in the scopes
+	uint32_t _label_id = 0;
+	uint32_t _temp_id = 0;
+    uint32_t _body_id = 0;
+};
 struct ir_instruction_t {
     enum class operation_ { 
         UNKNOWN,
@@ -169,30 +207,4 @@ struct ir_instruction_t {
 
 
 };
-struct IR_Gen_Context {
-    std::string generate_label() { return ".L" + std::to_string(label_id++); }
-	std::string generate_temp() { return "t" + std::to_string(temp_id++); }
-    void push_scope() { scopes.emplace_back(); }
-	void pop_scope() { scopes.pop_back(); }
-    void reset() {
-        skip_jump_labels.clear();
-        break_jump_labels.clear();
-        for(auto& [key,value] : symbol_mangles){
-            value++;
-        }
-    }
-    uint32_t flag = 0;
-    bool left_is_deref = false;
-public:
-    std::vector<ir_instruction_t> instructions;
-	std::vector<std::string> skip_jump_labels;
-    std::vector<std::string> break_jump_labels;
-    std::unordered_map<std::string, uint32_t> symbol_mangles;
-    ir_instruction_t comparison_instruction;
-private:
-	uint32_t label_id = 0;
-	uint32_t temp_id = 0;
 
-private:
-	std::vector<std::vector<std::string>> scopes;
-};

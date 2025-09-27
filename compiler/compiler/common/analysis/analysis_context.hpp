@@ -22,7 +22,7 @@ namespace f3_compiler {
 		bool in_loop = false;
 		bool has_return = false;
 		std::string current_func_id;
-		type_t get_var_type(const std::string& var_id){
+		type_t get_var_type(const std::string& var_id){ // searches previous and current scopes
 
 			for (auto it = _scopes.rbegin(); it < _scopes.rend();it++){
 				auto &scope = *it;
@@ -31,6 +31,9 @@ namespace f3_compiler {
 				}
 			}
 			return {type_t::BASE::UNKNOWN, 0};
+		}
+		bool var_is_defined_in_scope(const std::string& var_id) {
+			return _scopes.back().find(var_id) != _scopes.back().end();
 		}
 		void push_scope() { _scopes.emplace_back();} 
 		void pop_scope() {_scopes.pop_back();}
