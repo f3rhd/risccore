@@ -85,12 +85,18 @@ std::string Parser::parse_identifier() {
 }
 type_t Parser::parse_type()
 {
-	type_t::BASE type_base = type_t::BASE::UNKNOWN;
+	auto type_base = type_t::base::UNKNOWN;
 	int32_t type_pointer_depth = 0;
+	int32_t array_size = TYPE_IS_ARRAY;
 	switch (_current_token->type) {
-	case TOKEN_TYPE::KW_INT: type_base = type_t::BASE::INT; break;
-	//case TOKEN_TYPE::KW_UINT: type_base = type_t::BASE::UINT; break;
-	case TOKEN_TYPE::KW_VOID: type_base = type_t::BASE::VOID; break;
+	case TOKEN_TYPE::KW_INT: {
+		type_base = type_t::base::INT;
+		break;
+	};
+	case TOKEN_TYPE::KW_VOID: {
+		type_base = type_t::base::VOID;
+		break;
+	}
 	default:
 		make_error(*_current_token, { "Unknown type." });
 	}
@@ -99,7 +105,27 @@ type_t Parser::parse_type()
 		type_pointer_depth++;
 		advance();
 	}
-	return { type_base,type_pointer_depth };
+	if (current_token_is(TOKEN_TYPE::LEFT_SQUARE_BRACKET)) {
+		advance(); // we could be the size or the right bracket 
+		if (current_token_is(TOKEN_TYPE::RIGHT_SQUARE_BRACKET)) {
+			array_size = ARRAY_SIZE_IMPLICIT; 
+			advance();
+		}
+		else {
+			try
+			{
+				array_size = std::stoi(_current_token->value);
+			}
+			catch (...)
+			{
+				make_error(*_current_token, { "Array size must be an explicit integer." });
+			}
+			advance();
+			expect(TOKEN_TYPE::RIGHT_SQUARE_BRACKET, "Left bracket should be closed.");
+			advance();
+		}
+	}
+	return { type_base,type_pointer_depth,array_size};
 }
 void Parser::expect(TOKEN_TYPE type, const std::string& error_msg)
 {
@@ -410,6 +436,40 @@ std::unique_ptr<expression_t> Parser::parse_unary_op() {
 	return expr;
 }
 
+std::unique_ptr<expression_t> Parser::parse_primary_expr() {
+	if (current_token_is(TOKEN_TYPE::INT_LITERAL)) {
+		auto int_literal_expr = std::make_unique<integer_literal_t>(stol(_current_token->value));
+		advance();
+		return int_literal_expr;
+	}
+	if (current_token_is(TOKEN_TYPE::IDENTIFIER)) {
+		std::string name = parse_identifier();
+		if (!current_token_is(TOKEN_TYPE::END_OF_FILE) && current_token_is(TOKEN_TYPE::LPAREN)) { // function call 
+			std::vector<std::unique_ptr<expression_t>> arguments = parse_function_call_params();
+			auto func_call_expr = std::make_unique<func_call_expr_t>(std::move(name), std::move(arguments));
+			return func_call_expr;
+		}
+		if (!current_token_is(TOKEN_TYPE::LEFT_SQUARE_BRACKET)) {
+			auto var_expr = std::make_unique<var_expression_t>(std::move(name));
+			return var_expr;
+		}
+		advance();
+		std::unique_ptr<expression_t> index_part = parse_expr();
+		expect(TOKEN_TYPE::RIGHT_SQUARE_BRACKET, "Left bracked should be closed.");
+		advance();
+		return std::make_unique<var_expression_t>(std::move(name), std::move(index_part));
+	}
+	// We are lp
+	if (current_token_is(TOKEN_TYPE::LPAREN)) {
+		advance();
+		auto e = parse_expr();
+		expect(TOKEN_TYPE::RPAREN, "Missing matching ')' in expression .");
+		//We are rp
+		advance();
+		return e;
+	}
+	return nullptr;
+}
 std::vector<std::unique_ptr<expression_t>> Parser::parse_function_call_params() { // This function is also used in parsing of if,while statement's condition
 
 	// This function is getting invoked when the curr_token is ( and there is function declaration
@@ -423,7 +483,7 @@ std::vector<std::unique_ptr<expression_t>> Parser::parse_function_call_params() 
 	}
 	while (true) {
 		func_parameters.push_back(std::move(parse_expr()));
-		if (_current_token->type == TOKEN_TYPE::LCURLY) {
+		if (_current_token->type == TOKEN_TYPE::LPAREN) {
 			make_error(*_current_token, " Expected closing ')'.");
 			break;
 		}
@@ -438,32 +498,35 @@ std::vector<std::unique_ptr<expression_t>> Parser::parse_function_call_params() 
 	}
 	return func_parameters;
 }
-std::unique_ptr<expression_t> Parser::parse_primary_expr() {
-	if (current_token_is(TOKEN_TYPE::INT_LITERAL)) {
-		auto int_literal_expr = std::make_unique<integer_literal_t>(stol(_current_token->value));
+
+std::unique_ptr<expression_t> Parser::parse_array_initialize_expr() {
+
+	expect(TOKEN_TYPE::LCURLY, "Array initializer must start with {");
+	advance();
+
+	std::vector<std::unique_ptr<expression_t>> elements;
+
+	// means there are no elements
+	if (_current_token->type != TOKEN_TYPE::END_OF_FILE && _current_token->type == TOKEN_TYPE::RPAREN) {
 		advance();
-		return int_literal_expr;
+		return std::make_unique<array_initialize_expr_t>(std::move(elements));
 	}
-	if (current_token_is(TOKEN_TYPE::IDENTIFIER)) {
-		std::string name = parse_identifier();
-		if (!current_token_is(TOKEN_TYPE::END_OF_FILE) && current_token_is(TOKEN_TYPE::LPAREN)) { // function call 
-			std::vector<std::unique_ptr<expression_t>> arguments = parse_function_call_params();
-			auto func_call_expr = std::make_unique<func_call_expr_t>(std::move(name), std::move(arguments));
-			return func_call_expr;
+	while (true) {
+		elements.push_back(std::move(parse_expr()));
+		if (_current_token->type == TOKEN_TYPE::LCURLY) {
+			make_error(*_current_token, " Expected closing '}'.");
+			break;
 		}
-		auto var_expr = std::make_unique<var_expression_t>(std::move(name));
-		return var_expr;
-	}
-	// We are lp
-	if (current_token_is(TOKEN_TYPE::LPAREN)) {
+		if (_current_token->type != TOKEN_TYPE::RCURLY) {
+			expect(TOKEN_TYPE::COMMA, "Elements must be seperated by ','.");
+		}
+		else {
+			advance();
+			break;
+		}
 		advance();
-		auto e = parse_expr();
-		expect(TOKEN_TYPE::RPAREN, "Missing matching ')' in expression .");
-		//We are rp
-		advance();
-		return e;
 	}
-	return nullptr;
+	return std::make_unique<array_initialize_expr_t>(std::move(elements));
 }
 std::unique_ptr<statement_t> Parser::parse_var_decl_statement() {
 
@@ -473,7 +536,11 @@ std::unique_ptr<statement_t> Parser::parse_var_decl_statement() {
 	// check whether there is an expression in the declaration such as int x = 4;
 	if (current_token_is(TOKEN_TYPE::ASSIGNMENT)) {
 		advance();
-		right = std::move(parse_expr());
+		if(var_type.array_size == TYPE_IS_ARRAY)
+			right = std::move(parse_expr());
+		else 
+			right = std::move(parse_array_initialize_expr());
+
 	}
 	expect(TOKEN_TYPE::SEMICOLON, "Statement must end with ';'");
 	advance();
@@ -567,7 +634,7 @@ std::unique_ptr<statement_t> Parser::parse_statement() {
 	if (current_token_is(TOKEN_TYPE::END_OF_FILE))
 		return nullptr;
 	// var decl?
-	if (current_token_is(TOKEN_TYPE::KW_INT) || current_token_is(TOKEN_TYPE::KW_UINT)) {
+	if (current_token_is(TOKEN_TYPE::KW_INT) /* || current_token_is(TOKEN_TYPE::KW_UINT)*/) {
 		return parse_var_decl_statement();
 	}
 	// if statement?

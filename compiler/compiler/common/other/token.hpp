@@ -11,7 +11,6 @@ namespace f3_compiler {
 
 		UKNOWN,
 
-		// (2+3)-(5-4)*3%4 + 4>3 
 		PLUS, // +
 		MINUS, // -
 		SLASH, // /
@@ -50,9 +49,10 @@ namespace f3_compiler {
 		SINGLE_COLUMN, // |
 		TILDA, // ~
 		CARET, // ^
-
+		LEFT_SQUARE_BRACKET, // [
+		RIGHT_SQUARE_BRACKET,// ]
 		KW_INT, // int
-		KW_UINT, // uint
+		//KW_UINT, // uint
 		KW_VOID, // void
 		KW_OR, // or
 		KW_AND, // and

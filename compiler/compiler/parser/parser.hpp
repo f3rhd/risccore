@@ -35,6 +35,7 @@ namespace f3_compiler {
 		std::unique_ptr<ast_node::statement_t> 							parse_if_statement(bool parsing_while = false);
 		std::unique_ptr<ast_node::statement_t> 							parse_statement();
 		std::vector<std::unique_ptr<ast_node::expression_t>> 			parse_conditional_expr();
+		std::unique_ptr<ast_node::expression_t>							parse_array_initialize_expr();
 		std::unique_ptr<ast_node::statement_t> 							parse_while_statement();
 		std::unique_ptr<ast_node::statement_t> 							parse_return_statement();
 		std::unique_ptr<ast_node::statement_t> 							parse_skip_statement();

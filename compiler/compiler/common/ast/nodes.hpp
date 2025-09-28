@@ -30,8 +30,10 @@ namespace f3_compiler {
 
 		struct var_expression_t : expression_t {
 			std::string name;
+			std::unique_ptr<expression_t> index;
 			bool is_lvalue() const override { return true; }
 			var_expression_t(std::string&& id) : name(std::move(id)) {}
+			var_expression_t(std::string&& id,std::unique_ptr<expression_t>&& index_) : name(std::move(id)), index(std::move(index_)) {}
 
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
@@ -45,6 +47,13 @@ namespace f3_compiler {
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
 			type_t analyse(Analysis_Context &ctx) const override;
+		};
+		struct array_initialize_expr_t : expression_t {
+			std::vector<std::unique_ptr<expression_t>> elements;
+			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
+			std::string generate_ir(IR_Gen_Context& ctx) const override;
+			type_t analyse(Analysis_Context &ctx) const override;
+			array_initialize_expr_t(std::vector<std::unique_ptr<expression_t>>&& elements_) : elements(std::move(elements_)) {}
 		};
 		struct func_call_expr_t : expression_t {
 

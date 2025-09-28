@@ -30,7 +30,7 @@ namespace f3_compiler {
 					return scope[var_id];
 				}
 			}
-			return {type_t::BASE::UNKNOWN, 0};
+			return {type_t::base::UNKNOWN, 0};
 		}
 		bool var_is_defined_in_scope(const std::string& var_id) {
 			return _scopes.back().find(var_id) != _scopes.back().end();

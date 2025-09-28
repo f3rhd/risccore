@@ -32,7 +32,7 @@ void func_decl_t::analyse(Analysis_Context& ctx) {
 		body->analyse(ctx);
 
 	ctx.pop_scope();
-	if(return_type.base != type_t::BASE::VOID && !ctx.has_return){
+	if(return_type.base != type_t::base::VOID && !ctx.has_return){
 		ctx.make_error(ERROR_CODE::FUNCTION_SHOULD_RETURN,
 					   id, "Missing return statement in a non-void functon");
 	}
@@ -52,7 +52,7 @@ type_t return_statement_t::analyse(Analysis_Context& ctx) const {
 	if (return_expr)
 		return_expression_type = return_expr->analyse(ctx);
 	else
-		return_expression_type = {type_t::BASE::VOID, 0};
+		return_expression_type = {type_t::base::VOID, 0};
 
 	auto func_decl_info = ctx.get_func_decl_info(ctx.current_func_id);
 	// I cannot find a reason why this could happen as program include no global statements but we are gonna see a
@@ -88,12 +88,12 @@ type_t func_call_expr_t::analyse(Analysis_Context& ctx) const {
 	analysis_func_decl_info_t* func_decl_info = ctx.get_func_decl_info(id);
 	if(!func_decl_info){
 		ctx.make_error(ERROR_CODE::CALL_TO_UNDEFINED_FUCNTION, id, "Undefined function call.");
-		return {type_t::BASE::UNKNOWN, 0};
+		return {type_t::base::UNKNOWN, 0};
 	}
 	if (func_decl_info->arguments) {
 		if (func_decl_info->arguments->size() != arguments.size()) {
 			ctx.make_error(ERROR_CODE::CALL_TO_UNDEFINED_FUCNTION, id, "Function call arguments do not match to declaration");
-			return {type_t::BASE::UNKNOWN, 0};
+			return {type_t::base::UNKNOWN, 0};
 		}
 	}
 	for (size_t i = 0; i < arguments.size();i++) {
@@ -101,13 +101,13 @@ type_t func_call_expr_t::analyse(Analysis_Context& ctx) const {
 		type_t decl_type = (*(func_decl_info->arguments))[i].type;
 		if (var_argument_type.base != decl_type.base || var_argument_type.pointer_depth != decl_type.pointer_depth) {
 			ctx.make_error(ERROR_CODE::CALL_TO_UNDEFINED_FUCNTION, id, "Function call arguments do not match to declaration.");
-			return {type_t::BASE::UNKNOWN, 0};
+			return {type_t::base::UNKNOWN, 0};
 		}
 	}
 	return *(func_decl_info->return_type);
 }
 type_t var_expression_t::analyse(Analysis_Context& ctx) const {
-	if(ctx.get_var_type(name).base == type_t::BASE::UNKNOWN){
+	if(ctx.get_var_type(name).base == type_t::base::UNKNOWN){
 		ctx.make_error(ERROR_CODE::VAR_IS_NOT_DEFINED_IN_SCOPE, name, "Variable is not defined in this scope.");
 	}
 	return ctx.get_var_type(name);
@@ -120,10 +120,10 @@ type_t assignment_expression_t::analyse(Analysis_Context& ctx) const {
 		return left_type;
 	}
 	ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Assignment expression's left and right handside types do not match");
-	return {type_t::BASE::UNKNOWN, 0};
+	return {type_t::base::UNKNOWN, 0};
 }
 type_t integer_literal_t::analyse(Analysis_Context& ctx) const {
-	return {type_t::BASE::INT, 0};
+	return {type_t::base::INT, 0};
 }
 type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 
@@ -133,14 +133,14 @@ type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 	if (rhs)
 		r = rhs->analyse(ctx);
 
-	auto make_unknown = []() { return type_t{ type_t::BASE::UNKNOWN, 0 }; };
-	auto make_int = []() { return type_t{ type_t::BASE::INT, 0 }; };
+	auto make_unknown = []() { return type_t{ type_t::base::UNKNOWN, 0 }; };
+	auto make_int = []() { return type_t{ type_t::base::INT, 0 }; };
 
 	// arithmetic
 	if (op == BIN_OP::ADD || op == BIN_OP::SUB || op == BIN_OP::MUL || op == BIN_OP::DIV || op == BIN_OP::MOD ||
 		op == BIN_OP::BIT_AND || op == BIN_OP::BIT_OR || op == BIN_OP::BIT_XOR || op == BIN_OP::BIT_LEFT_SHIFT || op == BIN_OP::BIT_RIGHT_SHIFT) {
 		// require same base (INT/UINT), and not pointers
-		if (l.base == r.base && l.base == type_t::BASE::INT || /*l.base == type_t::BASE::UINT) && */  l.pointer_depth == 0 && r.pointer_depth == 0) {
+		if (l.base == r.base && l.base == type_t::base::INT || /*l.base == type_t::BASE::UINT) && */  l.pointer_depth == 0 && r.pointer_depth == 0) {
 			return l;
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Arithmetic operands must be integer types and match");
@@ -159,7 +159,7 @@ type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 
 	if (op == BIN_OP::LOGICAL_AND || op == BIN_OP::LOGICAL_OR) {
 		// require integer (boolean-ish) non-pointer
-		if (l.base == type_t::BASE::INT && r.base == type_t::BASE::INT && l.pointer_depth == 0 && r.pointer_depth == 0) {
+		if (l.base == type_t::base::INT && r.base == type_t::base::INT && l.pointer_depth == 0 && r.pointer_depth == 0) {
 			return make_int();
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Logical operators require integer (non-pointer) operands");
@@ -170,25 +170,25 @@ type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 }
 type_t unary_expression_t::analyse(Analysis_Context& ctx) const {
 	type_t t = expr->analyse(ctx);
-	auto make_unknown = [](){ return type_t{type_t::BASE::UNKNOWN, 0}; };
+	auto make_unknown = [](){ return type_t{type_t::base::UNKNOWN, 0}; };
 
 	switch (op) {
 	case UNARY_OP::NEG:
-		if ((t.base == type_t::BASE::INT /* || t.base == type_t::BASE::UINT*/) && t.pointer_depth == 0) {
+		if ((t.base == type_t::base::INT /* || t.base == type_t::BASE::UINT*/) && t.pointer_depth == 0) {
 			return t;
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Unary - requires an integer operand");
 		return make_unknown();
 	case UNARY_OP::BIT_NOT:
-		if ((t.base == type_t::BASE::INT /*|| t.base == type_t::BASE::UINT*/ ) && t.pointer_depth == 0) {
+		if ((t.base == type_t::base::INT /*|| t.base == type_t::BASE::UINT*/ ) && t.pointer_depth == 0) {
 			return t;
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Unary ~ requires an integer operand");
 		return make_unknown();
 
 	case UNARY_OP::NOT_LOGICAL:
-		if ((t.base == type_t::BASE::INT /* || t.base == type_t::BASE::UINT*/) && t.pointer_depth == 0) {
-			return {type_t::BASE::INT, 0};
+		if ((t.base == type_t::base::INT /* || t.base == type_t::BASE::UINT*/) && t.pointer_depth == 0) {
+			return {type_t::base::INT, 0};
 		}
 		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Unary ! requires an integer operand");
 		return make_unknown();
@@ -211,7 +211,7 @@ type_t unary_expression_t::analyse(Analysis_Context& ctx) const {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Increment/Decrement requires an lvalue");
 			return make_unknown();
 		}
-		if (!(t.base == type_t::BASE::INT /* || t.base == type_t::BASE::UINT*/) || t.pointer_depth != 0) {
+		if (!(t.base == type_t::base::INT /* || t.base == type_t::BASE::UINT*/) || t.pointer_depth != 0) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Increment/Decrement requires a non-pointer integer");
 			return make_unknown();
 		}
@@ -224,7 +224,8 @@ type_t var_decl_statement_t::analyse(Analysis_Context& ctx) const {
 	// If there's an initializer, check its type
 	if (rhs) {
 		type_t rhs_t = rhs->analyse(ctx);
-		if (rhs_t.base != type.base || rhs_t.pointer_depth != type.pointer_depth) {
+		if (rhs_t.base != type.base || rhs_t.pointer_depth != type.pointer_depth || 
+			(type.array_size != ARRAY_SIZE_IMPLICIT && type.array_size != type.array_size)) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, name, "Initializer type does not match variable declaration");
 		}
 	}
@@ -234,11 +235,24 @@ type_t var_decl_statement_t::analyse(Analysis_Context& ctx) const {
 	ctx.add_var(name, type);
 	return {};
 }
+type_t array_initialize_expr_t::analyse(Analysis_Context& ctx) const {
+	if(elements.empty())
+		return { type_t::base::SUCCESS,0,0 };
+	type_t first_element_type = elements[0]->analyse(ctx);
+	for (uint64_t i = 1; i < elements.size(); i++) {
+		type_t element_type = elements[i]->analyse(ctx);
+		if (element_type.base != first_element_type.base || element_type.pointer_depth != first_element_type.pointer_depth) {
+			ctx.make_error(ERROR_CODE::ARRAYS_ELEMENTS_SHOULD_HAVE_EQUIVALENT_TYPES, "", "Array elements should have equivalent types");
+		}
+	}
+	first_element_type.array_size = static_cast<int32_t>(elements.size());
+	return first_element_type;
+}
 type_t if_statement_t::analyse(Analysis_Context& ctx) const {
 	// conditions must be integer (non-pointer)
 	for (const auto& cond : condition) {
 		type_t ct = cond->analyse(ctx);
-		if (ct.base != type_t::BASE::INT || ct.pointer_depth != 0) {
+		if (ct.base != type_t::base::INT || ct.pointer_depth != 0) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "if", "Condition must be an integer (non-pointer) expression");
 		}
 	}
@@ -259,7 +273,7 @@ type_t while_statement_t::analyse(Analysis_Context& ctx) const {
 	// conditions must be integer (non-pointer)
 	for (const auto& cond : condition) {
 		type_t ct = cond->analyse(ctx);
-		if (ct.base != type_t::BASE::INT || ct.pointer_depth != 0) {
+		if (ct.base != type_t::base::INT || ct.pointer_depth != 0) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "while", "Condition must be an integer (non-pointer) expression");
 		}
 	}
@@ -277,7 +291,7 @@ type_t for_statement_t::analyse(Analysis_Context& ctx) const {
 	// condition (range) must be integer (non-pointer) if present
 	if (condition) {
 		type_t ct = condition->analyse(ctx);
-		if (ct.base != type_t::BASE::INT || ct.pointer_depth != 0) {
+		if (ct.base != type_t::base::INT || ct.pointer_depth != 0) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "for", "Range/condition must be an integer (non-pointer) expression");
 		}
 	}
@@ -872,6 +886,11 @@ std::string integer_literal_t::generate_ir(IR_Gen_Context& ctx) const {
 std::string var_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	return name;
 }
+std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const { // @Uncomplete
+
+
+	return "";
+}
 std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 
 	ir_instruction_t instr;
@@ -1233,6 +1252,19 @@ void var_expression_t::print_ast(std::ostream& os, uint32_t indent_level, bool i
 {
 	draw_branch(os, indent_level, is_last);
 	os << COLOR_LABEL << "variable : " << COLOR_VAR << name << COLOR_RESET << "\n";
+	if (index) {
+		draw_branch(os, indent_level + 1, is_last);
+		os << COLOR_LABEL << "index : \n";
+		index->print_ast(os, indent_level + 2, false);
+	}
+}
+void array_initialize_expr_t::print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const
+{
+	draw_branch(os, indent_level + 1, false);
+	os << COLOR_LABEL << "elements" << COLOR_RESET << "\n";
+	for (size_t i = 0; i < elements.size(); i++) {
+		elements[i]->print_ast(os, indent_level + 2, i == elements.size() - 1);
+	}
 }
 void func_call_expr_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/, bool is_last /*= true*/) const
 {
