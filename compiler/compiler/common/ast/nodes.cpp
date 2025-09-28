@@ -939,6 +939,7 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		break;
 	case BIN_OP::BIT_RIGHT_SHIFT:
 		instr.operation = ir_instruction_t::operation_::SHIFT_RIGHT;
+		break;
 	default:
 		break;
 	}
