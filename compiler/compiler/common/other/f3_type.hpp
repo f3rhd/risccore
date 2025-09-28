@@ -1,11 +1,13 @@
 #pragma once
 #include <string>
 #include <cstdint>
+auto constexpr TYPE_IS_ARRAY = -1;
+auto constexpr ARRAY_SIZE_IMPLICIT = -2;
 struct type_t {
 		// success is used in analysis
-		enum class BASE { INT, VOID, UNKNOWN,SUCCESS} base = BASE::VOID;
+		enum class base { INT, VOID, UNKNOWN,SUCCESS} base = base::UNKNOWN;
 		int32_t pointer_depth = 0;
-
+		int32_t array_size = TYPE_IS_ARRAY;
 		std::string str() const {
 			auto _pointer_depth = [&]() -> std::string {
 				std::string str;
@@ -14,8 +16,8 @@ struct type_t {
 				return str;
 			};
 			switch (base) {
-			case BASE::INT: return "int" + _pointer_depth();
-			case BASE::VOID: return "void" + _pointer_depth() ;
+			case base::INT: return "int" + _pointer_depth();
+			case base::VOID: return "void" + _pointer_depth() ;
 			default: return "int" + _pointer_depth();
 			}
 		}

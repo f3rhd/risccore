@@ -42,11 +42,11 @@ int main(int argc, char** argv) {
 	if (parser.has_error()) {
 		exit(EXIT_FAILURE);
 	}
+	program.analyse();
 	if (print_ast) {
 		program.print_ast();
 		return 0;
 	}
-	program.analyse();
 	if(program.has_error()){
 		exit(EXIT_FAILURE);
 	}

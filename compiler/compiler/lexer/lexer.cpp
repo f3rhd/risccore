@@ -101,6 +101,18 @@ void Lexer::tokenize() {
 			_col++;
 			continue;
 		}
+		if (ch == '[') {
+			make_token(TOKEN_TYPE::LEFT_SQUARE_BRACKET, std::string(1, ch), _row, _col);
+			_i++;
+			_col++;
+			continue;
+		}
+		if (ch == ']') {
+			make_token(TOKEN_TYPE::RIGHT_SQUARE_BRACKET, std::string(1, ch), _row, _col);
+			_i++;
+			_col++;
+			continue;
+		}
 		if (ch == '+') {
 
 			if (source_string[_i+1] == '+') {
