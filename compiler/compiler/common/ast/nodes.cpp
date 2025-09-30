@@ -382,7 +382,7 @@ namespace {
 	inline std::string mangle_var(IR_Gen_Context& ctx, const std::string& var_id){
 
 			
-		if (is_immediate(var_id)) {
+		if (is_immediate(var_id) || var_id[0] == '$') {
 			return var_id;
 		}
 		if (var_id[0] == 't')
@@ -540,14 +540,19 @@ std::string block_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
 std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
-	ctx.add_var_id(name);
-	if(rhs){
+	ctx.add_var_id(name); 
+	if(!rhs->is_array()){
 		std::string source = rhs->generate_ir(ctx);
 		instr.operation = ir_instruction_t::operation_::MOV;
 		instr.dest = mangle_var(ctx,name);
 		instr.src1 = mangle_var(ctx,source);
 		instr.store_dest_in_stack = true;
 		ctx.instructions.push_back(std::move(instr));
+	}
+	else {
+		ctx.array_var_id = mangle_var(ctx,name);
+		rhs->generate_ir(ctx);
+		ctx.array_var_id = "";
 	}
 	return "";
 }
@@ -887,8 +892,41 @@ std::string var_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	return name;
 }
 std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const { // @Uncomplete
+	ir_instruction_t instr;
+	instr.operation = ir_instruction_t::operation_::ALLOC;
+	instr.dest = ctx.array_var_id;
+	instr.src1 = std::to_string(elements.size()*4);
+	ctx.instructions.push_back(std::move(instr));
 
+	for (uint64_t i = 0; i < elements.size();i++) {
 
+		ir_instruction_t store_instr;
+		store_instr.operation = ir_instruction_t::operation_::STORE;
+		store_instr.store_dest_is_ptr = false;
+		std::string element_val = elements[i]->generate_ir(ctx);
+		try {
+			auto _ = std::stoi(element_val);
+
+			ir_instruction_t load_const_instr;
+			load_const_instr.operation = ir_instruction_t::operation_::LOAD_CONST;
+			std::string element_integer_dest = ctx.generate_temp();
+			load_const_instr.dest = element_integer_dest;
+			load_const_instr.src1 = element_val;
+			ctx.instructions.push_back(std::move(load_const_instr));
+
+			store_instr.dest = ctx.array_var_id;
+			store_instr.src1 = element_integer_dest;
+			store_instr.src2 = "-" + std::to_string(i * 4);
+			ctx.instructions.push_back(std::move(store_instr));
+
+		}
+		catch (...) {
+			store_instr.dest = ctx.array_var_id;
+			store_instr.src1 = element_val;
+			store_instr.src2 = "-" + std::to_string(i * 4);
+			ctx.instructions.push_back(std::move(store_instr));
+		}
+	}
 	return "";
 }
 std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {

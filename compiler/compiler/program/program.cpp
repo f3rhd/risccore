@@ -4,6 +4,17 @@
 namespace f3_compiler {
 	namespace {
 
+		auto is_immediate(const std::string& s)->bool{
+			if(s.empty()) return false;
+			if(s.size()>2 && s[0]=='0' && (s[1]=='x' || s[1]=='X')) return true;
+			size_t i = 0;
+			if(s[0]=='-') i = 1;
+			if(i==s.size()) return false;
+			for(; i < s.size(); ++i){
+				if(!std::isdigit(static_cast<unsigned char>(s[i]))) return false;
+			}
+			return true;
+		};
 		inline int32_t align_up(int32_t offset, int32_t alignment) {
 			return (offset + alignment - 1) / alignment * alignment;
 		}
@@ -64,21 +75,28 @@ namespace f3_compiler {
 
 			int32_t logical_offset = 0;
 			for(auto& instr : block.instructions){
-				if(!instr->dest.empty() && instr->dest[0] != 't' && !std::isdigit(instr->dest[0])){
+				if (instr->operation == ir_instruction_t::operation_::ALLOC) {
+					logical_offset += 4;
+					if (block.local_vars.find(instr->dest) == block.local_vars.end()) {
+						block.local_vars.emplace(instr->dest,-logical_offset);
+					}
+					logical_offset += std::stoi(instr->src1); 
+				}
+				else if(!instr->dest.empty() && instr->dest[0] != 't' && !is_immediate(instr->dest)){
 					instr->store_dest_in_stack = true;
 					if (block.local_vars.find(instr->dest) == block.local_vars.end()) {
 						logical_offset += 4;
 						block.local_vars.emplace(instr->dest,-logical_offset);
 					}
 				}
-				if(!instr->src1.empty() && instr->src1[0] != 't' && !std::isdigit(instr->src1[0])){
+				else if(!instr->src1.empty() && instr->src1[0] != 't' && !is_immediate(instr->src1)){
 					instr->load_var_from_memory = true;
 					if (block.local_vars.find(instr->src1) == block.local_vars.end()) {
 						logical_offset += 4;
 						block.local_vars.emplace(instr->src1,-logical_offset);
 					}
 				}
-				if(!instr->src2.empty() && instr->src2[0] != 't' &&  !std::isdigit(instr->src2[0])){
+				else if(!instr->src2.empty() && instr->src2[0] != 't' &&  !is_immediate(instr->src2)){
 					instr->load_var_from_memory = true;
 					if (block.local_vars.find(instr->src2) == block.local_vars.end()) {
 						logical_offset += 4;
@@ -161,13 +179,15 @@ namespace f3_compiler {
 
 	void Program::compute_instruction_use_def(){
 		for(auto& instr : _instructions){
-			if(!instr.src1.empty() && !std::isdigit(instr.src1[0])) {
+			if (instr.operation == ir_instruction_t::operation_::ALLOC)
+				continue;
+			if(!instr.src1.empty() && !is_immediate(instr.src1)) {
 				instr.use.insert(instr.src1);
 			}
-			if (!instr.src2.empty() && !std::isdigit(instr.src2[0])) {
+			if (!instr.src2.empty() && !is_immediate(instr.src2)) {
 				instr.use.insert(instr.src2);
 			}
-			if(!instr.dest.empty() && !std::isdigit(instr.dest[0])) {
+			if(!instr.dest.empty() && !is_immediate(instr.dest)) {
 				// in store instruction both variables are used rather one of them being defined
 				if(instr.operation == ir_instruction_t::operation_::STORE){
 					instr.use.insert(instr.dest);
@@ -232,11 +252,11 @@ namespace f3_compiler {
 			_interference_nodes.emplace(id, id);
 		};
 		for (auto& instr : _instructions) {
-			if (!instr.src1.empty() && !std::isdigit(instr.src1[0]))
+			if (!instr.src1.empty() && !is_immediate(instr.src1))
 				make_node(instr.src1);
-			if (!instr.src2.empty() && !std::isdigit(instr.src2[0]))
+			if (!instr.src2.empty() && !is_immediate(instr.src2))
 				make_node(instr.src2);
-			if (!instr.dest.empty() && !std::isdigit(instr.dest[0]))
+			if (!instr.dest.empty() && !is_immediate(instr.dest))
 				make_node(instr.dest);
 		}
 	}
@@ -394,17 +414,6 @@ namespace f3_compiler {
 				}
 			};
 
-			auto is_immediate = [](const std::string& s)->bool{
-				if(s.empty()) return false;
-				if(s.size()>2 && s[0]=='0' && (s[1]=='x' || s[1]=='X')) return true;
-				size_t i = 0;
-				if(s[0]=='-') i = 1;
-				if(i==s.size()) return false;
-				for(; i < s.size(); ++i){
-					if(!std::isdigit(static_cast<unsigned char>(s[i]))) return false;
-				}
-				return true;
-			};
 			auto is_spilled = [this](const std::string& name)->bool{
 				for(const auto &s : _spilled_vars) if(s==name) return true;
 				return false;
@@ -433,8 +442,10 @@ namespace f3_compiler {
 					emit("lw", op);
 				}
 				// store instructon's destination is a memory address
-				if(instruction->operation == ir_instruction_t::operation_::STORE
-					&& function_block.local_vars.find(instruction->dest) != function_block.local_vars.end()){
+				if(instruction->operation == ir_instruction_t::operation_::STORE &&
+					instruction->store_dest_is_ptr
+					&& function_block.local_vars.find(instruction->dest) != function_block.local_vars.end()
+					){
 					std::string op = get_allocated_reg_for_var(instruction->dest) + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)";
 					emit("lw", op);
 				}
@@ -630,7 +641,17 @@ namespace f3_compiler {
 						std::string srcReg;
 						srcReg = get_allocated_reg_for_var(instruction->src1);
 						std::string addrReg = get_allocated_reg_for_var(instruction->dest);
-						emit("sw", srcReg + ",0(" + addrReg + ")");
+						if(is_immediate(instruction->src1)){
+							emit("li", scratch + "," + instruction->src1);
+							srcReg = scratch;
+						}
+						if(instruction->store_dest_is_ptr)
+							emit("sw", srcReg + ",0(" + addrReg + ")");
+						else
+							emit("sw", srcReg + "," + std::to_string(std::stoi(instruction->src2) + std::stoi(actual_offset(function_block.local_vars[instruction->dest]))) + "(" + "s0" + ")");
+						break;
+					}
+					case ir_instruction_t::operation_::ALLOC: {
 						break;
 					}
 					case ir_instruction_t::operation_::GOTO: {
