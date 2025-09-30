@@ -36,8 +36,8 @@ int main(int argc, char** argv) {
 				bin_file = argv[++i];
 			}
 		}
-		Lexer lexer(input_file);
-		Parser parser(std::move(const_cast<std::vector<token_t>&>(lexer.get_tokens())));
+	Lexer lexer(input_file);
+	Parser parser(std::move(const_cast<std::vector<token_t>&>(lexer.get_tokens())));
 	auto program = parser.parse_program();
 	if (parser.has_error()) {
 		exit(EXIT_FAILURE);
@@ -51,26 +51,39 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 	program.generate_IR();
-	std::ostringstream asm_stream;
-	program.generate_asm(asm_stream);
+
 	if (program.has_error()) {
 		exit(EXIT_FAILURE);
 	}
-	std::string asm_code = asm_stream.str();
 
 	if(ir_file){
 		std::ofstream ofs(ir_file);
 		program.print_IR(ofs);
 	}
 	if (asm_file) {
-		std::ofstream ofs(asm_file);
-		ofs << ".reset_vector:\n";
-		ofs << "\tli sp, 0xFFFF\n";
-		ofs << "\tcall .main\n";
-		ofs << asm_code;
+		if (strcmp(asm_file, "cout") != 0) {
+
+			std::ostringstream asm_stream;
+			program.generate_asm(asm_stream);
+			std::string asm_code = asm_stream.str();
+			std::ofstream ofs(asm_file);
+			ofs << ".reset_vector:\n";
+			ofs << "\tli sp, 0xFFFF\n";
+			ofs << "\tcall .main\n";
+			ofs << asm_code;
+		}
+		else {
+			std::cout << ".reset_vector:\n";
+			std::cout<< "\tli sp, 0xFFFF\n";
+			std::cout << "\tcall .main\n";
+			program.generate_asm(std::cout);
+		}
 	}
 
 	if (bin_file) {
+		std::ostringstream asm_stream;
+		program.generate_asm(asm_stream);
+		std::string asm_code = asm_stream.str();
 		std::string temp = std::string(bin_file) + ".s";
 		{
 			std::ofstream ofs(temp);

@@ -19,6 +19,7 @@ struct IR_Gen_Context {
     void pop_body() { 
         _scopes.pop_back(); 
     }
+    // for mangling and stuff
     void add_var_id(const std::string & id) { 
         _scopes.back().second.push_back(id); 
     }
@@ -38,6 +39,7 @@ public:
 	std::vector<std::string> skip_jump_labels;
     std::vector<std::string> break_jump_labels;
     bool left_is_deref = false;
+    std::string array_var_id;
 private:
 	std::vector<std::pair<std::string,std::vector<std::string>>> _scopes; // will keep track of defined vars in the scopes
 	uint32_t _label_id = 0;
@@ -56,7 +58,7 @@ struct ir_instruction_t {
         SHIFT_LEFT,SHIFT_RIGHT,
         ADDR, DEREF,
         PARAM,ARG,
-        CALL, RETURN, 
+        CALL, RETURN,ALLOC,
         LABEL, 
         MOV 
     } operation = operation_::UNKNOWN;
@@ -64,6 +66,7 @@ struct ir_instruction_t {
     bool store_dest_in_stack = false;
     bool load_var_from_memory = false;
     bool load_src_is_ptr = false;
+    bool store_dest_is_ptr = true;
     std::string dest;
     std::string src1, src2;
     std::string label_id;
@@ -168,7 +171,7 @@ struct ir_instruction_t {
             out << "UNKNOWN";
             break;
         case operation_::STORE : 
-            out << "STORE" << " " << src1 <<  "," << dest;
+            out << "STORE" << " " << src1 <<  ",(" << src2 << ")" << dest ;
             break;
         case operation_::LOAD : 
             out << "LOAD" << " " <<dest << "," << src1;
@@ -179,6 +182,8 @@ struct ir_instruction_t {
         case operation_::NOP:
             out << "NOP";
             break;
+        case operation_::ALLOC:
+            out << "ALLOC " << dest << "," << src1;
 
         }
         return out.str();
