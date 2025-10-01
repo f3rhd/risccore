@@ -31,11 +31,8 @@ namespace f3_compiler {
 
 		struct var_expression_t : expression_t {
 			std::string name;
-			std::unique_ptr<expression_t> index;
 			bool is_lvalue() const override { return true; }
 			var_expression_t(std::string&& id) : name(std::move(id)) {}
-			var_expression_t(std::string&& id,std::unique_ptr<expression_t>&& index_) : name(std::move(id)), index(std::move(index_)) {}
-
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
 			type_t analyse(Analysis_Context &ctx) const override;
@@ -100,9 +97,7 @@ namespace f3_compiler {
 			unary_expression_t(UNARY_OP op_, std::unique_ptr<expression_t>&& expr_,int32_t ptr_depth_ = 0) : expr(std::move(expr_)), op(op_), ptr_depth(ptr_depth_){}
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
 			bool is_deref() const override {
-				if (op == UNARY_OP::DEREF)
-					return true;
-				return false;
+				return op == UNARY_OP::DEREF;
 			};
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
 			type_t analyse(Analysis_Context &ctx) const override;

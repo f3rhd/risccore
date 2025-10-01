@@ -114,7 +114,7 @@ type_t var_expression_t::analyse(Analysis_Context& ctx) const {
 }
 type_t assignment_expression_t::analyse(Analysis_Context& ctx) const {
  	type_t left_type = lhs->analyse(ctx);
- 	type_t right_type = rhs->analyse(ctx);
+	type_t right_type = rhs->analyse(ctx);
 
 	if(left_type.base == right_type.base && left_type.pointer_depth == right_type.pointer_depth){
 		return left_type;
@@ -200,7 +200,7 @@ type_t unary_expression_t::analyse(Analysis_Context& ctx) const {
 		}
 		return {t.base, t.pointer_depth + 1};
 	case UNARY_OP::DEREF:
-		if (t.pointer_depth <= 0) {
+		if (t.pointer_depth <= 0 && t.array_size == ARRAY_NOT_INITIALIZED) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Dereference requires a pointer type");
 			return make_unknown();
 		}
@@ -224,8 +224,11 @@ type_t var_decl_statement_t::analyse(Analysis_Context& ctx) const {
 	// If there's an initializer, check its type
 	if (rhs) {
 		type_t rhs_t = rhs->analyse(ctx);
-		if (rhs_t.base != type.base || rhs_t.pointer_depth != type.pointer_depth || 
-			(type.array_size != ARRAY_SIZE_IMPLICIT && type.array_size != type.array_size)) {
+		type_t my_type = type;
+		if (type.array_size != ARRAY_NOT_INITIALIZED) {
+			my_type.pointer_depth--;
+		}
+		if (rhs_t.base != type.base || rhs_t.pointer_depth != my_type.pointer_depth) {
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, name, "Initializer type does not match variable declaration");
 		}
 	}
@@ -382,12 +385,17 @@ namespace {
 	inline std::string mangle_var(IR_Gen_Context& ctx, const std::string& var_id){
 
 			
-		if (is_immediate(var_id) || var_id[0] == '$') {
+		if (is_immediate(var_id)) {
+			if (var_id[0] == '$') {
+				return var_id;
+			}
+			if (ctx.is_deref) {
+				return std::to_string(std::stoi(var_id) * 4);
+			}
 			return var_id;
 		}
 		if (var_id[0] == 't')
 			return var_id;
-
 		std::string value = "$";
 		auto& scopes = ctx.get_scopes();
 		for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
@@ -891,7 +899,7 @@ std::string integer_literal_t::generate_ir(IR_Gen_Context& ctx) const {
 std::string var_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	return name;
 }
-std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const { // @Uncomplete
+std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
 	instr.operation = ir_instruction_t::operation_::ALLOC;
 	instr.dest = ctx.array_var_id;
@@ -938,8 +946,10 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	instr.src2 = mangle_var(ctx,right);
 	int32_t a = -1;
 	int32_t b = -1;
-	if (is_immediate(left) && is_immediate(right)) {
-		 a = std::stoi(left);
+	if (is_immediate(left)) {
+		a = std::stoi(left);
+	}
+	if(is_immediate(right)) {
 		 b = std::stoi(right);
 	}
 	switch (op) {
@@ -1014,13 +1024,19 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr_3;
 	instr_2.operation = ir_instruction_t::operation_::LOAD_CONST;
 	auto prev = ctx.left_is_deref;
+	// idk what the fuck this is 
+	// i remove it and incr and decrv operation with deref gets fuqed
 	if(op == UNARY_OP::INCR || op == UNARY_OP::DECR){
 		ctx.left_is_deref = true;
 	}
+	auto prev_2 = ctx.is_deref;
+	if (op == UNARY_OP::DEREF)
+		ctx.is_deref = true;
 	std::string left = expr->generate_ir(ctx);
 	ctx.left_is_deref = prev;
 	std::string destination;
 	std::string temp = ctx.generate_temp();
+	ctx.is_deref = prev_2;
 	switch (op)
 	{
 	case UNARY_OP::NEG:
@@ -1290,11 +1306,6 @@ void var_expression_t::print_ast(std::ostream& os, uint32_t indent_level, bool i
 {
 	draw_branch(os, indent_level, is_last);
 	os << COLOR_LABEL << "variable : " << COLOR_VAR << name << COLOR_RESET << "\n";
-	if (index) {
-		draw_branch(os, indent_level + 1, is_last);
-		os << COLOR_LABEL << "index : \n";
-		index->print_ast(os, indent_level + 2, false);
-	}
 }
 void array_initialize_expr_t::print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const
 {

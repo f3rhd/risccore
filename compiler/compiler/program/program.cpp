@@ -292,7 +292,7 @@ namespace f3_compiler {
 			}
 		}
 		// number of registers
-		const int K = 7;
+		const int K = 6;
 
 		// build unoredered_map of [id,neighbors] from interference nodes
 		std::unordered_map<std::string, std::unordered_set<std::string>> adj;
@@ -639,16 +639,32 @@ namespace f3_compiler {
 					case ir_instruction_t::operation_::STORE: {
 						// sw src1Reg, 0(ptr) where dest names variable slot
 						std::string srcReg;
-						srcReg = get_allocated_reg_for_var(instruction->src1);
 						std::string addrReg = get_allocated_reg_for_var(instruction->dest);
 						if(is_immediate(instruction->src1)){
 							emit("li", scratch + "," + instruction->src1);
 							srcReg = scratch;
 						}
-						if(instruction->store_dest_is_ptr)
-							emit("sw", srcReg + ",0(" + addrReg + ")");
-						else
+						else {
+							srcReg = get_allocated_reg_for_var(instruction->src1);
+
+						}
+						/*
+							in store instructions instruction_t::src2 implies the offset from the pointer 
+							we use it in arrays and stuff
+						*/
+						if(instruction->store_dest_is_ptr){
+							if(instruction->src2.empty())
+								emit("sw", srcReg + ",0(" + addrReg + ")");
+							else if(is_immediate(instruction->src2)){
+								emit("sw", srcReg + "," + std::to_string(std::stoi(instruction->src2) + std::stoi(actual_offset(function_block.local_vars[instruction->dest]))) + "(" + addrReg + ")");
+							}
+							else{
+
+							}
+						}
+						else{
 							emit("sw", srcReg + "," + std::to_string(std::stoi(instruction->src2) + std::stoi(actual_offset(function_block.local_vars[instruction->dest]))) + "(" + "s0" + ")");
+						}
 						break;
 					}
 					case ir_instruction_t::operation_::ALLOC: {
