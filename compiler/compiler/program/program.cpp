@@ -85,21 +85,21 @@ namespace f3_compiler {
 					}
 					logical_offset += std::stoi(instr->src1); 
 				}
-				else if(!instr->dest.empty() && instr->dest[0] != 't' && !is_immediate(instr->dest)){
+				else if(!instr->dest.empty() && instr->dest[0] != '@' && !is_immediate(instr->dest)){
 					instr->store_dest_in_stack = true;
 					if (block.local_vars.find(instr->dest) == block.local_vars.end()) {
 						logical_offset += 4;
 						block.local_vars.emplace(instr->dest,-logical_offset);
 					}
 				}
-				else if(!instr->src1.empty() && instr->src1[0] != 't' && !is_immediate(instr->src1) && !instr->src1_is_stack_offset){
+				else if(!instr->src1.empty() && instr->src1[0] != '@' && !is_immediate(instr->src1) && !instr->src1_is_stack_offset){
 					instr->load_var_from_memory = true;
 					if (block.local_vars.find(instr->src1) == block.local_vars.end()) {
 						logical_offset += 4;
 						block.local_vars.emplace(instr->src1,-logical_offset);
 					}
 				}
-				else if(!instr->src2.empty() && instr->src2[0] != 't' &&  !is_immediate(instr->src2)){
+				else if(!instr->src2.empty() && instr->src2[0] != '@' &&  !is_immediate(instr->src2)){
 					instr->load_var_from_memory = true;
 					if (block.local_vars.find(instr->src2) == block.local_vars.end()) {
 						logical_offset += 4;
@@ -756,17 +756,23 @@ namespace f3_compiler {
 					case ir_instruction_t::operation_::ARG: {
 						// move an argument into aN
 						std::string targetReg = "a" + std::to_string(call_argument_counter++);
-						if(is_immediate(instruction->src1)){
-							emit("li", targetReg + "," + instruction->src1);
-						} else {
-							// if src1 refers to a local var on stack, load it
-							auto it = function_block.local_vars.find(instruction->src1);
-							if(it != function_block.local_vars.end()){
-								auto off = actual_offset(it->second);
-								emit("lw", targetReg + "," + off + "(s0)");
+						if (instruction->src1_is_stack_offset) {
+							emit("addi",scratch + "," + std::to_string(std::stoi(actual_offset(function_block.local_vars[instruction->src1]))) + ",s0");
+							emit("mv", targetReg + "," + scratch);
+						}
+						else {
+							if(is_immediate(instruction->src1)){
+								emit("li", targetReg + "," + instruction->src1);
 							} else {
-								std::string srcReg = get_allocated_reg_for_var(instruction->src1);
-								emit("mv", targetReg + "," + srcReg);
+								// if src1 refers to a local var on stack, load it
+								auto it = function_block.local_vars.find(instruction->src1);
+								if(it != function_block.local_vars.end()){
+									auto off = actual_offset(it->second);
+									emit("lw", targetReg + "," + off + "(s0)");
+								} else {
+									std::string srcReg = get_allocated_reg_for_var(instruction->src1);
+									emit("mv", targetReg + "," + srcReg);
+								}
 							}
 						}
 						break;
