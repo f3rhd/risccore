@@ -87,7 +87,7 @@ type_t Parser::parse_type()
 {
 	auto type_base = type_t::base::UNKNOWN;
 	int32_t type_pointer_depth = 0;
-	int32_t array_size = TYPE_IS_ARRAY;
+	int32_t array_size = ARRAY_NOT_INITIALIZED;
 	switch (_current_token->type) {
 	case TOKEN_TYPE::KW_INT: {
 		type_base = type_t::base::INT;
@@ -125,7 +125,10 @@ type_t Parser::parse_type()
 			advance();
 		}
 	}
-	return { type_base,type_pointer_depth,array_size};
+		if(array_size != ARRAY_NOT_INITIALIZED)
+			// increment the pointer depth as arrays are pointers themselves
+			return { type_base,++type_pointer_depth,array_size};
+		return {type_base, type_pointer_depth, array_size};
 }
 void Parser::expect(TOKEN_TYPE type, const std::string& error_msg)
 {
@@ -453,11 +456,14 @@ std::unique_ptr<expression_t> Parser::parse_primary_expr() {
 			auto var_expr = std::make_unique<var_expression_t>(std::move(name));
 			return var_expr;
 		}
+		// translate the indexing to dereference node
 		advance();
 		std::unique_ptr<expression_t> index_part = parse_expr();
 		expect(TOKEN_TYPE::RIGHT_SQUARE_BRACKET, "Left bracked should be closed.");
+		std::unique_ptr<binary_expression_t> add_node = std::make_unique<binary_expression_t>(BIN_OP::ADD,std::make_unique<var_expression_t>(std::move(name)),std::move(index_part));
+		std::unique_ptr<unary_expression_t> deref_node = std::make_unique<unary_expression_t>(UNARY_OP::DEREF, std::move(add_node));
 		advance();
-		return std::make_unique<var_expression_t>(std::move(name), std::move(index_part));
+		return deref_node;
 	}
 	// We are lp
 	if (current_token_is(TOKEN_TYPE::LPAREN)) {
@@ -536,7 +542,7 @@ std::unique_ptr<statement_t> Parser::parse_var_decl_statement() {
 	// check whether there is an expression in the declaration such as int x = 4;
 	if (current_token_is(TOKEN_TYPE::ASSIGNMENT)) {
 		advance();
-		if(var_type.array_size == TYPE_IS_ARRAY)
+		if(var_type.array_size == ARRAY_NOT_INITIALIZED)
 			right = std::move(parse_expr());
 		else 
 			right = std::move(parse_array_initialize_expr());

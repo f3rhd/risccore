@@ -39,6 +39,7 @@ public:
 	std::vector<std::string> skip_jump_labels;
     std::vector<std::string> break_jump_labels;
     bool left_is_deref = false;
+    bool is_deref = false;
     std::string array_var_id;
 private:
 	std::vector<std::pair<std::string,std::vector<std::string>>> _scopes; // will keep track of defined vars in the scopes
