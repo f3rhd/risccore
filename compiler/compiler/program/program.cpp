@@ -32,7 +32,10 @@ namespace f3_compiler {
 		convert_function_blocks_to_asm(os);
 	}
 	std::string Program::get_allocated_reg_for_var(const std::string& id){
-		return "t" + std::to_string(_coloring[id]);
+		if (_coloring.find(id) != _coloring.end()) {
+			return "t" + std::to_string(_coloring[id]);
+		}
+		return "";
 	}
 	void Program::generate_IR() {
 
@@ -89,7 +92,7 @@ namespace f3_compiler {
 						block.local_vars.emplace(instr->dest,-logical_offset);
 					}
 				}
-				else if(!instr->src1.empty() && instr->src1[0] != 't' && !is_immediate(instr->src1)){
+				else if(!instr->src1.empty() && instr->src1[0] != 't' && !is_immediate(instr->src1) && !instr->src1_is_stack_offset){
 					instr->load_var_from_memory = true;
 					if (block.local_vars.find(instr->src1) == block.local_vars.end()) {
 						logical_offset += 4;
@@ -181,7 +184,7 @@ namespace f3_compiler {
 		for(auto& instr : _instructions){
 			if (instr.operation == ir_instruction_t::operation_::ALLOC)
 				continue;
-			if(!instr.src1.empty() && !is_immediate(instr.src1)) {
+			if(!instr.src1.empty() && !is_immediate(instr.src1) && !instr.src1_is_stack_offset) {
 				instr.use.insert(instr.src1);
 			}
 			if (!instr.src2.empty() && !is_immediate(instr.src2)) {
@@ -190,7 +193,9 @@ namespace f3_compiler {
 			if(!instr.dest.empty() && !is_immediate(instr.dest)) {
 				// in store instruction both variables are used rather one of them being defined
 				if(instr.operation == ir_instruction_t::operation_::STORE){
-					instr.use.insert(instr.dest);
+					// when it is array we wont be using that
+					if(instr.store_dest_is_ptr)
+						instr.use.insert(instr.dest);
 				}
 				else{
 					instr.def.insert(instr.dest);
@@ -252,12 +257,21 @@ namespace f3_compiler {
 			_interference_nodes.emplace(id, id);
 		};
 		for (auto& instr : _instructions) {
-			if (!instr.src1.empty() && !is_immediate(instr.src1))
+			if (instr.operation == ir_instruction_t::operation_::ALLOC)
+				continue;
+			if (!instr.src1.empty() && !is_immediate(instr.src1) && !instr.src1_is_stack_offset)
 				make_node(instr.src1);
 			if (!instr.src2.empty() && !is_immediate(instr.src2))
 				make_node(instr.src2);
-			if (!instr.dest.empty() && !is_immediate(instr.dest))
-				make_node(instr.dest);
+			if (!instr.dest.empty() && !is_immediate(instr.dest)) {
+				if (instr.operation == ir_instruction_t::operation_::STORE) {
+					if(instr.store_dest_is_ptr)
+						make_node(instr.dest);
+				}
+				else {
+						make_node(instr.dest);
+				}
+			}
 		}
 	}
 	void Program::compute_interference_graph()
@@ -278,7 +292,11 @@ namespace f3_compiler {
 
 				const ir_instruction_t* instr = *it;
 
+				if (instr->operation == ir_instruction_t::operation_::ALLOC)
+					continue;
 				if(instr->dest.empty())
+					continue;
+				if (instr->operation == ir_instruction_t::operation_::STORE && !instr->store_dest_is_ptr)
 					continue;
 				interference_node_t* d = get_node(instr->dest);
 
@@ -430,14 +448,17 @@ namespace f3_compiler {
 				if( instruction->operation != ir_instruction_t::operation_::ADDR
 					&& instruction->operation != ir_instruction_t::operation_::RETURN 
 					&& instruction->operation != ir_instruction_t::operation_::ARG
-					&& function_block.local_vars.find(instruction->src1) != function_block.local_vars.end()){
+					&& function_block.local_vars.find(instruction->src1) != function_block.local_vars.end()
+					&& !instruction->src1_is_stack_offset
+					){
 					std::string op = get_allocated_reg_for_var(instruction->src1) + "," + actual_offset(function_block.local_vars[instruction->src1]) + "(s0)";
 					emit("lw", op);
 				}
 				if(instruction->operation != ir_instruction_t::operation_::ADDR
 					&& instruction->operation != ir_instruction_t::operation_::RETURN 
 					&& instruction->operation != ir_instruction_t::operation_::ARG
-					&& function_block.local_vars.find(instruction->src2) != function_block.local_vars.end()){
+					&& function_block.local_vars.find(instruction->src2) != function_block.local_vars.end()
+					){
 					std::string op = get_allocated_reg_for_var(instruction->src2) + "," + actual_offset(function_block.local_vars[instruction->src2]) + "(s0)";
 					emit("lw", op);
 				}
@@ -503,9 +524,15 @@ namespace f3_compiler {
 						if(op2Immediate){
 
 							if(instruction->operation == ir_instruction_t::operation_::ADD){
-								emit("addi", destReg + "," + op1Reg + "," + instruction->src2);
-								if(instruction->store_dest_in_stack){
-									emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
+								if(instruction->src1_is_stack_offset){
+									emit("addi",scratch + "," + std::to_string(std::stoi(instruction->src2) + std::stoi(actual_offset(function_block.local_vars[instruction->src1]))) + ",s0");
+									emit("mv", destReg + "," + scratch);
+								}
+								else{
+									emit("addi", destReg + "," + op1Reg + "," + instruction->src2);
+									if(instruction->store_dest_in_stack){
+										emit("sw", destReg + "," + actual_offset(function_block.local_vars[instruction->dest]) + "(s0)");
+									}
 								}
 								break;
 							}
@@ -583,7 +610,14 @@ namespace f3_compiler {
 							op2Reg = get_allocated_reg_for_var(instruction->src2);
 							switch(instruction->operation){
 								case ir_instruction_t::operation_::ADD:
-									emit("add", destReg + "," + op1Reg + "," + op2Reg);
+									if(instruction->src1_is_stack_offset){
+										emit("addi",scratch + "," + std::to_string(std::stoi(actual_offset(function_block.local_vars[instruction->src1]))) + ",s0");
+										emit("add", destReg + "," + op2Reg + "," + scratch);
+									}
+									else{
+
+										emit("add", destReg + "," + op1Reg + "," + op2Reg);
+									}
 									break;
 								case ir_instruction_t::operation_::SUB:
 									emit("sub", destReg + "," + op1Reg + "," + op2Reg);
@@ -655,11 +689,8 @@ namespace f3_compiler {
 						if(instruction->store_dest_is_ptr){
 							if(instruction->src2.empty())
 								emit("sw", srcReg + ",0(" + addrReg + ")");
-							else if(is_immediate(instruction->src2)){
+							else if(is_immediate(instruction->src2)){ // this branch will never be executed probably because the offsets of the pointers are happening to be always zero
 								emit("sw", srcReg + "," + std::to_string(std::stoi(instruction->src2) + std::stoi(actual_offset(function_block.local_vars[instruction->dest]))) + "(" + addrReg + ")");
-							}
-							else{
-
 							}
 						}
 						else{

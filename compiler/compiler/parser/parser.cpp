@@ -461,7 +461,7 @@ std::unique_ptr<expression_t> Parser::parse_primary_expr() {
 		std::unique_ptr<expression_t> index_part = parse_expr();
 		expect(TOKEN_TYPE::RIGHT_SQUARE_BRACKET, "Left bracked should be closed.");
 		std::unique_ptr<binary_expression_t> add_node = std::make_unique<binary_expression_t>(BIN_OP::ADD,std::make_unique<var_expression_t>(std::move(name)),std::move(index_part));
-		std::unique_ptr<unary_expression_t> deref_node = std::make_unique<unary_expression_t>(UNARY_OP::DEREF, std::move(add_node));
+		std::unique_ptr<unary_expression_t> deref_node = std::make_unique<unary_expression_t>(UNARY_OP::DEREF, std::move(add_node),1);
 		advance();
 		return deref_node;
 	}

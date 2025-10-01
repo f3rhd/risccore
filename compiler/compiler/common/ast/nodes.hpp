@@ -25,7 +25,7 @@ namespace f3_compiler {
 			virtual bool is_lvalue() const { return false; }
 			virtual bool has_call() const { return false; }
 			virtual bool is_deref() const { return false; }
-			virtual bool is_array() const { return false; }
+			virtual bool is_array_init() const { return false; }
 			virtual type_t analyse(Analysis_Context& ctx) const = 0;
 		};
 
@@ -52,7 +52,7 @@ namespace f3_compiler {
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
 			type_t analyse(Analysis_Context &ctx) const override;
 			array_initialize_expr_t(std::vector<std::unique_ptr<expression_t>>&& elements_) : elements(std::move(elements_)) {}
-			bool is_array() const override { return true; };
+			bool is_array_init() const override { return true; };
 		};
 		struct func_call_expr_t : expression_t {
 
