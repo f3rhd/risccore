@@ -140,10 +140,17 @@ type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 	if (op == BIN_OP::ADD || op == BIN_OP::SUB || op == BIN_OP::MUL || op == BIN_OP::DIV || op == BIN_OP::MOD ||
 		op == BIN_OP::BIT_AND || op == BIN_OP::BIT_OR || op == BIN_OP::BIT_XOR || op == BIN_OP::BIT_LEFT_SHIFT || op == BIN_OP::BIT_RIGHT_SHIFT) {
 		// require same base (INT/UINT), and not pointers
-		if (l.base == r.base && l.base == type_t::base::INT || /*l.base == type_t::BASE::UINT) && */  l.pointer_depth == 0 && r.pointer_depth == 0) {
+		if (l.base == r.base && l.base == type_t::base::INT && /*l.base == type_t::BASE::UINT) && */  l.pointer_depth == 0 && r.pointer_depth == 0) {
 			return l;
 		}
-		ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "", "Arithmetic operands must be integer types and match");
+		if(l.pointer_depth > 0 && r.pointer_depth > 0){
+			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "","Arithmetic operations between two pointers are not allowed");
+		}
+		if(l.pointer_depth > 0)
+			return l;
+		if(r.pointer_depth > 0)
+			return r;
+
 		return make_unknown();
 	}
 
@@ -1010,7 +1017,15 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	default:
 		break;
 	}
-	// Just in time 
+	// @UNCOMPLETEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEeee
+	//if(ctx.is_deref){
+	//	if(!is_immediate(instr.src1)){
+	//		ir_instruction_t slli_instr;
+	//		slli_instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
+	//		slli_instr.dest = instr.src1;
+	//		slli_instr.src1 = 2;
+	//	}
+	//}
 	std::string dest = ctx.generate_temp();
 	instr.dest = dest;
 	ctx.instructions.push_back(std::move(instr));
