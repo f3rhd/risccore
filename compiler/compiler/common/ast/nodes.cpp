@@ -34,7 +34,7 @@ void func_decl_t::analyse(Analysis_Context& ctx) {
 	ctx.pop_scope();
 	if(return_type.base != type_t::base::VOID && !ctx.has_return){
 		ctx.make_error(ERROR_CODE::FUNCTION_SHOULD_RETURN,
-					   id, "Missing return statement in a non-void functon");
+					   id, "Missing return statement in a non-void function");
 	}
 }
 type_t block_statement_t::analyse(Analysis_Context& ctx) const {
@@ -142,6 +142,10 @@ type_t binary_expression_t::analyse(Analysis_Context& ctx) const {
 		// require same base (INT/UINT), and not pointers
 		if (l.base == r.base && l.base == type_t::base::INT && /*l.base == type_t::BASE::UINT) && */  l.pointer_depth == 0 && r.pointer_depth == 0) {
 			return l;
+		}
+		if((op != BIN_OP::ADD && op != BIN_OP::SUB) && (l.pointer_depth > 0 || r.pointer_depth > 0)){
+
+			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "","Pointer arithmetic is meant for addition and subtraction only");
 		}
 		if(l.pointer_depth > 0 && r.pointer_depth > 0){
 			ctx.make_error(ERROR_CODE::TYPES_DO_NOT_MATCH, "","Arithmetic operations between two pointers are not allowed");
@@ -528,7 +532,7 @@ namespace {
 }
 std::string func_decl_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
-	// fucntion entry label
+	// function entry label
 	instr.operation = ir_instruction_t::operation_::FUNC_ENTRY;
 	instr.label_id = mangle(id);
 	ctx.instructions.push_back(std::move(instr));
@@ -556,7 +560,10 @@ std::string block_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
 	ctx.add_var_id(name); 
-	if(!rhs->is_array()){
+	if(!rhs->is_array_init()){
+		if(type.pointer_depth > 0){
+			ctx.pointer_ids.push_back(mangle_var(ctx,name));
+		}
 		std::string source = rhs->generate_ir(ctx);
 		instr.operation = ir_instruction_t::operation_::MOV;
 		instr.dest = mangle_var(ctx,name);
@@ -565,9 +572,10 @@ std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 		ctx.instructions.push_back(std::move(instr));
 	}
 	else {
-		ctx.array_var_id = mangle_var(ctx,name);
+		ctx.initializing_array_id = mangle_var(ctx,name);
 		rhs->generate_ir(ctx);
-		ctx.array_var_id = "";
+		ctx.array_ids.push_back(ctx.initializing_array_id);
+		ctx.initializing_array_id = "";
 	}
 	return "";
 }
@@ -909,7 +917,7 @@ std::string var_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
 	instr.operation = ir_instruction_t::operation_::ALLOC;
-	instr.dest = ctx.array_var_id;
+	instr.dest = ctx.initializing_array_id;
 	instr.src1 = std::to_string(elements.size()*4);
 	ctx.instructions.push_back(std::move(instr));
 
@@ -929,14 +937,14 @@ std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 			load_const_instr.src1 = element_val;
 			ctx.instructions.push_back(std::move(load_const_instr));
 
-			store_instr.dest = ctx.array_var_id;
+			store_instr.dest = ctx.initializing_array_id;
 			store_instr.src1 = element_integer_dest;
 			store_instr.src2 = "-" + std::to_string(i * 4);
 			ctx.instructions.push_back(std::move(store_instr));
 
 		}
 		catch (...) {
-			store_instr.dest = ctx.array_var_id;
+			store_instr.dest = ctx.initializing_array_id;
 			store_instr.src1 = element_val;
 			store_instr.src2 = "-" + std::to_string(i * 4);
 			ctx.instructions.push_back(std::move(store_instr));
@@ -1017,15 +1025,48 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	default:
 		break;
 	}
-	// @UNCOMPLETEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEeee
-	//if(ctx.is_deref){
-	//	if(!is_immediate(instr.src1)){
-	//		ir_instruction_t slli_instr;
-	//		slli_instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
-	//		slli_instr.dest = instr.src1;
-	//		slli_instr.src1 = 2;
-	//	}
-	//}
+	if(ctx.is_deref){
+		if(std::find(ctx.pointer_ids.begin(),ctx.pointer_ids.end(),instr.src1) !=  ctx.pointer_ids.end()){
+			if(!is_immediate(instr.src2)){
+				std::string temp = ctx.generate_temp();
+				ir_instruction_t slli_instr;
+				slli_instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
+				slli_instr.dest = temp;
+				slli_instr.src1 = instr.src2;
+				slli_instr.src2 = "2";
+				ctx.instructions.push_back(std::move(slli_instr));
+			}
+		}
+		else if(std::find(ctx.pointer_ids.begin(),ctx.pointer_ids.end(),instr.src2) != ctx.pointer_ids.end()){
+			if(!is_immediate(instr.src1)){
+				std::string temp = ctx.generate_temp();
+				ir_instruction_t slli_instr;
+				slli_instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
+				slli_instr.dest = temp;
+				slli_instr.src1 = instr.src1;
+				slli_instr.src2 = "2";
+				ctx.instructions.push_back(std::move(slli_instr));
+				instr.src1 = instr.src2;
+			}
+
+		}
+		/*
+			in [] translation to the pointer arithemic the lhs of the binary expr is always the pointer or array itself 
+		*/
+		else if(std::find(ctx.array_ids.begin(),ctx.array_ids.end(),instr.src1) != ctx.array_ids.end()){
+			if(!is_immediate(instr.src2)){
+				std::string temp = ctx.generate_temp();
+				ir_instruction_t slli_instr;
+				slli_instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
+				slli_instr.dest = temp;
+				slli_instr.src1 = instr.src2;
+				slli_instr.src2 = "2";
+				ctx.instructions.push_back(std::move(slli_instr));
+				instr.src2 = temp;
+			}
+			instr.src1_is_stack_offset = true;
+		}
+	}
 	std::string dest = ctx.generate_temp();
 	instr.dest = dest;
 	ctx.instructions.push_back(std::move(instr));

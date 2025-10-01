@@ -29,6 +29,8 @@ struct IR_Gen_Context {
     void reset() {
         skip_jump_labels.clear();
         break_jump_labels.clear();
+        pointer_ids.clear();
+        array_ids.clear();
         _scopes.clear();
     }
     std::string generate_body_id() {
@@ -38,9 +40,11 @@ public:
     std::vector<ir_instruction_t> instructions;
 	std::vector<std::string> skip_jump_labels;
     std::vector<std::string> break_jump_labels;
+    std::vector<std::string> pointer_ids;
+    std::vector<std::string> array_ids;
+    std::string initializing_array_id;
     bool left_is_deref = false;
     bool is_deref = false;
-    std::string array_var_id;
 private:
 	std::vector<std::pair<std::string,std::vector<std::string>>> _scopes; // will keep track of defined vars in the scopes
 	uint32_t _label_id = 0;
@@ -68,6 +72,8 @@ struct ir_instruction_t {
     bool load_var_from_memory = false;
     bool load_src_is_ptr = false;
     bool store_dest_is_ptr = true;
+    // These are gonna be needed in translation of local array indexing into a pointer arithmetic
+    bool src1_is_stack_offset = false;
     std::string dest;
     std::string src1, src2;
     std::string label_id;
