@@ -10,7 +10,7 @@
 struct ir_instruction_t;
 struct IR_Gen_Context {
     std::string generate_label() { return ".L" + std::to_string(_label_id++); }
-	std::string generate_temp() { return "t" + std::to_string(_temp_id++); }
+	std::string generate_temp() { return "@t" + std::to_string(_temp_id++); }
     // these two functions are used for name resolution and stuff to prevent the global name clashing
     void push_body(const std::string& id) { 
         _scopes.emplace_back(); 
@@ -71,7 +71,7 @@ struct ir_instruction_t {
     bool store_dest_in_stack = false;
     bool load_var_from_memory = false;
     bool load_src_is_ptr = false;
-    bool store_dest_is_ptr = true;
+    bool store_dest_is_ptr = true; // do not touch it
     // These are gonna be needed in translation of local array indexing into a pointer arithmetic
     bool src1_is_stack_offset = false;
     std::string dest;

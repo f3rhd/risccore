@@ -396,16 +396,16 @@ namespace {
 	inline std::string mangle_var(IR_Gen_Context& ctx, const std::string& var_id){
 
 			
+		if (var_id[0] == '$') {
+			return var_id;
+		}
 		if (is_immediate(var_id)) {
-			if (var_id[0] == '$') {
-				return var_id;
-			}
 			if (ctx.is_deref) {
 				return std::to_string(std::stoi(var_id) * 4);
 			}
 			return var_id;
 		}
-		if (var_id[0] == 't')
+		if (var_id[0] == '@')
 			return var_id;
 		std::string value = "$";
 		auto& scopes = ctx.get_scopes();
@@ -538,6 +538,10 @@ std::string func_decl_t::generate_ir(IR_Gen_Context& ctx) const {
 	ctx.instructions.push_back(std::move(instr));
 	ctx.push_body(id);
 	for (auto& argument : arguments) {
+		// down cast it to a pointer
+		if(argument.type.array_size != ARRAY_NOT_INITIALIZED){
+			ctx.pointer_ids.push_back(argument.name);
+		}
 		ir_instruction_t instr;
 		instr.operation = ir_instruction_t::operation_::PARAM;
 		instr.dest = "$" + id + "::" + argument.name;
@@ -778,7 +782,7 @@ std::string assignment_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	ctx.left_is_deref = lhs->is_deref();
 	std::string left = lhs->generate_ir(ctx);
 	std::string right = rhs->generate_ir(ctx);
-	if(left[0] != 't')
+	if(left[0] != '@')
 		instr.store_dest_in_stack = true;
 	instr.dest = mangle_var(ctx, left);
 	if (!lhs->is_deref()) {
@@ -1143,7 +1147,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 			// if the non temporary symbol is current function's
 			instr.src1 = instr.dest = mangle_var(ctx,left);
 			instr.src2 = std::to_string(1);
-			if(instr.dest[0] != 't')
+			if(instr.dest[0] != '@')
 				instr.store_dest_in_stack = true;
 			ctx.instructions.push_back(std::move(instr));
 			return left;
@@ -1169,7 +1173,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 			instr.operation = ir_instruction_t::operation_::SUB;
 			instr.src1 = instr.dest = mangle_var(ctx,left);
 			instr.src2 = std::to_string(1);
-			if(instr.dest[0] != 't')
+			if(instr.dest[0] != '@')
 				instr.store_dest_in_stack = true;
 			ctx.instructions.push_back(std::move(instr));
 			return left;
@@ -1204,6 +1208,9 @@ std::string func_call_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 		ir_instruction_t instr;
 		instr.operation = ir_instruction_t::operation_::ARG;
 		instr.src1 = mangle_var(ctx,argument->generate_ir(ctx));
+		if (std::find(ctx.array_ids.begin(),ctx.array_ids.end(),instr.src1) != ctx.array_ids.end()){
+			instr.src1_is_stack_offset = true;
+		}
 		ctx.instructions.push_back(std::move(instr));
 	}
 	ir_instruction_t call_instr;
