@@ -338,7 +338,10 @@ type_t for_statement_t::analyse(Analysis_Context& ctx) const {
 namespace {
 	void add_nop_on_label_clash(IR_Gen_Context& ctx) 
 	{
-		if (ctx.instructions.back().operation == ir_instruction_t::operation_::LABEL) {
+		if (ctx.instructions.empty()) {
+			return;
+		}
+		if (ctx.instructions.back().operation == ir_instruction_t::operation_::LABEL || ctx.instructions.back().operation == ir_instruction_t::operation_::FUNC_ENTRY) {
 			ir_instruction_t nop_instr;
 			nop_instr.operation = ir_instruction_t::operation_::NOP;
 			ctx.instructions.push_back(nop_instr);
@@ -531,6 +534,7 @@ namespace {
 	}
 }
 std::string func_decl_t::generate_ir(IR_Gen_Context& ctx) const {
+	add_nop_on_label_clash(ctx);
 	ir_instruction_t instr;
 	// function entry label
 	instr.operation = ir_instruction_t::operation_::FUNC_ENTRY;
@@ -678,11 +682,13 @@ std::string while_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 }
 std::string for_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
+	std::string body_label = ctx.generate_label();
 	//  entry
 	ir_instruction_t goto_instr;
-	goto_instr.operation = ir_instruction_t::operation_::GOTO;
 	std::string condition_label = ctx.generate_label();
-	goto_instr.label_id = condition_label;
+
+	goto_instr.operation = ir_instruction_t::operation_::GOTO;
+	goto_instr.label_id = body_label;
 
 	ctx.skip_jump_labels.push_back(condition_label);
 	ctx.instructions.push_back(std::move(goto_instr));
@@ -690,7 +696,6 @@ std::string for_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	// body label
 	ir_instruction_t body_label_instr;
 	body_label_instr.operation = ir_instruction_t::operation_::LABEL;
-	std::string body_label = ctx.generate_label();
 	body_label_instr.label_id = body_label;
 	add_nop_on_label_clash(ctx);
 	ctx.instructions.push_back(std::move(body_label_instr));
@@ -703,7 +708,8 @@ std::string for_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	if(!ctx.skip_jump_labels.empty()){
 		ir_instruction_t label_instr;
 		label_instr.operation = ir_instruction_t::operation_::LABEL;
-		label_instr.label_id = skip_jump_label = ctx.skip_jump_labels.back();
+		skip_jump_label = ctx.skip_jump_labels.back();
+		label_instr.label_id = skip_jump_label;
 		add_nop_on_label_clash(ctx);
 		ctx.instructions.push_back(std::move(label_instr));
 	}
@@ -716,7 +722,8 @@ std::string for_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	generate_jump_if_true(condition.get(), ctx, body_label);
 	if (!ctx.break_jump_labels.empty())
 	{
-		label_instr.label_id = break_jump_label = ctx.break_jump_labels.back();
+		break_jump_label = ctx.break_jump_labels.back();
+		label_instr.label_id = break_jump_label;
 		add_nop_on_label_clash(ctx);
 		ctx.instructions.push_back(std::move(label_instr));
 	}
@@ -725,6 +732,7 @@ std::string for_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 		ir_instruction_t label__;
 		label__.operation = ir_instruction_t::operation_::LABEL;
 		label__.label_id = ctx.generate_label();
+		add_nop_on_label_clash(ctx);
 		ctx.instructions.push_back(std::move(label__));
 	}
 	while(!ctx.break_jump_labels.empty() &&  ctx.break_jump_labels.back() == break_jump_label){
