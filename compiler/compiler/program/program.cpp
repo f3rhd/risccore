@@ -757,7 +757,7 @@ namespace f3_compiler {
 						// move an argument into aN
 						std::string targetReg = "a" + std::to_string(call_argument_counter++);
 						if (instruction->src1_is_stack_offset) {
-							emit("addi",scratch + "," + std::to_string(std::stoi(actual_offset(function_block.local_vars[instruction->src1]))) + ",s0");
+							emit("addi",scratch + "," + "s0," + std::to_string(std::stoi(actual_offset(function_block.local_vars[instruction->src1]))));
 							emit("mv", targetReg + "," + scratch);
 						}
 						else {
