@@ -26,6 +26,7 @@ namespace f3_compiler {
 			virtual bool has_call() const { return false; }
 			virtual bool is_deref() const { return false; }
 			virtual bool is_array_init() const { return false; }
+			virtual bool is_integer_literal() const { return false; }
 			virtual type_t analyse(Analysis_Context& ctx) const = 0;
 		};
 
@@ -43,6 +44,7 @@ namespace f3_compiler {
 			explicit integer_literal_t(int32_t val) : value(val) {}
 
 			void print_ast(std::ostream& os, uint32_t indent_level, bool is_last) const override;
+			bool is_integer_literal() const override { return true; }
 			std::string generate_ir(IR_Gen_Context& ctx) const override;
 			type_t analyse(Analysis_Context &ctx) const override;
 		};

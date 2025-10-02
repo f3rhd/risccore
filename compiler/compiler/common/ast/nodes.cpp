@@ -364,7 +364,7 @@ namespace {
 		}
 		case BIN_OP::LT:{
 				if(inverse)
-					return ir_instruction_t::operation_::BGT;
+					return ir_instruction_t::operation_::BGE;
 				return ir_instruction_t::operation_::BLT;
 		}
 		case BIN_OP::LTE:{
@@ -379,7 +379,7 @@ namespace {
 		}
 		case BIN_OP::GTE:{
 				if(inverse)
-					return ir_instruction_t::operation_::BLE;
+					return ir_instruction_t::operation_::BLT;
 				return ir_instruction_t::operation_::BGE;
 		}
 		}
@@ -403,9 +403,6 @@ namespace {
 			return var_id;
 		}
 		if (is_immediate(var_id)) {
-			if (ctx.is_deref) {
-				return std::to_string(std::stoi(var_id) * 4);
-			}
 			return var_id;
 		}
 		if (var_id[0] == '@')
@@ -787,8 +784,10 @@ std::string expr_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 }
 std::string assignment_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
+	auto prev = ctx.left_is_deref;
 	ctx.left_is_deref = lhs->is_deref();
 	std::string left = lhs->generate_ir(ctx);
+	ctx.left_is_deref = prev;
 	std::string right = rhs->generate_ir(ctx);
 	if(left[0] != '@')
 		instr.store_dest_in_stack = true;
@@ -1038,46 +1037,8 @@ std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 		break;
 	}
 	if(ctx.is_deref){
-		if(std::find(ctx.pointer_ids.begin(),ctx.pointer_ids.end(),instr.src1) !=  ctx.pointer_ids.end()){
-			if(!is_immediate(instr.src2)){
-				std::string temp = ctx.generate_temp();
-				ir_instruction_t slli_instr;
-				slli_instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
-				slli_instr.dest = temp;
-				slli_instr.src1 = instr.src2;
-				slli_instr.src2 = "2";
-				ctx.instructions.push_back(std::move(slli_instr));
-			}
-		}
-		else if(std::find(ctx.pointer_ids.begin(),ctx.pointer_ids.end(),instr.src2) != ctx.pointer_ids.end()){
-			if(!is_immediate(instr.src1)){
-				std::string temp = ctx.generate_temp();
-				ir_instruction_t slli_instr;
-				slli_instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
-				slli_instr.dest = temp;
-				slli_instr.src1 = instr.src1;
-				slli_instr.src2 = "2";
-				ctx.instructions.push_back(std::move(slli_instr));
-				instr.src1 = instr.src2;
-			}
-
-		}
-		/*
-			in [] translation to the pointer arithemic the lhs of the binary expr is always the pointer or array itself 
-		*/
-		else if(std::find(ctx.array_ids.begin(),ctx.array_ids.end(),instr.src1) != ctx.array_ids.end()){
-			if(!is_immediate(instr.src2)){
-				std::string temp = ctx.generate_temp();
-				ir_instruction_t slli_instr;
-				slli_instr.operation = ir_instruction_t::operation_::SHIFT_LEFT;
-				slli_instr.dest = temp;
-				slli_instr.src1 = instr.src2;
-				slli_instr.src2 = "2";
-				ctx.instructions.push_back(std::move(slli_instr));
-				instr.src2 = temp;
-			}
+		if(std::find(ctx.array_ids.begin(),ctx.array_ids.end(),instr.src1) != ctx.array_ids.end())
 			instr.src1_is_stack_offset = true;
-		}
 	}
 	std::string dest = ctx.generate_temp();
 	instr.dest = dest;
@@ -1099,7 +1060,7 @@ std::string unary_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	}
 	auto prev_2 = ctx.is_deref;
 	if (op == UNARY_OP::DEREF)
-		ctx.is_deref = true;
+		ctx.is_deref = true; // this flag will beused by binary expr
 	std::string left = expr->generate_ir(ctx);
 	ctx.left_is_deref = prev;
 	std::string destination;

@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 			std::string asm_code = asm_stream.str();
 			std::ofstream ofs(asm_file);
 			ofs << ".reset_vector:\n";
-			ofs << "\tli sp, 0xFFFF\n";
+			ofs << "\tli sp, 0xFFFF0\n";
 			ofs << "\tcall .main\n";
 			ofs << asm_code;
 		}
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 				return 1 ;
 			}
 			ofs << ".reset_vector:\n";
-			ofs << "\tli sp, 0xFFFF\n";
+			ofs << "\tli sp, 0xFFF0\n";
 			ofs << "\tcall .main\n";
 			ofs << asm_code;
 		}
