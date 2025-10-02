@@ -525,7 +525,7 @@ namespace f3_compiler {
 
 							if(instruction->operation == ir_instruction_t::operation_::ADD){
 								if(instruction->src1_is_stack_offset){
-									emit("addi",scratch + "," + std::to_string(std::stoi(instruction->src2) + std::stoi(actual_offset(function_block.local_vars[instruction->src1]))) + ",s0");
+									emit("addi",scratch + "," + "s0" + "," + std::to_string(std::stoi(instruction->src2) + std::stoi(actual_offset(function_block.local_vars[instruction->src1]))) );
 									emit("mv", destReg + "," + scratch);
 								}
 								else{
@@ -611,7 +611,7 @@ namespace f3_compiler {
 							switch(instruction->operation){
 								case ir_instruction_t::operation_::ADD:
 									if(instruction->src1_is_stack_offset){
-										emit("addi",scratch + "," + std::to_string(std::stoi(actual_offset(function_block.local_vars[instruction->src1]))) + ",s0");
+										emit("addi",scratch + "," + "s0," + std::to_string(std::stoi(actual_offset(function_block.local_vars[instruction->src1]))) );
 										emit("add", destReg + "," + op2Reg + "," + scratch);
 									}
 									else{
