@@ -18,6 +18,9 @@ quartus/
 *.swp
 *.swo
 *.tmp
+*.sln
+*.vcxproj
+*.vcxproj.filters
 
 .vs/
 *.user
