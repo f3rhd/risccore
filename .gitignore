@@ -60,6 +60,8 @@ x86/
 *.snupkg
 packages/
 *.nuspec
+*.vcxproj
+*.vcxproj.filters
 
 .vscode/
 
