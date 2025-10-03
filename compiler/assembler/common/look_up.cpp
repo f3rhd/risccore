@@ -1,7 +1,7 @@
 #include "look_up.hpp"
 #include <regex>
 #include <algorithm>
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 
 	namespace instruction_look_up{
 

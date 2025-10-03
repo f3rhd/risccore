@@ -4,7 +4,7 @@
 
 #include <string>
 #include <iostream>
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	struct Error_Message{
 
 		const std::string& message;

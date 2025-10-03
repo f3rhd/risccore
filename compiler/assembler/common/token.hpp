@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	enum class TOKEN_TYPE {
 		OPERATION,
 		REGISTER,

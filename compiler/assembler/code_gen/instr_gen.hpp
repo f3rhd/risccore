@@ -5,7 +5,7 @@
 #include "../common/ast_node.hpp"
 #include "../common/instruction.hpp"
 
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	namespace instr_gen {
 
 		class generator {

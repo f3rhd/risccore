@@ -1,5 +1,5 @@
 #include "ast_analyser.hpp"
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	namespace ast_analyser{
 
 		// assumes that it head is not nullptr

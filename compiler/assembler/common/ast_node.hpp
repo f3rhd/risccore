@@ -4,7 +4,7 @@
 #include "look_up.hpp"
 #include "line.hpp"
 
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	enum class AST_NODE_TYPE
 	{
 		OPERATION,

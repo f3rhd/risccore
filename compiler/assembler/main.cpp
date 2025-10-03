@@ -3,8 +3,8 @@
 #include "code_gen/instr_gen.hpp"
 #include "parser/parser.hpp"
 #include "preprocessor/preprocessor.hpp"
-#ifndef STATIC_BUILD
-using namespace f3_riscv_assembler;
+#ifndef ASSEMBLER_STATIC_BUILD
+using namespace riscv_assembler;
 int main(int argc, char **argv) {
     if (argc < 3) {
         fprintf(stderr, "Usage: %s <input.s> <output.bin>\n", argv[0]);

@@ -1,6 +1,6 @@
 #include "nodes.hpp"
 #include <algorithm>
-using namespace f3_compiler::ast_node;
+using namespace fs_compiler::ast_node;
 /*
   /$$$$$$   /$$$$$$  /$$$$$$$$        /$$$$$$  /$$   /$$  /$$$$$$  /$$   /$$     /$$ /$$$$$$  /$$$$$$  /$$$$$$ 
  /$$__  $$ /$$__  $$|__  $$__/       /$$__  $$| $$$ | $$ /$$__  $$| $$  |  $$   /$$//$$__  $$|_  $$_/ /$$__  $$
@@ -565,6 +565,8 @@ std::string block_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
 	ctx.add_var_id(name); 
+	if (!rhs)
+		return "";
 	if(!rhs->is_array_init()){
 		if(type.pointer_depth > 0){
 			ctx.pointer_ids.push_back(mangle_var(ctx,name));
@@ -950,14 +952,14 @@ std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 
 			store_instr.dest = ctx.initializing_array_id;
 			store_instr.src1 = element_integer_dest;
-			store_instr.src2 = "-" + std::to_string(i * 4);
+			store_instr.src2 = std::to_string(i * 4);
 			ctx.instructions.push_back(std::move(store_instr));
 
 		}
 		catch (...) {
 			store_instr.dest = ctx.initializing_array_id;
 			store_instr.src1 = element_val;
-			store_instr.src2 = "-" + std::to_string(i * 4);
+			store_instr.src2 = std::to_string(i * 4);
 			ctx.instructions.push_back(std::move(store_instr));
 		}
 	}
@@ -1208,7 +1210,7 @@ auto constexpr COLOR_TYPE = "\033[32m"; // green
 auto constexpr COLOR_LIT = "\033[33m"; // yellow
 auto constexpr COLOR_OP = "\033[31m";  // red;
 auto constexpr COLOR_LABEL = "\033[90m"; // gray
-static inline std::string bin_op_to_string(f3_compiler::ast_node::BIN_OP op) {
+static inline std::string bin_op_to_string(fs_compiler::ast_node::BIN_OP op) {
 	switch (op) {
 	case BIN_OP::ADD: return "+";
 	case BIN_OP::BIT_LEFT_SHIFT:
@@ -1237,7 +1239,7 @@ static inline std::string bin_op_to_string(f3_compiler::ast_node::BIN_OP op) {
 	return "????";
 }
 
-static inline std::string unary_op_to_string(f3_compiler::ast_node::UNARY_OP op) {
+static inline std::string unary_op_to_string(fs_compiler::ast_node::UNARY_OP op) {
 	switch (op)
 	{
 	case UNARY_OP::NEG:
@@ -1463,7 +1465,7 @@ void for_statement_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/,
 		body->print_ast(os, indent_level + 2, true);
 }
 
-void f3_compiler::func_decl_param_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/, bool is_last /*= true*/) const
+void fs_compiler::func_decl_param_t::print_ast(std::ostream& os, uint32_t indent_level /*= 0*/, bool is_last /*= true*/) const
 {
 	draw_branch(os, indent_level, is_last);
 	os << COLOR_LABEL << "param : " << COLOR_RESET

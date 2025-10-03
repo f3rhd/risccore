@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "look_up.hpp"
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	struct Instruction {
 		instruction_look_up::OPERATION_TYPE type = instruction_look_up::OPERATION_TYPE::UNKNOWN;
 		uint8_t rs1 = 0;

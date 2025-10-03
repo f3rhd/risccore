@@ -4,7 +4,7 @@
 #include "../other/error.hpp"
 #include <unordered_map>
 #include <vector>
-namespace f3_compiler {
+namespace fs_compiler {
     struct func_decl_param_t {
         std::string name;
         type_t type;

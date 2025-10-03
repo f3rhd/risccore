@@ -5,7 +5,7 @@
 #include <sstream>
 #include <fstream>
 #include <bitset>
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	namespace code_gen  {
 		static uint32_t encode_r(const Instruction &instr){
 			 return (instr.func7 << 25) |

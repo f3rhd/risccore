@@ -4,7 +4,7 @@
 #include "../program/program.hpp"
 #include "../common/ast/nodes.hpp"
 #include "../common/analysis/analysis_context.hpp"
-namespace f3_compiler {
+namespace fs_compiler {
 	class Parser {
 	public:
 		Parser(std::vector<token_t>&& tokens) : _tokens(std::move(tokens)), _current_token(&_tokens[0]) {}

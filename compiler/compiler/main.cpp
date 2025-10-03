@@ -1,13 +1,12 @@
-
+#include <cstring>
 #include "lexer/lexer.hpp"
 #include "parser/parser.hpp"
-
 #include "../assembler/code_gen/ast_analyser.hpp"
 #include "../assembler/code_gen/code_gen.hpp"
 #include "../assembler/code_gen/instr_gen.hpp"
 #include "../assembler/parser/parser.hpp"
 #include "../assembler/preprocessor/preprocessor.hpp"
-using namespace  f3_compiler;
+using namespace  fs_compiler;
 int main(int argc, char** argv) {
 	if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " <input.f3> [--print-ast] [--emit-ir <file>] [--emit-asm-debug <file>] [--emit-asm <file>][--emit-bin <file>]\n";
@@ -57,8 +56,13 @@ int main(int argc, char** argv) {
 	}
 
 	if(ir_file){
-		std::ofstream ofs(ir_file);
-		program.print_IR(ofs);
+		if (strcmp(ir_file, "cout") != 0) {
+			std::ofstream ofs(ir_file);
+			program.print_IR(ofs);
+		}
+		else {
+			program.print_IR(std::cout);
+		}
 	}
 	if (asm_file) {
 		if (strcmp(asm_file, "cout") != 0) {
@@ -97,14 +101,14 @@ int main(int argc, char** argv) {
 			ofs << asm_code;
 		}
 
-		f3_riscv_assembler::Preprocessor asm_prc(temp);
-		f3_riscv_assembler::Parser asm_parser;
+		riscv_assembler::Preprocessor asm_prc(temp);
+		riscv_assembler::Parser asm_parser;
 		asm_parser.parse_lines(asm_prc.process(asm_debug_output), asm_prc.get_labels());
 
-		f3_riscv_assembler::instr_gen::generator gen;
+		riscv_assembler::instr_gen::generator gen;
 		gen.generate_instructions(asm_parser.get_ast_nodes());
 
-		f3_riscv_assembler::code_gen::generate_bin_file(
+		riscv_assembler::code_gen::generate_bin_file(
 			bin_file,
 			gen.get_instructions(),
 			asm_debug_output

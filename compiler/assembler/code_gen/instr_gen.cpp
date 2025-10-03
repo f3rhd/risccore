@@ -4,7 +4,7 @@
 #include "instr_gen.hpp"
 
 // generates instruction based on the ast
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	namespace instr_gen{
 
 		std::vector<Instruction> generator::convert_to_instr(Ast_Node* head){

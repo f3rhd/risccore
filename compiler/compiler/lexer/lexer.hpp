@@ -6,7 +6,7 @@
 #include "../common/other/error.hpp"
 #include "../common/other/token.hpp"
 
-namespace f3_compiler {
+namespace fs_compiler {
 	class Lexer {
 
 	public:

@@ -2,7 +2,7 @@
 #include <unordered_set>
 #include <cctype>
 #include "tokenizer.hpp"
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 
 	namespace tokenizer {
 		std::vector<Token> tokenize_line_text(const std::string& line_raw) {

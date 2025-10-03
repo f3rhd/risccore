@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <sstream>
 #include <fstream>
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 
 	Preprocessor::Preprocessor(const std::string& source_file_path){
 		FILE* source_file = fopen(source_file_path.c_str(), "r");

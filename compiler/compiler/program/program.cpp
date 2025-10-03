@@ -1,7 +1,7 @@
 ﻿#include "program.hpp"
 #include <unordered_set>
 #include <iomanip>
-namespace f3_compiler {
+namespace fs_compiler {
 	namespace {
 
 		auto is_immediate(const std::string& s)->bool{
@@ -79,11 +79,11 @@ namespace f3_compiler {
 			int32_t logical_offset = 0;
 			for(auto& instr : block.instructions){
 				if (instr->operation == ir_instruction_t::operation_::ALLOC) {
-					logical_offset += 4;
+					//logical_offset += 4;
+					logical_offset += std::stoi(instr->src1); 
 					if (block.local_vars.find(instr->dest) == block.local_vars.end()) {
 						block.local_vars.emplace(instr->dest,-logical_offset);
 					}
-					logical_offset += std::stoi(instr->src1); 
 				}
 				else if(!instr->dest.empty() && instr->dest[0] != '@' && !is_immediate(instr->dest)){
 					instr->store_dest_in_stack = true;
@@ -254,7 +254,7 @@ namespace f3_compiler {
 	void Program::create_interference_graph_nodes()
 	{
 		auto make_node = [this](const std::string& id) -> void {
-			_interference_nodes.emplace(id, id);
+			_interference_nodes.emplace(id,interference_node_t{id,{}});
 		};
 		for (auto& instr : _instructions) {
 			if (instr.operation == ir_instruction_t::operation_::ALLOC)
@@ -889,6 +889,9 @@ namespace f3_compiler {
 		for(auto& func : _functions){
 			func->analyse(ctx);
 			ctx.reset();
+		}
+		if(ctx.get_func_decl_info("main") == nullptr){
+			ctx.make_error(ERROR_CODE::MAIN_ENTRY_DOES_NOT_EXIST, "", "Program should have a main entry function");
 		}
 		_errors = std::move(ctx.get_errors());
 	}

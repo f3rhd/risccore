@@ -8,7 +8,7 @@
 #include "../tokenizer/tokenizer.hpp"
 #include "line.hpp"
 #include "error.hpp"
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	namespace utils {
 
 		Ast_Node                  *make_reg_node(const std::string* reg_identfier,Line* line_info_);

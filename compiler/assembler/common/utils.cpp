@@ -1,7 +1,7 @@
 #include "utils.hpp"
 #include <iostream>
 
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 
 	namespace utils{
 

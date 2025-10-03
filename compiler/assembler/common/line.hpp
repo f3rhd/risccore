@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "token.hpp"
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 	struct Line { // This struct instances will be used parser
 
 		std::vector<Token>          tokens;

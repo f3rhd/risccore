@@ -11,7 +11,7 @@
 #include "../analysis/analysis_context.hpp"
 #include "../other/f3_type.hpp"
 
-namespace f3_compiler {
+namespace fs_compiler {
 	
 	namespace ast_node {
 

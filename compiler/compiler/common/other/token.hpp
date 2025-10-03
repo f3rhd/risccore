@@ -2,7 +2,7 @@
 #include <string>
 #include <cstdint>
 
-namespace f3_compiler {
+namespace fs_compiler {
 	struct source_location_t {
 		size_t row_number = 1;
 		size_t column_number = 1;

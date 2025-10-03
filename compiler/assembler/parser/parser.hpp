@@ -6,7 +6,7 @@
 #include "../common/ast_node.hpp"
 #include "../common/utils.hpp"
 
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 
 	class Parser{
 

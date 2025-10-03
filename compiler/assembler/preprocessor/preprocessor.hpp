@@ -7,7 +7,7 @@
 #include <unordered_map>    
 
 
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 
 	class Preprocessor{
 		

@@ -1,7 +1,7 @@
 #pragma  once
 #include "ir_gen_context.hpp"
 #include <set>
-namespace f3_compiler {
+namespace fs_compiler {
 	struct basic_block_t {
 		const ir_instruction_t* label_instr = nullptr;
 		std::vector<ir_instruction_t*> instructions;

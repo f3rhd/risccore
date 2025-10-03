@@ -1,6 +1,6 @@
 #include "lexer.hpp"
 #include <string_view> 
-using namespace f3_compiler;
+using namespace fs_compiler;
 Lexer::Lexer(const std::string& source_file_path) {
 
 	std::ifstream subject_file = std::ifstream(source_file_path);
@@ -24,7 +24,7 @@ Lexer::Lexer(const std::string& source_file_path) {
 	subject_file.close();
 }
 
-const std::vector<token_t>& f3_compiler::Lexer::get_tokens()
+const std::vector<token_t>& fs_compiler::Lexer::get_tokens()
 {
 	return tokens;
 }

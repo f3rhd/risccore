@@ -1,0 +1,86 @@
+.insertion_sort:
+	PARAM $insertion_sort::array
+	PARAM $insertion_sort::size
+	$b0::i = 1
+	$b0::j = 0
+	$b0::key = 0
+	GOTO .L0
+.L0:
+	SLL @t0,$b0::i,2
+	ADD @t1,$insertion_sort::array,@t0
+	LOAD @t3,@t1
+	$b0::key = @t3
+	SUB @t4,$b0::i,1
+	$b0::j = @t4
+	GOTO .L2
+.L3:
+	ADD @t5,$b0::j,1
+	SLL @t6,@t5,2
+	ADD @t7,$insertion_sort::array,@t6
+	SLL @t9,$b0::j,2
+	ADD @t10,$insertion_sort::array,@t9
+	LOAD @t12,@t10
+	STORE @t12,()@t7
+	SUB @t14,$b0::j,1
+	$b0::j = @t14
+.L2:
+	BLT $b0::j,0, .L4
+	SLL @t15,$b0::j,2
+	ADD @t16,$insertion_sort::array,@t15
+	LOAD @t18,@t16
+	BGT @t18,$b0::key, .L3
+.L4:
+	NOP
+.L5:
+	ADD @t19,$b0::j,1
+	SLL @t20,@t19,2
+	ADD @t21,$insertion_sort::array,@t20
+	STORE $b0::key,()@t21
+.L1:
+	ADD $b0::i,$b0::i,1
+	BLT $b0::i,$insertion_sort::size, .L0
+.L6:
+	NOP
+.main:
+	ALLOC $b3::array,20
+	LI @t25,5
+	STORE @t25,(0)$b3::array
+	LI @t26,4
+	STORE @t26,(4)$b3::array
+	LI @t27,3
+	STORE @t27,(8)$b3::array
+	LI @t28,2
+	STORE @t28,(12)$b3::array
+	LI @t29,1
+	STORE @t29,(16)$b3::array
+	ARG $b3::array
+	ARG 5
+	@t30 = CALL .insertion_sort
+	SLL @t31,0,2
+	ADD @t32,$b3::array,@t31
+	LOAD @t34,@t32
+	BNEQ @t34,1, .L7
+	SLL @t35,1,2
+	ADD @t36,$b3::array,@t35
+	LOAD @t38,@t36
+	BNEQ @t38,2, .L7
+	SLL @t39,2,2
+	ADD @t40,$b3::array,@t39
+	LOAD @t42,@t40
+	BNEQ @t42,3, .L7
+	SLL @t43,3,2
+	ADD @t44,$b3::array,@t43
+	LOAD @t46,@t44
+	BNEQ @t46,4, .L7
+	SLL @t47,4,2
+	ADD @t48,$b3::array,@t47
+	LOAD @t50,@t48
+	BNEQ @t50,5, .L7
+	GOTO .L9
+.L10:
+	NOP
+.L9:
+	BNEQ 1,0, .L10
+.L11:
+	NOP
+.L7:

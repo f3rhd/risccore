@@ -1,5 +1,5 @@
 #include "parser.hpp"
-using namespace f3_compiler;
+using namespace fs_compiler;
 using namespace ast_node;
 std::unique_ptr<func_decl_t> Parser::parse_function() {
 

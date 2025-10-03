@@ -1,7 +1,7 @@
 #pragma  once
 #include <iostream>
 #include "token.hpp"
-namespace f3_compiler {
+namespace fs_compiler {
 
 	enum class ERROR_CODE : uint32_t {
 
@@ -20,7 +20,8 @@ namespace f3_compiler {
 		FUNCTION_REDEFINITION,
 		VARIABLE_REDEFINITION,
 		TYPES_DO_NOT_MATCH,
-		ARRAYS_ELEMENTS_SHOULD_HAVE_EQUIVALENT_TYPES
+		ARRAYS_ELEMENTS_SHOULD_HAVE_EQUIVALENT_TYPES,
+		MAIN_ENTRY_DOES_NOT_EXIST
 	};
 	struct error_t {
 

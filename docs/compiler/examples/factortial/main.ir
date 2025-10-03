@@ -1,0 +1,20 @@
+.fac:
+	PARAM $fac::n
+	BGT $fac::n,1, .L0
+	RETURN $fac::n
+.L0:
+	SUB @t0,$fac::n,1
+	ARG @t0
+	@t1 = CALL .fac
+	MUL @t2,$fac::n,@t1
+	RETURN @t2
+.main:
+	ARG 5
+	@t3 = CALL .fac
+	$b2::x = @t3
+	GOTO .L2
+.L3:
+	NOP
+.L2:
+	BNEQ 1,0, .L3
+.L4:

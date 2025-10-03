@@ -7,7 +7,7 @@
 #include "../common/ir/function_block.hpp"
 #include "../common/ast/nodes.hpp"
 
-namespace f3_compiler {
+namespace fs_compiler {
 	struct Program {
 		void analyse();
 		void generate_IR();

@@ -6,7 +6,7 @@
 #include "../common/utils.hpp"
 #include "parser.hpp"
 
-namespace f3_riscv_assembler {
+namespace riscv_assembler {
 
 	const Token *Parser::peek(std::vector<Token> &line_tokens) {
 		if (_token_index < line_tokens.size())
