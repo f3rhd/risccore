@@ -43,7 +43,8 @@
 	lw      t1,-16(s0)
 	blt     t0,t1,.L0
 .L4:
-	lw      a0,-20(s0)
+	lw      t1,-20(s0)
+	mv      a0,t1
 	lw      ra,28(sp)
 	lw      s0,24(sp)
 	addi    sp,sp,32
@@ -55,37 +56,43 @@
 	addi    s0,sp,32
 	sw      a0,-12(s0)
 	sw      a1,-16(s0)
-	li      t1,0
+	li      t6,0
+	slli    t0,t6,2
+	lw      t2,-12(s0)
+	add     t0,t2,t0
+	lw      t0,0(t0)
+	mv      t1,t0
 	sw      t1,-20(s0)
-	li      t2,1
-	sw      t2,-24(s0)
+	li      t3,1
+	sw      t3,-24(s0)
 	j       .L5
 .L5:
-	lw      t2,-24(s0)
-	slli    t0,t2,2
-	lw      t3,-12(s0)
-	add     t0,t3,t0
+	lw      t3,-24(s0)
+	slli    t0,t3,2
+	lw      t2,-12(s0)
+	add     t0,t2,t0
 	lw      t0,0(t0)
 	lw      t1,-20(s0)
 	ble     t0,t1,.L7
-	lw      t2,-24(s0)
-	slli    t0,t2,2
-	lw      t3,-12(s0)
-	add     t0,t3,t0
+	lw      t3,-24(s0)
+	slli    t0,t3,2
+	lw      t2,-12(s0)
+	add     t0,t2,t0
 	lw      t0,0(t0)
 	mv      t1,t0
 	sw      t1,-20(s0)
 .L7:
 	nop     
 .L6:
-	lw      t2,-24(s0)
-	addi    t2,t2,1
-	sw      t2,-24(s0)
-	lw      t2,-24(s0)
+	lw      t3,-24(s0)
+	addi    t3,t3,1
+	sw      t3,-24(s0)
+	lw      t3,-24(s0)
 	lw      t0,-16(s0)
-	blt     t2,t0,.L5
+	blt     t3,t0,.L5
 .L9:
-	lw      a0,-20(s0)
+	lw      t1,-20(s0)
+	mv      a0,t1
 	lw      ra,28(sp)
 	lw      s0,24(sp)
 	addi    sp,sp,32
@@ -108,22 +115,30 @@
 	addi    t6,s0,-28
 	mv      a0,t6
 	li      a1,5
-	call    .min
+	call    .max
 	mv      t0,a0
 	sw      t0,-32(s0)
 	addi    t6,s0,-28
-	mv      a2,t6
-	li      a3,5
-	call    .max
+	mv      a0,t6
+	li      a1,5
+	call    .min
 	mv      t0,a0
 	sw      t0,-36(s0)
-	j       .L10
-.L11:
+	lw      t0,-36(s0)
+	li      t6,1
+	bne     t0,t6,.L10
+	lw      t0,-32(s0)
+	li      t6,5
+	bne     t0,t6,.L10
+	j       .L12
+.L13:
+	nop     
+.L12:
+	li      t6,1
+	bne     t6,zero,.L13
+.L14:
 	nop     
 .L10:
-	li      t6,1
-	bne     t6,zero,.L11
-.L12:
 	lw      ra,44(sp)
 	lw      s0,40(sp)
 	addi    sp,sp,48

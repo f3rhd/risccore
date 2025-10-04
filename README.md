@@ -93,6 +93,17 @@ Detailed documentation can be found in the `docs/` folder:
 
 -----
 
+## Notes & Limitations
+
+This project is primarily **educational** and meant to demonstrate CPU–compiler interaction.  
+While functional, it has several limitations:
+
+- **Error handling** in the compiler is minimal — syntax or type errors may not always produce clear messages.  
+- **Generated machine code** is **not optimized**; the focus is on correctness and debuggability, not performance.  
+- The **assembler** supports a subset of RISC-V and omits some directives (e.g., `.globl`, `.text`).  
+- The **memory model** assumes **ideal conditions** (0-cycle memory access).  
+
+---
 ## References
 
 This work is based on concepts from:

@@ -90,8 +90,14 @@ void Lexer::tokenize() {
 			continue;
 		}
 		if(ch == '|'){
-			make_token(TOKEN_TYPE::SINGLE_COLUMN, std::string(1, ch), _row, _col);
-			_i++;
+			if (source_string[_i + 1] == '|') {
+				make_token(TOKEN_TYPE::DOUBLE_COLUMN, std::string(1, ch), _row, _col);
+				_i+=2;
+			}
+			else {
+				make_token(TOKEN_TYPE::SINGLE_COLUMN, std::string(1, ch), _row, _col);
+				_i++;
+			}
 			_col++;
 			continue;
 		}

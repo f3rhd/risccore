@@ -18,10 +18,23 @@ namespace fs_compiler {
 		Program(std::vector<std::unique_ptr<ast_node::func_decl_t>>&& functions) : _functions(std::move(functions)) {}
 	private:
 		void convert_function_blocks_to_asm(std::ostream& os);
+		void set_control_flow_graph();
+		void compute_instruction_live_in_out();
+		void compute_instruction_use_def();
+		void create_interference_graph_nodes();
+		void compute_interference_graph();
+		void generate_basic_blocks();
 		void generate_function_blocks();
+		std::string get_allocated_reg_for_var(const std::string &id);
+
 	private:
+		std::unordered_map<std::string,int32_t> _coloring;
+		std::vector<std::string> _spilled_vars;
+		const basic_block_t* get_basic_block_by_label(const std::string& label);
 		std::vector<std::unique_ptr<ast_node::func_decl_t>>  _functions;
 		std::vector<ir_instruction_t> _instructions;
+		std::vector<basic_block_t> _blocks;
+		std::unordered_map<std::string,interference_node_t> _interference_nodes;
 		std::vector<function_block_t> _function_blocks;
 		std::vector<error_t> _errors;
 	};

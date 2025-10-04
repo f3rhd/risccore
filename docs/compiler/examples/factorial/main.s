@@ -7,24 +7,25 @@
 	sw      s0,8(sp)
 	addi    s0,sp,16
 	sw      a0,-12(s0)
-	lw      t1,-12(s0)
-	li      t6,1
-	bgt     t1,t6,.L0
-	lw      a0,-12(s0)
+	lw      t0,-12(s0)
+	li      t5,1
+	bgt     t0,t5,.L0
+	lw      t0,-12(s0)
+	mv      a0,t0
 	lw      ra,12(sp)
 	lw      s0,8(sp)
 	addi    sp,sp,16
 	jr      ra
 .L0:
-	lw      t1,-12(s0)
+	lw      t0,-12(s0)
 	li      t6,1
-	sub     t0,t1,t6
-	mv      a0,t0
+	sub     t1,t0,t6
+	mv      a0,t1
 	call    .fac
-	mv      t0,a0
-	lw      t1,-12(s0)
-	mul     t0,t1,t0
-	mv      a0,t0
+	mv      t2,a0
+	lw      t0,-12(s0)
+	mul     t3,t0,t2
+	mv      a0,t3
 	lw      ra,12(sp)
 	lw      s0,8(sp)
 	addi    sp,sp,16
@@ -37,7 +38,8 @@
 	li      a0,5
 	call    .fac
 	mv      t0,a0
-	sw      t0,-12(s0)
+	mv      t1,t0
+	sw      t1,-12(s0)
 	j       .L2
 .L3:
 	nop     

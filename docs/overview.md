@@ -8,6 +8,6 @@ This repository contains a **5-stage pipelined RISC-V CPU** designed for educati
 
 The CPU supports a **subset of the RISC-V instruction set**, including arithmetic, logic, memory access, and control flow instructions. Data hazards are resolved using forwarding mechanisms and control hazards are handled with simple branch logic. 
 
-Registers include the standard RISC-V set, as well as special-purpose registers for temporary storage and stack operations. **Memory units in this system are assumed to be ideal, with 0-cycle access time**, so memory reads and writes complete within a single clock cycle. The CPU works in tandem with a **custom assembler and the F3 compiler**, which translates high-level programs into RISC-V assembly for execution on this CPU.
+Registers include the standard RISC-V set, as well as special-purpose registers for temporary storage and stack operations. **Memory units in this system are assumed to be ideal, with 0-cycle access time**, so memory reads and writes complete within a single clock cycle. The CPU works in tandem with a **custom assembler and the FS compiler**, which translates high-level programs into RISC-V assembly for execution on this CPU.
 
 This diagram highlights the **data paths and control signals**, giving a complete view of how instructions flow through the pipeline from fetch to write-back.

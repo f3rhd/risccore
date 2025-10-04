@@ -6,7 +6,7 @@ The FS compiler translates a simple C-like high-level language (FS) into **RISC-
 
 ## 1. Compiler Pipeline Overview
 
-The F3 compiler translates high-level FS code into RISC-V assembly in multiple stages:
+The FS compiler translates high-level FS code into RISC-V assembly in multiple stages:
 
 1. **Lexical Analysis (Lexer)** – Converts source code into tokens.
 2. **Parsing (Parser)** – Builds an Abstract Syntax Tree (AST) from tokens.

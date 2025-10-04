@@ -9,9 +9,9 @@ This guide provides the steps necessary to compile the CPU design files and run 
 ## Step 1: Generate the Program Binary
 First, use your compiler and assembler to generate the machine code binary file. This file must be named `program.bin` and should be placed inside the cpu/ directory for the testbench to automatically locate and load it into the instruction memory.
 
-# 1. Compile F3 code to binary (program.bin)
+# 1. Compile FS code to binary (program.bin)
 ``` bash
-./fsrvc path/to/your/program.f3 --emit-bin program.bin
+./fsrvc path/to/your/program.fs --emit-bin program.bin
 ```
 # 2. Move the binary into the CPU directory
 ``` bash

@@ -26,18 +26,21 @@
 .max:
 	PARAM $max::array
 	PARAM $max::size
-	$b3::max = 0
+	SLL @t13,0,2
+	ADD @t14,$max::array,@t13
+	LOAD @t16,@t14
+	$b3::max = @t16
 	$b3::i = 1
 	GOTO .L5
 .L5:
-	SLL @t13,$b3::i,2
-	ADD @t14,$max::array,@t13
-	LOAD @t16,@t14
-	BLE @t16,$b3::max, .L7
 	SLL @t17,$b3::i,2
 	ADD @t18,$max::array,@t17
 	LOAD @t20,@t18
-	$b3::max = @t20
+	BLE @t20,$b3::max, .L7
+	SLL @t21,$b3::i,2
+	ADD @t22,$max::array,@t21
+	LOAD @t24,@t22
+	$b3::max = @t24
 .L7:
 	NOP
 .L6:
@@ -47,27 +50,31 @@
 	RETURN $b3::max
 .main:
 	ALLOC $b6::array,20
-	LI @t22,1
-	STORE @t22,(0)$b6::array
-	LI @t23,2
-	STORE @t23,(4)$b6::array
-	LI @t24,3
-	STORE @t24,(8)$b6::array
-	LI @t25,4
-	STORE @t25,(12)$b6::array
-	LI @t26,5
-	STORE @t26,(16)$b6::array
+	LI @t26,1
+	STORE @t26,(0)$b6::array
+	LI @t27,2
+	STORE @t27,(4)$b6::array
+	LI @t28,3
+	STORE @t28,(8)$b6::array
+	LI @t29,4
+	STORE @t29,(12)$b6::array
+	LI @t30,5
+	STORE @t30,(16)$b6::array
 	ARG $b6::array
 	ARG 5
-	@t27 = CALL .min
-	$b6::min_array = @t27
+	@t31 = CALL .max
+	$b6::max_array = @t31
 	ARG $b6::array
 	ARG 5
-	@t28 = CALL .max
-	$b6::max_array = @t28
-	GOTO .L10
-.L11:
+	@t32 = CALL .min
+	$b6::min_array = @t32
+	BNEQ $b6::min_array,1, .L10
+	BNEQ $b6::max_array,5, .L10
+	GOTO .L12
+.L13:
+	NOP
+.L12:
+	BNEQ 1,0, .L13
+.L14:
 	NOP
 .L10:
-	BNEQ 1,0, .L11
-.L12:
