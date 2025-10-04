@@ -15,7 +15,6 @@ int main(int argc, char** argv) {
 		const char* input_file = argv[1];
 		bool print_ast = false;
 		bool asm_debug_output = false;
-		bool print_ir = false;
 		const char *ir_file = nullptr;
 		const char* asm_file = nullptr;
 		const char* bin_file = nullptr;
@@ -27,7 +26,6 @@ int main(int argc, char** argv) {
 				asm_file = argv[++i];
 			} else if (strcmp(argv[i], "--emit-ir") == 0 && i + 1 < argc) {
 				ir_file = argv[++i];
-				print_ir = true;
 			} else if (strcmp(argv[i], "--emit-asm-debug") == 0 && i + 1 < argc) {
 				bin_file = argv[++i];
 				asm_debug_output = true;
