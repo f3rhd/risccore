@@ -95,13 +95,14 @@ Detailed documentation can be found in the `docs/` folder:
 
 ## Notes & Limitations
 
-This project is primarily **educational** and meant to demonstrate CPU–compiler interaction.  
-While functional, it has several limitations:
+This project is primarily **educational** and demonstrates the interaction between a CPU and its compiler. While fully functional, there are some limitations:
 
-- **Error handling** in the compiler is minimal — syntax or type errors may not always produce clear messages.  
-- **Generated machine code** is **not optimized**; the focus is on correctness and debuggability, not performance.  
-- The **assembler** supports a subset of RISC-V and omits some directives (e.g., `.globl`, `.text`).  
-- The **memory model** assumes **ideal conditions** (0-cycle memory access).  
+- **Minimal error handling:** Syntax or type errors may not always produce clear messages.  
+- **Unoptimized machine code:** The compiler prioritizes correctness and debuggability over performance.  
+- **Assembler limitations:** Only a subset of RISC-V is supported; some directives (e.g., `.globl`, `.text`) are omitted.  
+- **Simplified memory model:** Assumes ideal conditions with 0-cycle memory access.  
+
+> **Note:** The included examples—Min/Max of an array, Factorial calculation, and Insertion Sort—work correctly. However, the compiler is still a work in progress, and hidden bugs may exist. **The CPU executes the generated machine code flawlessly; there are no CPU bugs.** Use this project for learning and experimentation! 💖
 
 ---
 ## References
