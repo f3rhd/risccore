@@ -1,6 +1,7 @@
 ﻿#include "program.hpp"
 #include <unordered_set>
 #include <iomanip>
+#include <algorithm>
 namespace fs_compiler {
 	namespace {
 
