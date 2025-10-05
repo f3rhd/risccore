@@ -23,7 +23,6 @@ It’s designed for educational purposes and to explore **compiler + CPU co-desi
 ```
 
 ├── assets/             \# Diagrams and figures
-├── assembler/          \# Source code for assembler
 ├── compiler/           \# Source code for FS compiler
 │   ├── compiler/       \# Compiler source code (FS -\> Assembly)
 │   └── assembler/      \# Assembler source code (Assembly -\> Machine Code)
@@ -32,6 +31,7 @@ It’s designed for educational purposes and to explore **compiler + CPU co-desi
 │   ├── cpu/            \# CPU documentation (pipeline, hazards, registers, etc.)
 │   ├── compiler/       \# Compiler documentation + examples
 │   ├── assembler/      \# Assembler documentation + examples
+|   ├── overview.md     \# Overview of the docs
 └── README.md           \# This file
 
 ```
