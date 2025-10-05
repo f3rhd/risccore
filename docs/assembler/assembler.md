@@ -8,7 +8,7 @@ It translates human-readable RISC-V assembly code into machine code that can be 
 
 - Assembler does not support directives such as .globl, .text, .data, etc. Only raw instructions and labels are accepted.
 
-- Supports macros:
+- Supports macros
 
 ### How to build
 ```bash
