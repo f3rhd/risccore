@@ -21,6 +21,7 @@ quartus/
 *.sln
 *.vcxproj
 *.vcxproj.filters
+*.txt
 
 .vs/
 *.user

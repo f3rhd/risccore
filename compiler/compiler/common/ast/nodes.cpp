@@ -565,6 +565,16 @@ std::string block_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
 	ctx.add_var_id(name); 
+	if(type.array_size != ARRAY_NOT_INITIALIZED){
+		ir_instruction_t instr;
+		instr.operation = ir_instruction_t::operation_::ALLOC;
+		instr.dest = name;
+		instr.src1 = std::to_string(type.array_size*4);
+		ctx.instructions.push_back(std::move(instr));
+		ctx.initializing_array_id = mangle_var(ctx,name);
+		ctx.array_ids.push_back(ctx.initializing_array_id);
+		ctx.initializing_array_id = "";
+	}
 	if (!rhs)
 		return "";
 	if(!rhs->is_array_init()){
@@ -579,10 +589,7 @@ std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 		ctx.instructions.push_back(std::move(instr));
 	}
 	else {
-		ctx.initializing_array_id = mangle_var(ctx,name);
 		rhs->generate_ir(ctx);
-		ctx.array_ids.push_back(ctx.initializing_array_id);
-		ctx.initializing_array_id = "";
 	}
 	return "";
 }
@@ -928,11 +935,6 @@ std::string var_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 	return name;
 }
 std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const {
-	ir_instruction_t instr;
-	instr.operation = ir_instruction_t::operation_::ALLOC;
-	instr.dest = ctx.initializing_array_id;
-	instr.src1 = std::to_string(elements.size()*4);
-	ctx.instructions.push_back(std::move(instr));
 
 	for (uint64_t i = 0; i < elements.size();i++) {
 
