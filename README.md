@@ -1,5 +1,5 @@
 # 5-Stage Pipelined RISC-V CPU + Custom Made FS Language
-![CPU Logic Diagram](assets/cpu_logic_diagram.png)
+![CPU Logic Diagram](docs/assets/cpu_logic_diagram.png)
 
 * A **5-stage pipelined RISC-V CPU** implemented in SystemVerilog
 * A custom **assembler** for RISC-V machine code generation

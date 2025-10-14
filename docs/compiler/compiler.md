@@ -1,5 +1,5 @@
 # FS Compiler
-![FS Compiler Pipeline](../../assets/compiler_pipeline.svg)
+![FS Compiler Pipeline](../assets/compiler_pipeline.svg)
 *Figure 1: Block diagram of the FS compiler pipeline, showing how FS source code is transformed into machine code.*
 
 The FS compiler translates a simple C-like high-level language (FS) into **RISC-V assembly** compatible with the 5-stage pipelined CPU in this repository. It also provides an **IR and AST view** for debugging and learning purposes.

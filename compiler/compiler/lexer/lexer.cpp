@@ -1,5 +1,4 @@
 #include "lexer.hpp"
-#include <string_view> 
 using namespace fs_compiler;
 Lexer::Lexer(const std::string& source_file_path) {
 

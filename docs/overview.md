@@ -1,4 +1,4 @@
-![CPU Logic Diagram](../assets/cpu_logic_diagram.png)
+![CPU Logic Diagram](assets/cpu_logic_diagram.png)
 *Figure 1: Logic diagram of the 5-stage pipelined RISC-V CPU.*
 ---
 
