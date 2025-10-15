@@ -22,7 +22,7 @@ func main() -> void {
     int[] array = {1,2,3,4,5};
     int min_array = min(array,5);
     int max_array = max(array,5);
-    if(min_array == 1 && max_array ==1){
+    if(min_array == 1 && max_array == 5){
         while(1){
 
         }

@@ -1,80 +1,98 @@
-.min:
-	PARAM $min::array
-	PARAM $min::size
-	SLL @t0,0,2
-	ADD @t1,$min::array,@t0
-	LOAD @t3,@t1
-	$b0::min = @t3
+.insertion_sort:
+	PARAM $insertion_sort::array
+	PARAM $insertion_sort::size
 	$b0::i = 1
+	$b0::j = 0
+	$b0::key = 0
 	GOTO .L0
 .L0:
-	SLL @t4,$b0::i,2
-	ADD @t5,$min::array,@t4
-	LOAD @t7,@t5
-	BGE @t7,$b0::min, .L2
-	SLL @t8,$b0::i,2
-	ADD @t9,$min::array,@t8
-	LOAD @t11,@t9
-	$b0::min = @t11
+	SLL @t0,$b0::i,2
+	ADD @t1,$insertion_sort::array,@t0
+	LOAD @t3,@t1
+	$b0::key = @t3
+	SUB @t4,$b0::i,1
+	$b0::j = @t4
+	GOTO .L2
+.L3:
+	ADD @t5,$b0::j,1
+	SLL @t6,@t5,2
+	ADD @t7,$insertion_sort::array,@t6
+	SLL @t9,$b0::j,2
+	ADD @t10,$insertion_sort::array,@t9
+	LOAD @t12,@t10
+	STORE @t12,()@t7
+	SUB @t14,$b0::j,1
+	$b0::j = @t14
 .L2:
+	BLT $b0::j,0, .L4
+.L5:
+	SLL @t15,$b0::j,2
+	ADD @t16,$insertion_sort::array,@t15
+	LOAD @t18,@t16
+	BGT @t18,$b0::key, .L3
+.L6:
 	NOP
+.L4:
+	NOP
+.L7:
+	ADD @t19,$b0::j,1
+	SLL @t20,@t19,2
+	ADD @t21,$insertion_sort::array,@t20
+	STORE $b0::key,()@t21
 .L1:
 	ADD $b0::i,$b0::i,1
-	BLT $b0::i,$min::size, .L0
-.L4:
-	RETURN $b0::min
-.max:
-	PARAM $max::array
-	PARAM $max::size
-	SLL @t13,0,2
-	ADD @t14,$max::array,@t13
-	LOAD @t16,@t14
-	$b3::max = @t16
-	$b3::i = 1
-	GOTO .L5
-.L5:
-	SLL @t17,$b3::i,2
-	ADD @t18,$max::array,@t17
-	LOAD @t20,@t18
-	BLE @t20,$b3::max, .L7
-	SLL @t21,$b3::i,2
-	ADD @t22,$max::array,@t21
-	LOAD @t24,@t22
-	$b3::max = @t24
-.L7:
+	BLT $b0::i,$insertion_sort::size, .L0
+.L8:
 	NOP
-.L6:
-	ADD $b3::i,$b3::i,1
-	BLT $b3::i,$max::size, .L5
 .L9:
-	RETURN $b3::max
-.main:
-	ALLOC $b6::array,20
-	LI @t26,1
-	STORE @t26,(0)$b6::array
-	LI @t27,2
-	STORE @t27,(4)$b6::array
-	LI @t28,3
-	STORE @t28,(8)$b6::array
-	LI @t29,4
-	STORE @t29,(12)$b6::array
-	LI @t30,5
-	STORE @t30,(16)$b6::array
-	ARG $b6::array
-	ARG 5
-	@t31 = CALL .max
-	$b6::max_array = @t31
-	ARG $b6::array
-	ARG 5
-	@t32 = CALL .min
-	$b6::min_array = @t32
-	BNEQ $b6::min_array,1, .L10
-	BNEQ $b6::max_array,5, .L10
-	GOTO .L12
-.L13:
 	NOP
+.main:
+	ALLOC $array,20
+	LI @t25,5
+	STORE @t25,(0)
+	LI @t26,4
+	STORE @t26,(4)
+	LI @t27,3
+	STORE @t27,(8)
+	LI @t28,2
+	STORE @t28,(12)
+	LI @t29,1
+	STORE @t29,(16)
+	ARG $array
+	ARG 5
+	@t30 = CALL .insertion_sort
+	SLL @t31,0,2
+	ADD @t32,$array,@t31
+	LOAD @t34,@t32
+	BNEQ @t34,1, .L10
 .L12:
-	BNEQ 1,0, .L13
+	SLL @t35,1,2
+	ADD @t36,$array,@t35
+	LOAD @t38,@t36
+	BNEQ @t38,2, .L10
+.L13:
+	SLL @t39,2,2
+	ADD @t40,$array,@t39
+	LOAD @t42,@t40
+	BNEQ @t42,3, .L10
 .L14:
+	SLL @t43,3,2
+	ADD @t44,$array,@t43
+	LOAD @t46,@t44
+	BNEQ @t46,4, .L10
+.L15:
+	SLL @t47,4,2
+	ADD @t48,$array,@t47
+	LOAD @t50,@t48
+	BNEQ @t50,5, .L10
+.L16:
+	GOTO .L17
+.L18:
+	NOP
+.L17:
+	BNEQ 1,0, .L18
+.L19:
+	NOP
+.L20:
 	NOP
 .L10:

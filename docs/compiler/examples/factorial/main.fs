@@ -7,6 +7,8 @@ func fac(int n) -> int {
 func main() -> void {
     int x = fac(5);
     /* infinite loop */
-    while(1){
+    if(x==120){
+        while(1){
+        }
     }
 }
