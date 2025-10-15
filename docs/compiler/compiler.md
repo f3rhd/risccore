@@ -27,7 +27,9 @@ To avoid compiling the assembler `main.cpp` into the compiler, you need to defin
     ./fsrvc <input_file> --emit-asm <output_file> # Generates asm file
     ./fsrvc <input_file> --emit-asm cout # Displays the asm on the terminal
     ./fsrvc <input_file> --emit-asm-debug <output_file> # Displays the detailed information about generated assembly instructions on the terminal
+    ./fsrvc <input_file> --emit-ir-debug <output_file> # Prints the detailed information of intermediate instructions in json format to the output file
     ./fsrvc <input_file> --emit-ir <output_file> # Generates ir file that holds intermediate representation
     ./fsrvc <input_file> --emit-ir cout # Displays the ir on the terminal
+    ./fsrvc <input_file> --emit-ir-debug cout # Displays the detailed information of irs on the terminal
     ./fsrvc <input_file> --print-ast # Displays the AST on the terminal
 ```
