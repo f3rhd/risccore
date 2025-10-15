@@ -1,0 +1,107 @@
+.bubble_sort:
+	PARAM $bubble_sort::array
+	PARAM $bubble_sort::size
+	$b0::i = 0
+	GOTO .L0
+.L0:
+	$b1::j = 0
+	$b1::swapped = 0
+	GOTO .L2
+.L2:
+	SLL @t0,$b1::j,2
+	ADD @t1,$bubble_sort::array,@t0
+	LOAD @t3,@t1
+	ADD @t4,$b1::j,1
+	SLL @t5,@t4,2
+	ADD @t6,$bubble_sort::array,@t5
+	LOAD @t8,@t6
+	BLE @t3,@t8, .L4
+.L6:
+	ADD @t9,$b1::j,1
+	SLL @t10,@t9,2
+	ADD @t11,$bubble_sort::array,@t10
+	LOAD @t13,@t11
+	$b3::temp = @t13
+	ADD @t14,$b1::j,1
+	SLL @t15,@t14,2
+	ADD @t16,$bubble_sort::array,@t15
+	SLL @t18,$b1::j,2
+	ADD @t19,$bubble_sort::array,@t18
+	LOAD @t21,@t19
+	STORE @t21,()@t16
+	SLL @t23,$b1::j,2
+	ADD @t24,$bubble_sort::array,@t23
+	STORE $b3::temp,()@t24
+	$b1::swapped = 1
+.L4:
+	NOP
+.L3:
+	ADD $b1::j,$b1::j,1
+	SUB @t28,$bubble_sort::size,$b0::i
+	SUB @t29,@t28,1
+	BLT $b1::j,@t29, .L2
+.L7:
+	NOP
+.L8:
+	BNEQ $b1::swapped,0, .L9
+.L11:
+	RETURN 
+.L9:
+	NOP
+.L1:
+	ADD $b0::i,$b0::i,1
+	BLT $b0::i,$bubble_sort::size, .L0
+.L12:
+	NOP
+.L13:
+	NOP
+.main:
+	ALLOC $test_array,20
+	LI @t31,5
+	STORE @t31,(0)$test_array
+	LI @t32,4
+	STORE @t32,(4)$test_array
+	LI @t33,3
+	STORE @t33,(8)$test_array
+	LI @t34,2
+	STORE @t34,(12)$test_array
+	LI @t35,1
+	STORE @t35,(16)$test_array
+	ARG $test_array
+	ARG 5
+	@t36 = CALL .bubble_sort
+	SLL @t37,0,2
+	ADD @t38,$test_array,@t37
+	LOAD @t40,@t38
+	BNEQ @t40,1, .L14
+.L16:
+	SLL @t41,1,2
+	ADD @t42,$test_array,@t41
+	LOAD @t44,@t42
+	BNEQ @t44,2, .L14
+.L17:
+	SLL @t45,2,2
+	ADD @t46,$test_array,@t45
+	LOAD @t48,@t46
+	BNEQ @t48,3, .L14
+.L18:
+	SLL @t49,3,2
+	ADD @t50,$test_array,@t49
+	LOAD @t52,@t50
+	BNEQ @t52,4, .L14
+.L19:
+	SLL @t53,4,2
+	ADD @t54,$test_array,@t53
+	LOAD @t56,@t54
+	BNEQ @t56,5, .L14
+.L20:
+	GOTO .L21
+.L22:
+	NOP
+.L21:
+	BNEQ 1,0, .L22
+.L23:
+	NOP
+.L24:
+	NOP
+.L14:
