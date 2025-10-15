@@ -9,30 +9,35 @@
 using namespace  fs_compiler;
 int main(int argc, char** argv) {
 	if (argc < 2) {
-        std::cerr << "Usage: " << argv[0] << " <input.f3> [--print-ast] [--emit-ir <file>] [--emit-asm-debug <file>] [--emit-asm <file>][--emit-bin <file>]\n";
-        return 1;
+		std::cerr << "Usage: " << argv[0] << " <input.f3> [--print-ast] [--emit-ir-debug <file>] [--emit-ir <file>] [--emit-asm-debug <file>] [--emit-asm <file>][--emit-bin <file>]\n";
+		return 1;
 	}
-		const char* input_file = argv[1];
-		bool print_ast = false;
-		bool asm_debug_output = false;
-		const char *ir_file = nullptr;
-		const char* asm_file = nullptr;
-		const char* bin_file = nullptr;
-		const char* flow_file = nullptr;
-		for (int i = 2; i < argc; i++) {
-			if (strcmp(argv[i], "--print-ast") == 0) {
-				print_ast = true;
-			} else if (strcmp(argv[i], "--emit-asm") == 0 && i + 1 < argc) {
-				asm_file = argv[++i];
-			} else if (strcmp(argv[i], "--emit-ir") == 0 && i + 1 < argc) {
-				ir_file = argv[++i];
-			} else if (strcmp(argv[i], "--emit-asm-debug") == 0 && i + 1 < argc) {
-				bin_file = argv[++i];
-				asm_debug_output = true;
-			} else if (strcmp(argv[i], "--emit-bin") == 0 && i + 1 < argc) {
-				bin_file = argv[++i];
-			}
+	const char* input_file = argv[1];
+	bool print_ast = false;
+	bool asm_debug_output = false;
+	bool ir_debug_print = false;
+	const char *ir_file = nullptr;
+	const char* asm_file = nullptr;
+	const char* bin_file = nullptr;
+	const char* flow_file = nullptr;
+	for (int i = 2; i < argc; i++) {
+		if (strcmp(argv[i], "--print-ast") == 0) {
+			print_ast = true;
+		} else if (strcmp(argv[i], "--emit-asm") == 0 && i + 1 < argc) {
+			asm_file = argv[++i];
+		} else if (strcmp(argv[i], "--emit-ir") == 0 && i + 1 < argc) {
+			ir_file = argv[++i];
+		} else if (strcmp(argv[i], "--emit-asm-debug") == 0 && i + 1 < argc) {
+			bin_file = argv[++i];
+			asm_debug_output = true;
+		} else if (strcmp(argv[i], "--emit-bin") == 0 && i + 1 < argc) {
+			bin_file = argv[++i];
 		}
+		else if (strcmp(argv[i], "--emit-ir-debug") == 0 && i + 1 < argc) {
+			 ir_file = argv[++i];
+			 ir_debug_print = true;
+		}
+	}
 	Lexer lexer(input_file);
 	Parser parser(std::move(const_cast<std::vector<token_t>&>(lexer.get_tokens())));
 	auto program = parser.parse_program();
@@ -54,9 +59,16 @@ int main(int argc, char** argv) {
 	}
 
 	if(ir_file){
-		if (strcmp(ir_file, "cout") != 0) {
+		if ( !ir_debug_print && strcmp(ir_file, "cout") != 0) {
 			std::ofstream ofs(ir_file);
 			program.print_IR(ofs);
+		}
+		else if(ir_debug_print && strcmp(ir_file,"cout") == 0) {
+			program.print_liveness_json(std::cout);
+		}
+		else if (ir_debug_print) {
+			std::ofstream ofs(ir_file);
+			program.print_liveness_json(ofs);
 		}
 		else {
 			program.print_IR(std::cout);

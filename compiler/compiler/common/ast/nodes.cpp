@@ -461,6 +461,11 @@ namespace {
 					branch.src2 = mangle_var(ctx, r);
 					branch.label_id = false_label;
 					ctx.instructions.push_back(std::move(branch));
+					add_nop_on_label_clash(ctx);
+					ir_instruction_t lbl;
+					lbl.operation = ir_instruction_t::operation_::LABEL;
+					lbl.label_id = ctx.generate_label();
+					ctx.instructions.push_back(std::move(lbl));
 					return;
 				}
 				default:
@@ -475,6 +480,11 @@ namespace {
 			branch.src2 = "0";
 			branch.label_id = false_label;
 			ctx.instructions.push_back(std::move(branch));
+			add_nop_on_label_clash(ctx);
+			ir_instruction_t lbl;
+			lbl.operation = ir_instruction_t::operation_::LABEL;
+			lbl.label_id = ctx.generate_label();
+			ctx.instructions.push_back(std::move(lbl));
 		}
 
 	}
@@ -512,6 +522,11 @@ namespace {
 					branch.src2 = mangle_var(ctx, r);
 					branch.label_id = true_label;
 					ctx.instructions.push_back(std::move(branch));
+					add_nop_on_label_clash(ctx);
+					ir_instruction_t lbl;
+					lbl.operation = ir_instruction_t::operation_::LABEL;
+					lbl.label_id = ctx.generate_label();
+					ctx.instructions.push_back(std::move(lbl));
 					return;
 				}
 				default:
@@ -527,6 +542,12 @@ namespace {
 			branch.src2 = "0";
 			branch.label_id = true_label;
 			ctx.instructions.push_back(std::move(branch));
+			add_nop_on_label_clash(ctx);
+			ir_instruction_t lbl;
+			lbl.operation = ir_instruction_t::operation_::LABEL;
+			lbl.label_id = ctx.generate_label();
+			ctx.instructions.push_back(std::move(lbl));
+
 		}
 	}
 }
@@ -564,16 +585,21 @@ std::string block_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 
 std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 	ir_instruction_t instr;
-	ctx.add_var_id(name); 
-	if(type.array_size != ARRAY_NOT_INITIALIZED){
-		ir_instruction_t instr;
-		ctx.initializing_array_id = mangle_var(ctx,name);
-		instr.operation = ir_instruction_t::operation_::ALLOC;
-		instr.dest = ctx.initializing_array_id;
-		instr.src1 = std::to_string(type.array_size*4);
-		ctx.instructions.push_back(std::move(instr));
+	if (type.array_size != ARRAY_NOT_INITIALIZED) {
+		ctx.initializing_array_id = mangle_var(ctx, name);
 		ctx.array_ids.push_back(ctx.initializing_array_id);
-		ctx.initializing_array_id = "";
+		if (type.array_size != ARRAY_SIZE_IMPLICIT) {
+			ir_instruction_t instr;
+			instr.operation = ir_instruction_t::operation_::ALLOC;
+			instr.dest = ctx.initializing_array_id;
+			instr.src1 = std::to_string(type.array_size * 4);
+			ctx.instructions.push_back(std::move(instr));
+			ctx.array_ids.push_back(ctx.initializing_array_id);
+			ctx.initializing_array_id = "";
+		}
+	}
+	else {
+		ctx.add_var_id(name); 
 	}
 	if (!rhs)
 		return "";
@@ -936,6 +962,14 @@ std::string var_expression_t::generate_ir(IR_Gen_Context& ctx) const {
 }
 std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 
+	// if the array size is implicit allocate it there rather in var_decl 
+	if (std::find(ctx.array_ids.begin(), ctx.array_ids.end(), ctx.initializing_array_id) != ctx.array_ids.end()) {
+		ir_instruction_t alloc_instr;
+		alloc_instr.operation = ir_instruction_t::operation_::ALLOC;
+		alloc_instr.dest = ctx.initializing_array_id;
+		alloc_instr.src1 = std::to_string(elements.size() * 4);
+		ctx.instructions.push_back(std::move(alloc_instr));
+	}
 	for (uint64_t i = 0; i < elements.size();i++) {
 
 		ir_instruction_t store_instr;

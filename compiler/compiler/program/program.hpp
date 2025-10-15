@@ -15,6 +15,7 @@ namespace fs_compiler {
 		void print_IR(std::ostream& os);
 		void print_ast();
 		bool has_error();
+		void print_liveness_json(std::ostream& os);
 		Program(std::vector<std::unique_ptr<ast_node::func_decl_t>>&& functions) : _functions(std::move(functions)) {}
 	private:
 		void convert_function_blocks_to_asm(std::ostream& os);

@@ -24,11 +24,6 @@ namespace fs_compiler {
 		}
 	}
 	void Program::generate_asm(std::ostream& os){
-		generate_basic_blocks();
-		set_control_flow_graph();
-		compute_instruction_use_def();
-		compute_instruction_live_in_out();
-		compute_interference_graph();
 		generate_function_blocks();
 		convert_function_blocks_to_asm(os);
 	}
@@ -40,8 +35,70 @@ namespace fs_compiler {
 			ctx.reset();
 		}
 		_instructions = std::move(ctx.instructions);
+		generate_basic_blocks();
+		set_control_flow_graph();
+		compute_instruction_use_def();
+		compute_instruction_live_in_out();
+		compute_interference_graph();
 	}
 
+	void Program::print_liveness_json(std::ostream& os) {
+		auto escape_json = [](const std::string& s) -> std::string {
+			std::string out;
+			out.reserve(s.size() + 8);
+			for (unsigned char c : s) {
+				switch (c) {
+				case '\"': out += "\\\""; break;
+				case '\\': out += "\\\\"; break;
+				case '\b': out += "\\b";  break;
+				case '\f': out += "\\f";  break;
+				case '\n': out += "\\n";  break;
+				case '\r': out += "\\r";  break;
+				case '\t': out += "\\t";  break;
+				default:
+					if (c < 0x20) {
+						// control char -> \u00XX
+						const char hex[] = "0123456789ABCDEF";
+						out += "\\u00";
+						out += hex[(c >> 4) & 0xF];
+						out += hex[c & 0xF];
+					} else {
+						out.push_back(static_cast<char>(c));
+					}
+				}
+			}
+			return out;
+		};
+
+		os << "[\n";
+		for (size_t i = 0; i < _instructions.size(); ++i) {
+			const ir_instruction_t& instr = _instructions[i];
+			if (i) os << ",\n";
+			os << "  {\n";
+			os << "    \"index\": " << i << ",\n";
+			os << "    \"instr\": \"" << escape_json(instr.to_string()) << "\",\n";
+
+			auto emit_set = [&](const std::set<std::string>& s, const char* name) {
+				os << "    \"" << name << "\": [";
+				bool first = true;
+				for (const auto& v : s) {
+					if (!first) os << ",";
+					os << "\n      \"" << escape_json(v) << "\"";
+					first = false;
+				}
+				if (!s.empty()) os << "\n    ";
+				os << "]";
+			};
+
+			emit_set(instr.use, "use"); os << ",\n";
+			emit_set(instr.def, "def"); os << ",\n";
+			emit_set(instr.live_in, "live_in"); os << ",\n";
+			emit_set(instr.live_out, "live_out"); os << "\n";
+
+			os << "  }";
+		}
+		os << "\n]\n";
+	}
 	const basic_block_t* Program::get_basic_block_by_label(const std::string& label)
 	{
 		for (auto& block : _blocks) {
@@ -85,7 +142,7 @@ namespace fs_compiler {
 			size_t param_count = 0;
 			for(auto& instr : block.instructions){
 				if (instr->operation == ir_instruction_t::operation_::ALLOC) {
-					//logical_offset += 4;
+					logical_offset_s0 += 4;
 					logical_offset_s0 += std::stoi(instr->src1); 
 					if (block.stack.find(instr->dest) == block.stack.end()) {
 						block.stack.emplace(instr->dest,-logical_offset_s0);
