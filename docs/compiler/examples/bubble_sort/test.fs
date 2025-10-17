@@ -16,7 +16,6 @@ func bubble_sort(int[] array, int size) -> void {
         }
     }
 }
-/*
 func is_sorted(int[] array,int size) -> int {
     int i  = 0;
     int is_sorted = 1;
@@ -28,11 +27,11 @@ func is_sorted(int[] array,int size) -> int {
     }
     return is_sorted;
 }
-*/
 func main() -> void {
     int[] test_array = {5,4,3,2,1};
     bubble_sort(test_array,5);
-    if(test_array[0] == 1 && test_array[1] == 2 && test_array[2] == 3 && test_array[3] == 4 && test_array[4] == 5){
+    int is_sorted_flag = is_sorted(test_array,5);
+    if(is_sorted_flag == 1){
         while(1){
 
         }
