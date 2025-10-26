@@ -22,12 +22,12 @@ It’s designed for educational purposes and to explore **compiler + CPU co-desi
 
 ```
 
-├── assets/             \# Diagrams and figures
 ├── compiler/           \# Source code for FS compiler
 │   ├── compiler/       \# Compiler source code (FS -\> Assembly)
 │   └── assembler/      \# Assembler source code (Assembly -\> Machine Code)
 ├── cpu/                \# CPU design files (SystemVerilog, diagrams)
 ├── docs/               \# Documentation
+|   ├── assets/         \# Diagrams and figures
 │   ├── cpu/            \# CPU documentation (pipeline, hazards, registers, etc.)
 │   ├── compiler/       \# Compiler documentation + examples
 │   ├── assembler/      \# Assembler documentation + examples
