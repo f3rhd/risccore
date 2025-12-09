@@ -28,11 +28,9 @@ fact:
     # restore ra
     lw      ra, 4(sp)
     addi    sp, sp, 8
-    jalr    zero, 0(ra)        # return
-
+    ret
 base:
     add     a0, zero, t0       # return 1
-    jalr    zero, 0(ra)
-
+    ret
 hang:
     jal     zero, hang         # infinite loop
