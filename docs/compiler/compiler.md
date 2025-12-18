@@ -20,7 +20,7 @@ The FS compiler translates high-level FS code into RISC-V assembly in multiple s
 The FS compiler is purely written in C++ and consists of multiple `.cpp` files in the `compiler/` directory, plus the assembler source code.  
 To avoid compiling the assembler `main.cpp` into the compiler, you need to define a macro `-DASSEMBLER_STATIC_BUILD`.
 ```bash
-    g++ compiler/assembler/code_gen/*.cpp compiler/assembler/common/*.cpp compiler/assembler/parser/*.cpp compiler/assembler/preprocessor/*.cpp compiler/assembler/tokenizer/*.cpp compiler/assembler/main.cpp compiler/compiler/common/ast/nodes.cpp compiler/compiler/lexer/lexer.cpp compiler/compiler/parser/parser.cpp compiler/compiler/program/program.cpp compiler/compiler/main.cpp -std=c++14  -w -O2 -DASSEMBLER_STATIC_BUILD -o fsrcv
+    g++ compiler/assembler/code_gen/*.cpp compiler/assembler/common/*.cpp compiler/assembler/parser/*.cpp compiler/assembler/preprocessor/*.cpp compiler/assembler/tokenizer/*.cpp compiler/assembler/main.cpp compiler/compiler/common/ast/nodes.cpp compiler/compiler/lexer/lexer.cpp compiler/compiler/parser/fs_parser.cpp compiler/compiler/program/program.cpp compiler/compiler/main.cpp -std=c++14  -w -O2 -DASSEMBLER_STATIC_BUILD -o fsrcv
 ```
 ## 3. Compilation commands
 ```bash
