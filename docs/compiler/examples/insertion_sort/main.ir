@@ -48,16 +48,17 @@
 	NOP
 .main:
 	ALLOC $array,20
+	ALLOC $array,20
 	LI @t25,5
-	STORE @t25,(0)
+	STORE @t25,(0)$array
 	LI @t26,4
-	STORE @t26,(4)
+	STORE @t26,(4)$array
 	LI @t27,3
-	STORE @t27,(8)
+	STORE @t27,(8)$array
 	LI @t28,2
-	STORE @t28,(12)
+	STORE @t28,(12)$array
 	LI @t29,1
-	STORE @t29,(16)
+	STORE @t29,(16)$array
 	ARG $array
 	ARG 5
 	@t30 = CALL .insertion_sort
