@@ -540,8 +540,15 @@ namespace fs_compiler {
 			{
 				ir_instruction_t* instruction = function_block.instructions[instr_idx];
 
+				if (instruction->operation == ir_instruction_t::operation_::GOTO) {
+					int x{};
+				}
 				if( instruction->operation != ir_instruction_t::operation_::ADDR
 					&& instruction->operation != ir_instruction_t::operation_::ARG
+					&& instruction->operation != ir_instruction_t::operation_::LABEL
+					&& instruction->operation != ir_instruction_t::operation_::LOAD
+					&& instruction->operation != ir_instruction_t::operation_::GOTO
+					&& instruction->operation != ir_instruction_t::operation_::NOP
 					&& function_block.stack.find(instruction->src1) != function_block.stack.end()
 					&& !instruction->src1_is_stack_offset
 					){
@@ -550,14 +557,17 @@ namespace fs_compiler {
 				}
 				if(instruction->operation != ir_instruction_t::operation_::ADDR
 					&& instruction->operation != ir_instruction_t::operation_::ARG
+					&& instruction->operation != ir_instruction_t::operation_::LABEL
+					&& instruction->operation != ir_instruction_t::operation_::LOAD
+					&& instruction->operation != ir_instruction_t::operation_::GOTO
+					&& instruction->operation != ir_instruction_t::operation_::NOP
 					&& function_block.stack.find(instruction->src2) != function_block.stack.end()
 					){
 					std::string op = resolve_reg(instruction->src2) + "," + actual_offset(function_block.stack[instruction->src2]) + "(s0)";
 					emit("lw", op);
 				}
 				// store instructon's destination is a memory address
-				if(instruction->operation == ir_instruction_t::operation_::STORE &&
-					instruction->store_dest_is_ptr
+				if(instruction->operation == ir_instruction_t::operation_::STORE && instruction->store_dest_is_ptr
 					&& function_block.stack.find(instruction->dest) != function_block.stack.end()
 					){
 					std::string op = resolve_reg(instruction->dest) + "," + actual_offset(function_block.stack[instruction->dest]) + "(s0)";
