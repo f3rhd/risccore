@@ -595,7 +595,6 @@ std::string var_decl_statement_t::generate_ir(IR_Gen_Context& ctx) const {
 			instr.src1 = std::to_string(type.array_size * 4);
 			ctx.instructions.push_back(std::move(instr));
 			ctx.array_ids.push_back(ctx.initializing_array_id);
-			ctx.initializing_array_id = "";
 		}
 	}
 	else {
@@ -999,6 +998,7 @@ std::string array_initialize_expr_t::generate_ir(IR_Gen_Context& ctx) const {
 			ctx.instructions.push_back(std::move(store_instr));
 		}
 	}
+	ctx.initializing_array_id = "";
 	return "";
 }
 std::string binary_expression_t::generate_ir(IR_Gen_Context& ctx) const {

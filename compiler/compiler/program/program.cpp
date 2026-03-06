@@ -540,9 +540,6 @@ namespace fs_compiler {
 			{
 				ir_instruction_t* instruction = function_block.instructions[instr_idx];
 
-				if (instruction->operation == ir_instruction_t::operation_::GOTO) {
-					int x{};
-				}
 				if( instruction->operation != ir_instruction_t::operation_::ADDR
 					&& instruction->operation != ir_instruction_t::operation_::ARG
 					&& instruction->operation != ir_instruction_t::operation_::LABEL
@@ -561,6 +558,7 @@ namespace fs_compiler {
 					&& instruction->operation != ir_instruction_t::operation_::LOAD
 					&& instruction->operation != ir_instruction_t::operation_::GOTO
 					&& instruction->operation != ir_instruction_t::operation_::NOP
+					&& instruction->operation != ir_instruction_t::operation_::LOAD_CONST
 					&& function_block.stack.find(instruction->src2) != function_block.stack.end()
 					){
 					std::string op = resolve_reg(instruction->src2) + "," + actual_offset(function_block.stack[instruction->src2]) + "(s0)";
